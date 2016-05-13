@@ -14,12 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1beta1
+package core
 
 import (
+	"k8s.io/kubernetes/pkg/api"
+	"k8s.io/kubernetes/pkg/fields"
+	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/runtime"
 )
 
 func addDefaultingFuncs(scheme *runtime.Scheme) error {
-	return nil
+	return scheme.AddDefaultingFuncs(
+		func(obj *api.ListOptions) {
+			if obj.LabelSelector == nil {
+				obj.LabelSelector = labels.Everything()
+			}
+			if obj.FieldSelector == nil {
+				obj.FieldSelector = fields.Everything()
+			}
+		},
+	)
 }
