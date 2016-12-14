@@ -17,38 +17,34 @@ limitations under the License.
 package fake
 
 import (
-	v1 "k8s.io/kubernetes/federation/client/clientset_generated/federation_release_1_5/typed/core/v1"
+	v1beta1 "k8s.io/kubernetes/federation/client/clientset_generated/federation_clientset/typed/extensions/v1beta1"
 	restclient "k8s.io/kubernetes/pkg/client/restclient"
 	core "k8s.io/kubernetes/pkg/client/testing/core"
 )
 
-type FakeCoreV1 struct {
+type FakeExtensionsV1beta1 struct {
 	*core.Fake
 }
 
-func (c *FakeCoreV1) ConfigMaps(namespace string) v1.ConfigMapInterface {
-	return &FakeConfigMaps{c, namespace}
+func (c *FakeExtensionsV1beta1) DaemonSets(namespace string) v1beta1.DaemonSetInterface {
+	return &FakeDaemonSets{c, namespace}
 }
 
-func (c *FakeCoreV1) Events(namespace string) v1.EventInterface {
-	return &FakeEvents{c, namespace}
+func (c *FakeExtensionsV1beta1) Deployments(namespace string) v1beta1.DeploymentInterface {
+	return &FakeDeployments{c, namespace}
 }
 
-func (c *FakeCoreV1) Namespaces() v1.NamespaceInterface {
-	return &FakeNamespaces{c}
+func (c *FakeExtensionsV1beta1) Ingresses(namespace string) v1beta1.IngressInterface {
+	return &FakeIngresses{c, namespace}
 }
 
-func (c *FakeCoreV1) Secrets(namespace string) v1.SecretInterface {
-	return &FakeSecrets{c, namespace}
-}
-
-func (c *FakeCoreV1) Services(namespace string) v1.ServiceInterface {
-	return &FakeServices{c, namespace}
+func (c *FakeExtensionsV1beta1) ReplicaSets(namespace string) v1beta1.ReplicaSetInterface {
+	return &FakeReplicaSets{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *FakeCoreV1) RESTClient() restclient.Interface {
+func (c *FakeExtensionsV1beta1) RESTClient() restclient.Interface {
 	var ret *restclient.RESTClient
 	return ret
 }
