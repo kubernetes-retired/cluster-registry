@@ -10,20 +10,20 @@ load(
 go_library(
     name = "go_default_library",
     srcs = [
-        "batch_client.go",
         "doc.go",
-        "generated_expansion.go",
-        "job.go",
+        "register.go",
     ],
     tags = ["automanaged"],
     deps = [
-        "//federation/client/clientset_generated/federation_clientset/scheme:go_default_library",
+        "//federation/apis/federation/v1beta1:go_default_library",
+        "//pkg/api/v1:go_default_library",
+        "//pkg/apis/autoscaling/v1:go_default_library",
         "//pkg/apis/batch/v1:go_default_library",
+        "//pkg/apis/extensions/v1beta1:go_default_library",
         "//vendor:k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//vendor:k8s.io/apimachinery/pkg/runtime",
+        "//vendor:k8s.io/apimachinery/pkg/runtime/schema",
         "//vendor:k8s.io/apimachinery/pkg/runtime/serializer",
-        "//vendor:k8s.io/apimachinery/pkg/types",
-        "//vendor:k8s.io/apimachinery/pkg/watch",
-        "//vendor:k8s.io/client-go/rest",
     ],
 )
 
@@ -36,9 +36,6 @@ filegroup(
 
 filegroup(
     name = "all-srcs",
-    srcs = [
-        ":package-srcs",
-        "//federation/client/clientset_generated/federation_clientset/typed/batch/v1/fake:all-srcs",
-    ],
+    srcs = [":package-srcs"],
     tags = ["automanaged"],
 )
