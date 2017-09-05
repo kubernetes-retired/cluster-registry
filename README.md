@@ -13,5 +13,3 @@ If you have questions, please reach out to
 
 [Cluster Registry API
 design](https://docs.google.com/document/d/1Oi9EO3Jwtp69obakl-9YpLkP764GZzsz95XJlX1a960/edit)
-
-TODO: Copy code from kubernetes/kubernetes federation
