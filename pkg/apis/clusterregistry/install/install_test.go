@@ -1,5 +1,5 @@
 /*
-Copyright 2016 The Kubernetes Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,14 +23,14 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/kubernetes/federation/apis/federation"
-	"k8s.io/kubernetes/federation/apis/federation/v1beta1"
+	"k8s.io/cluster-registry/pkg/apis/clusterregistry"
+	"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
 	"k8s.io/kubernetes/pkg/api"
 )
 
 func TestResourceVersioner(t *testing.T) {
 	accessor := meta.NewAccessor()
-	cluster := federation.Cluster{ObjectMeta: metav1.ObjectMeta{ResourceVersion: "10"}}
+	cluster := clusterregistry.Cluster{ObjectMeta: metav1.ObjectMeta{ResourceVersion: "10"}}
 	version, err := accessor.ResourceVersion(&cluster)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -39,7 +39,7 @@ func TestResourceVersioner(t *testing.T) {
 		t.Errorf("unexpected version %v", version)
 	}
 
-	clusterList := federation.ClusterList{ListMeta: metav1.ListMeta{ResourceVersion: "10"}}
+	clusterList := clusterregistry.ClusterList{ListMeta: metav1.ListMeta{ResourceVersion: "10"}}
 	version, err = accessor.ResourceVersion(&clusterList)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -50,47 +50,47 @@ func TestResourceVersioner(t *testing.T) {
 }
 
 func TestCodec(t *testing.T) {
-	cluster := federation.Cluster{}
+	cluster := clusterregistry.Cluster{}
 	// We do want to use package registered rather than testapi here, because we
 	// want to test if the package install and package registered work as expected.
-	data, err := runtime.Encode(api.Codecs.LegacyCodec(api.Registry.GroupOrDie(federation.GroupName).GroupVersion), &cluster)
+	data, err := runtime.Encode(api.Codecs.LegacyCodec(api.Registry.GroupOrDie(clusterregistry.GroupName).GroupVersion), &cluster)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	other := federation.Cluster{}
+	other := clusterregistry.Cluster{}
 	if err := json.Unmarshal(data, &other); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if other.APIVersion != api.Registry.GroupOrDie(federation.GroupName).GroupVersion.String() || other.Kind != "Cluster" {
+	if other.APIVersion != api.Registry.GroupOrDie(clusterregistry.GroupName).GroupVersion.String() || other.Kind != "Cluster" {
 		t.Errorf("unexpected unmarshalled object %#v", other)
 	}
 }
 
 func TestInterfacesFor(t *testing.T) {
-	if _, err := api.Registry.GroupOrDie(federation.GroupName).InterfacesFor(federation.SchemeGroupVersion); err == nil {
+	if _, err := api.Registry.GroupOrDie(clusterregistry.GroupName).InterfacesFor(clusterregistry.SchemeGroupVersion); err == nil {
 		t.Fatalf("unexpected non-error: %v", err)
 	}
-	for i, version := range api.Registry.GroupOrDie(federation.GroupName).GroupVersions {
-		if vi, err := api.Registry.GroupOrDie(federation.GroupName).InterfacesFor(version); err != nil || vi == nil {
+	for i, version := range api.Registry.GroupOrDie(clusterregistry.GroupName).GroupVersions {
+		if vi, err := api.Registry.GroupOrDie(clusterregistry.GroupName).InterfacesFor(version); err != nil || vi == nil {
 			t.Fatalf("%d: unexpected result: %v", i, err)
 		}
 	}
 }
 
 func TestRESTMapper(t *testing.T) {
-	gv := v1beta1.SchemeGroupVersion
+	gv := v1alpha1.SchemeGroupVersion
 	clusterGVK := gv.WithKind("Cluster")
 
-	if gvk, err := api.Registry.GroupOrDie(federation.GroupName).RESTMapper.KindFor(gv.WithResource("clusters")); err != nil || gvk != clusterGVK {
+	if gvk, err := api.Registry.GroupOrDie(clusterregistry.GroupName).RESTMapper.KindFor(gv.WithResource("clusters")); err != nil || gvk != clusterGVK {
 		t.Errorf("unexpected version mapping: %v %v", gvk, err)
 	}
 
-	if m, err := api.Registry.GroupOrDie(federation.GroupName).RESTMapper.RESTMapping(clusterGVK.GroupKind(), ""); err != nil || m.GroupVersionKind != clusterGVK || m.Resource != "clusters" {
+	if m, err := api.Registry.GroupOrDie(clusterregistry.GroupName).RESTMapper.RESTMapping(clusterGVK.GroupKind(), ""); err != nil || m.GroupVersionKind != clusterGVK || m.Resource != "clusters" {
 		t.Errorf("unexpected version mapping: %#v %v", m, err)
 	}
 
-	for _, version := range api.Registry.GroupOrDie(federation.GroupName).GroupVersions {
-		mapping, err := api.Registry.GroupOrDie(federation.GroupName).RESTMapper.RESTMapping(clusterGVK.GroupKind(), version.Version)
+	for _, version := range api.Registry.GroupOrDie(clusterregistry.GroupName).GroupVersions {
+		mapping, err := api.Registry.GroupOrDie(clusterregistry.GroupName).RESTMapper.RESTMapping(clusterGVK.GroupKind(), version.Version)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -102,12 +102,12 @@ func TestRESTMapper(t *testing.T) {
 			t.Errorf("incorrect groupVersion: %v", mapping)
 		}
 
-		interfaces, _ := api.Registry.GroupOrDie(federation.GroupName).InterfacesFor(version)
+		interfaces, _ := api.Registry.GroupOrDie(clusterregistry.GroupName).InterfacesFor(version)
 		if mapping.ObjectConvertor != interfaces.ObjectConvertor {
 			t.Errorf("unexpected: %#v, expected: %#v", mapping, interfaces)
 		}
 
-		rc := &federation.Cluster{ObjectMeta: metav1.ObjectMeta{Name: "foo"}}
+		rc := &clusterregistry.Cluster{ObjectMeta: metav1.ObjectMeta{Name: "foo"}}
 		name, err := mapping.MetadataAccessor.Name(rc)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)

@@ -1,5 +1,5 @@
 /*
-Copyright 2016 The Kubernetes Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,23 +20,12 @@ import (
 	"testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/kubernetes/federation/apis/federation"
-	"k8s.io/kubernetes/pkg/api"
+	"k8s.io/cluster-registry/pkg/apis/clusterregistry"
 )
 
 func TestValidateCluster(t *testing.T) {
-	successCases := []federation.Cluster{
-		{
-			ObjectMeta: metav1.ObjectMeta{Name: "cluster-s"},
-			Spec: federation.ClusterSpec{
-				ServerAddressByClientCIDRs: []federation.ServerAddressByClientCIDR{
-					{
-						ClientCIDR:    "0.0.0.0/0",
-						ServerAddress: "localhost:8888",
-					},
-				},
-			},
-		},
+	successCases := []clusterregistry.Cluster{
+		{ObjectMeta: metav1.ObjectMeta{Name: "cluster-s"}},
 	}
 	for _, successCase := range successCases {
 		errs := ValidateCluster(&successCase)
@@ -45,15 +34,13 @@ func TestValidateCluster(t *testing.T) {
 		}
 	}
 
-	errorCases := map[string]federation.Cluster{
+	errorCases := map[string]clusterregistry.Cluster{
 		"missing cluster addresses": {
 			ObjectMeta: metav1.ObjectMeta{Name: "cluster-f"},
 		},
 		"empty cluster addresses": {
 			ObjectMeta: metav1.ObjectMeta{Name: "cluster-f"},
-			Spec: federation.ClusterSpec{
-				ServerAddressByClientCIDRs: []federation.ServerAddressByClientCIDR{},
-			}},
+		},
 		"invalid_label": {
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "cluster-f",
@@ -64,14 +51,6 @@ func TestValidateCluster(t *testing.T) {
 		},
 		"invalid cluster name (is a subdomain)": {
 			ObjectMeta: metav1.ObjectMeta{Name: "mycluster.mycompany"},
-			Spec: federation.ClusterSpec{
-				ServerAddressByClientCIDRs: []federation.ServerAddressByClientCIDR{
-					{
-						ClientCIDR:    "0.0.0.0/0",
-						ServerAddress: "localhost:8888",
-					},
-				},
-			},
 		},
 	}
 	for testName, errorCase := range errorCases {
@@ -84,32 +63,16 @@ func TestValidateCluster(t *testing.T) {
 
 func TestValidateClusterUpdate(t *testing.T) {
 	type clusterUpdateTest struct {
-		old    federation.Cluster
-		update federation.Cluster
+		old    clusterregistry.Cluster
+		update clusterregistry.Cluster
 	}
 	successCases := []clusterUpdateTest{
 		{
-			old: federation.Cluster{
+			old: clusterregistry.Cluster{
 				ObjectMeta: metav1.ObjectMeta{Name: "cluster-s"},
-				Spec: federation.ClusterSpec{
-					ServerAddressByClientCIDRs: []federation.ServerAddressByClientCIDR{
-						{
-							ClientCIDR:    "0.0.0.0/0",
-							ServerAddress: "localhost:8888",
-						},
-					},
-				},
 			},
-			update: federation.Cluster{
+			update: clusterregistry.Cluster{
 				ObjectMeta: metav1.ObjectMeta{Name: "cluster-s"},
-				Spec: federation.ClusterSpec{
-					ServerAddressByClientCIDRs: []federation.ServerAddressByClientCIDR{
-						{
-							ClientCIDR:    "0.0.0.0/0",
-							ServerAddress: "localhost:8888",
-						},
-					},
-				},
 			},
 		},
 	}
@@ -124,92 +87,16 @@ func TestValidateClusterUpdate(t *testing.T) {
 
 	errorCases := map[string]clusterUpdateTest{
 		"cluster name changed": {
-			old: federation.Cluster{
+			old: clusterregistry.Cluster{
 				ObjectMeta: metav1.ObjectMeta{Name: "cluster-s"},
-				Spec: federation.ClusterSpec{
-					ServerAddressByClientCIDRs: []federation.ServerAddressByClientCIDR{
-						{
-							ClientCIDR:    "0.0.0.0/0",
-							ServerAddress: "localhost:8888",
-						},
-					},
-				},
 			},
-			update: federation.Cluster{
+			update: clusterregistry.Cluster{
 				ObjectMeta: metav1.ObjectMeta{Name: "cluster-newname"},
-				Spec: federation.ClusterSpec{
-					ServerAddressByClientCIDRs: []federation.ServerAddressByClientCIDR{
-						{
-							ClientCIDR:    "0.0.0.0/0",
-							ServerAddress: "localhost:8888",
-						},
-					},
-				},
 			},
 		},
 	}
 	for testName, errorCase := range errorCases {
 		errs := ValidateClusterUpdate(&errorCase.update, &errorCase.old)
-		if len(errs) == 0 {
-			t.Errorf("expected failure: %s", testName)
-		}
-	}
-}
-
-func TestValidateClusterStatusUpdate(t *testing.T) {
-	type clusterUpdateTest struct {
-		old    federation.Cluster
-		update federation.Cluster
-	}
-	successCases := []clusterUpdateTest{
-		{
-			old: federation.Cluster{
-				ObjectMeta: metav1.ObjectMeta{Name: "cluster-s"},
-				Spec: federation.ClusterSpec{
-					ServerAddressByClientCIDRs: []federation.ServerAddressByClientCIDR{
-						{
-							ClientCIDR:    "0.0.0.0/0",
-							ServerAddress: "localhost:8888",
-						},
-					},
-				},
-				Status: federation.ClusterStatus{
-					Conditions: []federation.ClusterCondition{
-						{Type: federation.ClusterReady, Status: api.ConditionTrue},
-					},
-				},
-			},
-			update: federation.Cluster{
-				ObjectMeta: metav1.ObjectMeta{Name: "cluster-s"},
-				Spec: federation.ClusterSpec{
-					ServerAddressByClientCIDRs: []federation.ServerAddressByClientCIDR{
-						{
-							ClientCIDR:    "0.0.0.0/0",
-							ServerAddress: "localhost:8888",
-						},
-					},
-				},
-				Status: federation.ClusterStatus{
-					Conditions: []federation.ClusterCondition{
-						{Type: federation.ClusterReady, Status: api.ConditionTrue},
-						{Type: federation.ClusterOffline, Status: api.ConditionTrue},
-					},
-				},
-			},
-		},
-	}
-	for _, successCase := range successCases {
-		successCase.old.ObjectMeta.ResourceVersion = "1"
-		successCase.update.ObjectMeta.ResourceVersion = "1"
-		errs := ValidateClusterUpdate(&successCase.update, &successCase.old)
-		if len(errs) != 0 {
-			t.Errorf("expect success: %v", errs)
-		}
-	}
-
-	errorCases := map[string]clusterUpdateTest{}
-	for testName, errorCase := range errorCases {
-		errs := ValidateClusterStatusUpdate(&errorCase.update, &errorCase.old)
 		if len(errs) == 0 {
 			t.Errorf("expected failure: %s", testName)
 		}
