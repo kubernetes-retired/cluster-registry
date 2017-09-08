@@ -19,7 +19,7 @@ package main
 import (
 	"os"
 
-	"k8s.io/kubernetes/federation/cmd/kubefed/app"
+	"k8s.io/cluster-registry/cmd/kubefed/app"
 )
 
 func main() {
