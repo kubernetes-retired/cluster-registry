@@ -1,1 +1,6 @@
 bazel-*
+pkg/client/*generated
+pkg/apis/clusterregistry/**/*generated*
+BUILD.bazel
+!/BUILD.bazel
+!/cmd/clusterregistry/BUILD.bazel

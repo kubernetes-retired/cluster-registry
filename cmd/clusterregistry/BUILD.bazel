@@ -1,0 +1,16 @@
+load("@io_bazel_rules_docker//docker:docker.bzl", "docker_build", "docker_push")
+
+docker_build(
+    name = "clusterregistry-image",
+    base = "@ubuntu//image",
+    cmd = ["./clusterregistry"],
+    files = [":clusterregistry"],
+)
+
+docker_push(
+    name = "push-clusterregistry-image",
+    image = ":clusterregistry-image",
+    registry = "gcr.io",
+    repository = "kubetest-157500/clusterregistry",
+    tag = "dev",
+)
