@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package options contains flags and options for initializing federation-apiserver.
+// Package options contains flags and options for initializing the cluster registry API server.
 package options
 
 import (
@@ -27,7 +27,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// Runtime options for the federation-apiserver.
+// Runtime options for the clusterregistry-apiserver.
 type ServerRunOptions struct {
 	GenericServerRunOptions *genericoptions.ServerRunOptions
 	Etcd                    *genericoptions.EtcdOptions
