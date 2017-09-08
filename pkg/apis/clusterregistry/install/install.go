@@ -17,17 +17,24 @@ limitations under the License.
 package install
 
 import (
+	"k8s.io/cluster-registry/pkg/apis/clusterregistry"
+	"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
+
 	"k8s.io/apimachinery/pkg/apimachinery/announced"
 	"k8s.io/apimachinery/pkg/apimachinery/registered"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/util/sets"
+)
 
-	"k8s.io/cluster-registry/pkg/apis/clusterregistry"
-	"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
+var (
+	Scheme   = runtime.NewScheme()
+	Registry = registered.NewOrDie("")
+	Codecs   = serializer.NewCodecFactory(Scheme)
 )
 
 func init() {
-	Install(make(announced.APIGroupFactoryRegistry), registered.NewOrDie(""), runtime.NewScheme())
+	Install(make(announced.APIGroupFactoryRegistry), Registry, Scheme)
 }
 
 // Install registers the API group and adds types to a scheme

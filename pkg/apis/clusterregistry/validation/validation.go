@@ -17,9 +17,9 @@ limitations under the License.
 package validation
 
 import (
+	"k8s.io/apimachinery/pkg/api/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry"
-	"k8s.io/kubernetes/pkg/api/validation"
 )
 
 func ValidateCluster(cluster *clusterregistry.Cluster) field.ErrorList {

@@ -20,6 +20,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// +genclient
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // Information about a cluster in a cluster registry.
 type Cluster struct {
 	metav1.TypeMeta
@@ -28,6 +32,8 @@ type Cluster struct {
 	// +optional
 	metav1.ObjectMeta
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // A list of Kubernetes clusters in the cluster registry.
 type ClusterList struct {

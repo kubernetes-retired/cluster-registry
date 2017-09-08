@@ -20,6 +20,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// +genclient
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // Information about a cluster in a cluster registry.
 type Cluster struct {
 	metav1.TypeMeta `json:",inline"`
@@ -29,6 +32,7 @@ type Cluster struct {
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 }
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // A list of Kubernetes clusters in the cluster registry.
 type ClusterList struct {
 	metav1.TypeMeta `json:",inline"`
