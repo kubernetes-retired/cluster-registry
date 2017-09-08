@@ -35,12 +35,6 @@ func TestValidateCluster(t *testing.T) {
 	}
 
 	errorCases := map[string]clusterregistry.Cluster{
-		"missing cluster addresses": {
-			ObjectMeta: metav1.ObjectMeta{Name: "cluster-f"},
-		},
-		"empty cluster addresses": {
-			ObjectMeta: metav1.ObjectMeta{Name: "cluster-f"},
-		},
 		"invalid_label": {
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "cluster-f",

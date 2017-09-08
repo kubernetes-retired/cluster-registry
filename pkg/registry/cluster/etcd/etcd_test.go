@@ -20,47 +20,32 @@ import (
 	"testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apiserver/pkg/registry/generic"
 	etcdtesting "k8s.io/apiserver/pkg/storage/etcd/testing"
-	"k8s.io/kubernetes/federation/apis/federation"
-	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/registry/registrytest"
+	"k8s.io/cluster-registry/pkg/apis/clusterregistry"
+	"k8s.io/cluster-registry/pkg/apis/clusterregistry/install"
+	registrytest "k8s.io/cluster-registry/pkg/registry/cluster/etcd/registrytestutil"
 )
 
 func newStorage(t *testing.T) (*REST, *etcdtesting.EtcdTestServer) {
-	storageConfig, server := registrytest.NewEtcdStorage(t, federation.GroupName)
+	storageConfig, server := registrytest.NewEtcdStorage(t, clusterregistry.GroupName)
 	restOptions := generic.RESTOptions{
 		StorageConfig:           storageConfig,
 		Decorator:               generic.UndecoratedStorage,
 		DeleteCollectionWorkers: 1,
 		ResourcePrefix:          "clusters",
 	}
-	storage, _ := NewREST(restOptions)
+	storage, _ := NewREST(restOptions, install.Scheme)
 	return storage, server
 }
 
-func validNewCluster() *federation.Cluster {
-	return &federation.Cluster{
+func validNewCluster() *clusterregistry.Cluster {
+	return &clusterregistry.Cluster{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "foo",
 			Labels: map[string]string{
 				"name": "foo",
-			},
-		},
-		Spec: federation.ClusterSpec{
-			ServerAddressByClientCIDRs: []federation.ServerAddressByClientCIDR{
-				{
-					ClientCIDR:    "0.0.0.0/0",
-					ServerAddress: "localhost:8888",
-				},
-			},
-		},
-		Status: federation.ClusterStatus{
-			Conditions: []federation.ClusterCondition{
-				{Type: federation.ClusterReady, Status: api.ConditionFalse},
 			},
 		},
 	}
@@ -74,7 +59,7 @@ func TestCreate(t *testing.T) {
 	cluster.ObjectMeta = metav1.ObjectMeta{GenerateName: "foo"}
 	test.TestCreate(
 		cluster,
-		&federation.Cluster{
+		&clusterregistry.Cluster{
 			ObjectMeta: metav1.ObjectMeta{Name: "-a123-a_"},
 		},
 	)
@@ -89,10 +74,8 @@ func TestUpdate(t *testing.T) {
 		validNewCluster(),
 		// updateFunc
 		func(obj runtime.Object) runtime.Object {
-			object := obj.(*federation.Cluster)
-			object.Spec.SecretRef = &api.LocalObjectReference{
-				Name: "bar",
-			}
+			object := obj.(*clusterregistry.Cluster)
+			object.ObjectMeta.Annotations = map[string]string{"foo": "bar"}
 			return object
 		},
 	)
@@ -119,28 +102,28 @@ func TestList(t *testing.T) {
 	test.TestList(validNewCluster())
 }
 
-func TestWatch(t *testing.T) {
-	storage, server := newStorage(t)
-	defer server.Terminate(t)
-	test := registrytest.New(t, storage.Store).ClusterScope()
-	test.TestWatch(
-		validNewCluster(),
-		// matching labels
-		[]labels.Set{
-			{"name": "foo"},
-		},
-		// not matching labels
-		[]labels.Set{
-			{"name": "bar"},
-			{"foo": "bar"},
-		},
-		// matching fields
-		[]fields.Set{
-			{"metadata.name": "foo"},
-		},
-		// not matching fields
-		[]fields.Set{
-			{"metadata.name": "bar"},
-		},
-	)
-}
+//func TestWatch(t *testing.T) {
+//	storage, server := newStorage(t)
+//	defer server.Terminate(t)
+//	test := registrytest.New(t, storage.Store).ClusterScope()
+//	test.TestWatch(
+//		validNewCluster(),
+//		// matching labels
+//		[]labels.Set{
+//			{"name": "foo"},
+//		},
+//		// not matching labels
+//		[]labels.Set{
+//			{"name": "bar"},
+//			{"foo": "bar"},
+//		},
+//		// matching fields
+//		[]fields.Set{
+//			{"metadata.name": "foo"},
+//		},
+//		// not matching fields
+//		[]fields.Set{
+//			{"metadata.name": "bar"},
+//		},
+//	)
+//}

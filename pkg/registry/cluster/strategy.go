@@ -27,9 +27,9 @@ import (
 	"k8s.io/apiserver/pkg/registry/generic"
 	apistorage "k8s.io/apiserver/pkg/storage"
 	"k8s.io/apiserver/pkg/storage/names"
-	"k8s.io/kubernetes/federation/apis/federation"
-	"k8s.io/kubernetes/federation/apis/federation/validation"
-	"k8s.io/kubernetes/pkg/api"
+	"k8s.io/cluster-registry/pkg/apis/clusterregistry"
+	"k8s.io/cluster-registry/pkg/apis/clusterregistry/install"
+	"k8s.io/cluster-registry/pkg/apis/clusterregistry/validation"
 )
 
 type clusterStrategy struct {
@@ -37,19 +37,19 @@ type clusterStrategy struct {
 	names.NameGenerator
 }
 
-var Strategy = clusterStrategy{api.Scheme, names.SimpleNameGenerator}
+var Strategy = clusterStrategy{install.Scheme, names.SimpleNameGenerator}
 
 func (clusterStrategy) NamespaceScoped() bool {
 	return false
 }
 
-func ClusterToSelectableFields(cluster *federation.Cluster) fields.Set {
+func ClusterToSelectableFields(cluster *clusterregistry.Cluster) fields.Set {
 	return generic.ObjectMetaFieldsSet(&cluster.ObjectMeta, false)
 }
 
 // GetAttrs returns labels and fields of a given object for filtering purposes.
 func GetAttrs(obj runtime.Object) (labels.Set, fields.Set, bool, error) {
-	cluster, ok := obj.(*federation.Cluster)
+	cluster, ok := obj.(*clusterregistry.Cluster)
 	if !ok {
 		return nil, nil, false, fmt.Errorf("given object is not a cluster.")
 	}
@@ -66,13 +66,11 @@ func MatchCluster(label labels.Selector, field fields.Selector) apistorage.Selec
 
 // PrepareForCreate clears fields that are not allowed to be set by end users on creation.
 func (clusterStrategy) PrepareForCreate(ctx genericapirequest.Context, obj runtime.Object) {
-	cluster := obj.(*federation.Cluster)
-	cluster.Status = federation.ClusterStatus{}
 }
 
 // Validate validates a new cluster.
 func (clusterStrategy) Validate(ctx genericapirequest.Context, obj runtime.Object) field.ErrorList {
-	cluster := obj.(*federation.Cluster)
+	cluster := obj.(*clusterregistry.Cluster)
 	return validation.ValidateCluster(cluster)
 }
 
@@ -87,35 +85,12 @@ func (clusterStrategy) AllowCreateOnUpdate() bool {
 
 // PrepareForUpdate clears fields that are not allowed to be set by end users on update.
 func (clusterStrategy) PrepareForUpdate(ctx genericapirequest.Context, obj, old runtime.Object) {
-	cluster := obj.(*federation.Cluster)
-	oldCluster := old.(*federation.Cluster)
-	cluster.Status = oldCluster.Status
 }
 
 // ValidateUpdate is the default update validation for an end user.
 func (clusterStrategy) ValidateUpdate(ctx genericapirequest.Context, obj, old runtime.Object) field.ErrorList {
-	return validation.ValidateClusterUpdate(obj.(*federation.Cluster), old.(*federation.Cluster))
+	return validation.ValidateClusterUpdate(obj.(*clusterregistry.Cluster), old.(*clusterregistry.Cluster))
 }
 func (clusterStrategy) AllowUnconditionalUpdate() bool {
 	return true
-}
-
-type clusterStatusStrategy struct {
-	clusterStrategy
-}
-
-var StatusStrategy = clusterStatusStrategy{Strategy}
-
-func (clusterStatusStrategy) PrepareForCreate(ctx genericapirequest.Context, obj runtime.Object) {
-	_ = obj.(*federation.Cluster)
-}
-func (clusterStatusStrategy) PrepareForUpdate(ctx genericapirequest.Context, obj, old runtime.Object) {
-	cluster := obj.(*federation.Cluster)
-	oldCluster := old.(*federation.Cluster)
-	cluster.Spec = oldCluster.Spec
-}
-
-// ValidateUpdate is the default update validation for an end user.
-func (clusterStatusStrategy) ValidateUpdate(ctx genericapirequest.Context, obj, old runtime.Object) field.ErrorList {
-	return validation.ValidateClusterStatusUpdate(obj.(*federation.Cluster), old.(*federation.Cluster))
 }

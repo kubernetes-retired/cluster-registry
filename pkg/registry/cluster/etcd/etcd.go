@@ -18,55 +18,33 @@ package etcd
 
 import (
 	"k8s.io/apimachinery/pkg/runtime"
-	genericapirequest "k8s.io/apiserver/pkg/endpoints/request"
 	"k8s.io/apiserver/pkg/registry/generic"
 	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
-	"k8s.io/apiserver/pkg/registry/rest"
-	"k8s.io/kubernetes/federation/apis/federation"
-	"k8s.io/kubernetes/federation/registry/cluster"
-	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/registry/cachesize"
+	"k8s.io/cluster-registry/pkg/apis/clusterregistry"
+	"k8s.io/cluster-registry/pkg/registry/cluster"
 )
 
 type REST struct {
 	*genericregistry.Store
 }
 
-type StatusREST struct {
-	store *genericregistry.Store
-}
-
-func (r *StatusREST) New() runtime.Object {
-	return &federation.Cluster{}
-}
-
-// Update alters the status subset of an object.
-func (r *StatusREST) Update(ctx genericapirequest.Context, name string, objInfo rest.UpdatedObjectInfo) (runtime.Object, bool, error) {
-	return r.store.Update(ctx, name, objInfo)
-}
-
 // NewREST returns a RESTStorage object that will work against clusters.
-func NewREST(optsGetter generic.RESTOptionsGetter) (*REST, *StatusREST) {
+func NewREST(optsGetter generic.RESTOptionsGetter, scheme *runtime.Scheme) (*REST, error) {
 	store := &genericregistry.Store{
-		Copier:                   api.Scheme,
-		NewFunc:                  func() runtime.Object { return &federation.Cluster{} },
-		NewListFunc:              func() runtime.Object { return &federation.ClusterList{} },
+		Copier:                   scheme,
+		NewFunc:                  func() runtime.Object { return &clusterregistry.Cluster{} },
+		NewListFunc:              func() runtime.Object { return &clusterregistry.ClusterList{} },
 		PredicateFunc:            cluster.MatchCluster,
-		DefaultQualifiedResource: federation.Resource("clusters"),
-		WatchCacheSize:           cachesize.GetWatchCacheSizeByResource("clusters"),
+		DefaultQualifiedResource: clusterregistry.Resource("clusters"),
 
-		CreateStrategy:      cluster.Strategy,
-		UpdateStrategy:      cluster.Strategy,
-		DeleteStrategy:      cluster.Strategy,
-		ReturnDeletedObject: true,
+		CreateStrategy: cluster.Strategy,
+		UpdateStrategy: cluster.Strategy,
+		DeleteStrategy: cluster.Strategy,
 	}
 	options := &generic.StoreOptions{RESTOptions: optsGetter, AttrFunc: cluster.GetAttrs}
 	if err := store.CompleteWithOptions(options); err != nil {
-		panic(err) // TODO: Propagate error up
+		return nil, err
 	}
 
-	statusStore := *store
-	statusStore.UpdateStrategy = cluster.StatusStrategy
-
-	return &REST{store}, &StatusREST{store: &statusStore}
+	return &REST{store}, nil
 }

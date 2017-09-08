@@ -22,11 +22,7 @@ import (
 
 	genericoptions "k8s.io/apiserver/pkg/server/options"
 	"k8s.io/apiserver/pkg/storage/storagebackend"
-	"k8s.io/kubernetes/pkg/api"
-	kubeoptions "k8s.io/kubernetes/pkg/kubeapiserver/options"
-
-	// add the kubernetes feature gates
-	_ "k8s.io/kubernetes/pkg/features"
+	"k8s.io/cluster-registry/pkg/apis/clusterregistry/install"
 
 	"github.com/spf13/pflag"
 )
@@ -36,60 +32,38 @@ type ServerRunOptions struct {
 	GenericServerRunOptions *genericoptions.ServerRunOptions
 	Etcd                    *genericoptions.EtcdOptions
 	SecureServing           *genericoptions.SecureServingOptions
-	InsecureServing         *kubeoptions.InsecureServingOptions
 	Audit                   *genericoptions.AuditOptions
 	Features                *genericoptions.FeatureOptions
 	Admission               *genericoptions.AdmissionOptions
-	Authentication          *kubeoptions.BuiltInAuthenticationOptions
-	Authorization           *kubeoptions.BuiltInAuthorizationOptions
-	CloudProvider           *kubeoptions.CloudProviderOptions
-	StorageSerialization    *kubeoptions.StorageSerializationOptions
-	APIEnablement           *kubeoptions.APIEnablementOptions
+	Authentication          *genericoptions.ClientCertAuthenticationOptions
 
 	EventTTL time.Duration
 }
 
 // NewServerRunOptions creates a new ServerRunOptions object with default values.
 func NewServerRunOptions() *ServerRunOptions {
-	s := ServerRunOptions{
+	return &ServerRunOptions{
 		GenericServerRunOptions: genericoptions.NewServerRunOptions(),
-		Etcd:                 genericoptions.NewEtcdOptions(storagebackend.NewDefaultConfig(kubeoptions.DefaultEtcdPathPrefix, api.Scheme, nil)),
-		SecureServing:        kubeoptions.NewSecureServingOptions(),
-		InsecureServing:      kubeoptions.NewInsecureServingOptions(),
-		Audit:                genericoptions.NewAuditOptions(),
-		Features:             genericoptions.NewFeatureOptions(),
-		Admission:            genericoptions.NewAdmissionOptions(),
-		Authentication:       kubeoptions.NewBuiltInAuthenticationOptions().WithAll(),
-		Authorization:        kubeoptions.NewBuiltInAuthorizationOptions(),
-		CloudProvider:        kubeoptions.NewCloudProviderOptions(),
-		StorageSerialization: kubeoptions.NewStorageSerializationOptions(),
-		APIEnablement:        kubeoptions.NewAPIEnablementOptions(),
+		Etcd:           genericoptions.NewEtcdOptions(storagebackend.NewDefaultConfig("/registry/clusterregistry.kubernetes.io", install.Scheme, nil)),
+		SecureServing:  genericoptions.NewSecureServingOptions(),
+		Audit:          genericoptions.NewAuditOptions(),
+		Features:       genericoptions.NewFeatureOptions(),
+		Admission:      genericoptions.NewAdmissionOptions(),
+		Authentication: &genericoptions.ClientCertAuthenticationOptions{},
 
 		EventTTL: 1 * time.Hour,
 	}
-	// Overwrite the default for storage data format.
-	s.Etcd.DefaultStorageMediaType = "application/vnd.kubernetes.protobuf"
-	// Set the default for admission plugins names
-	s.Admission.PluginNames = []string{"AlwaysAdmit"}
-	return &s
 }
 
 // AddFlags adds flags for ServerRunOptions fields to be specified via FlagSet.
 func (s *ServerRunOptions) AddFlags(fs *pflag.FlagSet) {
-	// Add the generic flags.
 	s.GenericServerRunOptions.AddUniversalFlags(fs)
 	s.Etcd.AddFlags(fs)
 	s.SecureServing.AddFlags(fs)
-	s.InsecureServing.AddFlags(fs)
 	s.Audit.AddFlags(fs)
 	s.Features.AddFlags(fs)
 	s.Authentication.AddFlags(fs)
-	s.Authorization.AddFlags(fs)
-	s.CloudProvider.AddFlags(fs)
-	s.StorageSerialization.AddFlags(fs)
-	s.APIEnablement.AddFlags(fs)
 	s.Admission.AddFlags(fs)
 
-	fs.DurationVar(&s.EventTTL, "event-ttl", s.EventTTL,
-		"Amount of time to retain events.")
+	fs.DurationVar(&s.EventTTL, "event-ttl", s.EventTTL, "Amount of time to retain events.")
 }

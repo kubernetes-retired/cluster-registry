@@ -29,9 +29,6 @@ func (options *ServerRunOptions) Validate() []error {
 	if errs := options.SecureServing.Validate(); len(errs) > 0 {
 		errors = append(errors, errs...)
 	}
-	if errs := options.InsecureServing.Validate("insecure-port"); len(errs) > 0 {
-		errors = append(errors, errs...)
-	}
 	if errs := options.Audit.Validate(); len(errs) > 0 {
 		errors = append(errors, errs...)
 	}
@@ -41,18 +38,8 @@ func (options *ServerRunOptions) Validate() []error {
 	if errs := options.Admission.Validate(); len(errs) > 0 {
 		errors = append(errors, errs...)
 	}
-	if errs := options.Authentication.Validate(); len(errs) > 0 {
-		errors = append(errors, errs...)
-	}
-	if errs := options.Authorization.Validate(); len(errs) > 0 {
-		errors = append(errors, errs...)
-	}
-	if errs := options.CloudProvider.Validate(); len(errs) > 0 {
-		errors = append(errors, errs...)
-	}
 	if options.EventTTL <= 0 {
 		errors = append(errors, fmt.Errorf("--event-ttl must be greater than 0"))
 	}
-	// TODO: add more checks
 	return errors
 }

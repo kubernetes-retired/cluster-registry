@@ -22,17 +22,17 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	genericapirequest "k8s.io/apiserver/pkg/endpoints/request"
 	"k8s.io/apiserver/pkg/registry/rest"
-	"k8s.io/kubernetes/federation/apis/federation"
-	"k8s.io/kubernetes/pkg/api"
+	"k8s.io/cluster-registry/pkg/apis/clusterregistry"
+	"k8s.io/cluster-registry/pkg/apis/clusterregistry/install"
 )
 
 // Registry is an interface implemented by things that know how to store Cluster objects.
 type Registry interface {
-	ListClusters(ctx genericapirequest.Context, options *metainternalversion.ListOptions) (*federation.ClusterList, error)
+	ListClusters(ctx genericapirequest.Context, options *metainternalversion.ListOptions) (*clusterregistry.ClusterList, error)
 	WatchCluster(ctx genericapirequest.Context, options *metainternalversion.ListOptions) (watch.Interface, error)
-	GetCluster(ctx genericapirequest.Context, name string, options *metav1.GetOptions) (*federation.Cluster, error)
-	CreateCluster(ctx genericapirequest.Context, cluster *federation.Cluster) error
-	UpdateCluster(ctx genericapirequest.Context, cluster *federation.Cluster) error
+	GetCluster(ctx genericapirequest.Context, name string, options *metav1.GetOptions) (*clusterregistry.Cluster, error)
+	CreateCluster(ctx genericapirequest.Context, cluster *clusterregistry.Cluster) error
+	UpdateCluster(ctx genericapirequest.Context, cluster *clusterregistry.Cluster) error
 	DeleteCluster(ctx genericapirequest.Context, name string) error
 }
 
@@ -47,33 +47,33 @@ func NewRegistry(s rest.StandardStorage) Registry {
 	return &storage{s}
 }
 
-func (s *storage) ListClusters(ctx genericapirequest.Context, options *metainternalversion.ListOptions) (*federation.ClusterList, error) {
+func (s *storage) ListClusters(ctx genericapirequest.Context, options *metainternalversion.ListOptions) (*clusterregistry.ClusterList, error) {
 	obj, err := s.List(ctx, options)
 	if err != nil {
 		return nil, err
 	}
-	return obj.(*federation.ClusterList), nil
+	return obj.(*clusterregistry.ClusterList), nil
 }
 
 func (s *storage) WatchCluster(ctx genericapirequest.Context, options *metainternalversion.ListOptions) (watch.Interface, error) {
 	return s.Watch(ctx, options)
 }
 
-func (s *storage) GetCluster(ctx genericapirequest.Context, name string, options *metav1.GetOptions) (*federation.Cluster, error) {
+func (s *storage) GetCluster(ctx genericapirequest.Context, name string, options *metav1.GetOptions) (*clusterregistry.Cluster, error) {
 	obj, err := s.Get(ctx, name, options)
 	if err != nil {
 		return nil, err
 	}
-	return obj.(*federation.Cluster), nil
+	return obj.(*clusterregistry.Cluster), nil
 }
 
-func (s *storage) CreateCluster(ctx genericapirequest.Context, cluster *federation.Cluster) error {
+func (s *storage) CreateCluster(ctx genericapirequest.Context, cluster *clusterregistry.Cluster) error {
 	_, err := s.Create(ctx, cluster, false)
 	return err
 }
 
-func (s *storage) UpdateCluster(ctx genericapirequest.Context, cluster *federation.Cluster) error {
-	_, _, err := s.Update(ctx, cluster.Name, rest.DefaultUpdatedObjectInfo(cluster, api.Scheme))
+func (s *storage) UpdateCluster(ctx genericapirequest.Context, cluster *clusterregistry.Cluster) error {
+	_, _, err := s.Update(ctx, cluster.Name, rest.DefaultUpdatedObjectInfo(cluster, install.Scheme))
 	return err
 }
 

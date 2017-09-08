@@ -14,8 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// apiserver is the main api server and master for the cluster.
-// it is responsible for serving the cluster management API.
+// clusterregistry is the main API server that serves the Cluster Registry API.
 package main
 
 import (
@@ -27,9 +26,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apiserver/pkg/util/flag"
 	"k8s.io/apiserver/pkg/util/logs"
-	"k8s.io/kubernetes/federation/cmd/federation-apiserver/app"
-	"k8s.io/kubernetes/federation/cmd/federation-apiserver/app/options"
-	"k8s.io/kubernetes/pkg/version/verflag"
+	"k8s.io/cluster-registry/cmd/clusterregistry/app"
+	"k8s.io/cluster-registry/cmd/clusterregistry/app/options"
 
 	"github.com/spf13/pflag"
 )
@@ -39,12 +37,10 @@ func main() {
 
 	s := options.NewServerRunOptions()
 	s.AddFlags(pflag.CommandLine)
-
 	flag.InitFlags()
+
 	logs.InitLogs()
 	defer logs.FlushLogs()
-
-	verflag.PrintAndExitIfRequested()
 
 	if err := app.Run(s, wait.NeverStop); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
