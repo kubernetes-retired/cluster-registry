@@ -20,6 +20,7 @@ import (
 	"os"
 
 	"k8s.io/apiserver/pkg/util/logs"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/cluster-registry/pkg/crinit"
 )
 
