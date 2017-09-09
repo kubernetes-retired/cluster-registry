@@ -14,23 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package app
+package main
 
 import (
 	"os"
 
-	"k8s.io/apiserver/pkg/util/logs"
-	clusterregistry "k8s.io/cluster-registry/pkg/kubefed"
+	"k8s.io/cluster-registry/cmd/crinit/app"
 )
 
-const (
-	clusterregistryImageName = "clusterregistry:dev"
-	DefaultEtcdImage         = "gcr.io/google_containers/etcd:3.0.17"
-)
-
-func Run() error {
-	logs.InitLogs()
-	defer logs.FlushLogs()
-
-	return clusterregistry.NewClusterregistryCommand(os.Stdout, clusterregistryImageName, DefaultEtcdImage).Execute()
+func main() {
+	if err := app.Run(); err != nil {
+		os.Exit(1)
+	}
+	os.Exit(0)
 }

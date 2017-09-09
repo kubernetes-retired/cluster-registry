@@ -37,7 +37,7 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	certutil "k8s.io/client-go/util/cert"
 	triple "k8s.io/client-go/util/cert/triple"
-	"k8s.io/cluster-registry/pkg/kubefed/util"
+	"k8s.io/cluster-registry/pkg/crinit/util"
 
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
@@ -76,7 +76,7 @@ var (
 		# Initialize a cluster registry named foo
 		# in the host cluster whose local kubeconfig
 		# context is bar.
-		kubefed init foo --host-cluster-context=bar`
+		crinit init foo --host-cluster-context=bar`
 
 	componentLabel = map[string]string{
 		"app": "clusterregistry",

@@ -14,14 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package clusterregistry
+package crinit
 
 import (
 	"io"
 
 	"k8s.io/apiserver/pkg/util/flag"
 	"k8s.io/client-go/tools/clientcmd"
-	kubefedinit "k8s.io/cluster-registry/pkg/kubefed/init"
+	crinitinit "k8s.io/cluster-registry/pkg/crinit/init"
 
 	"github.com/spf13/cobra"
 )
@@ -38,7 +38,7 @@ func NewClusterregistryCommand(out io.Writer, defaultServerImage, defaultEtcdIma
 	// From this point and forward we get warnings on flags that contain "_" separators
 	cmds.SetGlobalNormalizationFunc(flag.WarnWordSepNormalizeFunc)
 
-	cmds.AddCommand(kubefedinit.NewCmdInit(out, clientcmd.NewDefaultPathOptions(), defaultServerImage, defaultEtcdImage))
+	cmds.AddCommand(crinitinit.NewCmdInit(out, clientcmd.NewDefaultPathOptions(), defaultServerImage, defaultEtcdImage))
 
 	return cmds
 }
