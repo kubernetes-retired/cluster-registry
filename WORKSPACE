@@ -87,6 +87,18 @@ http_archive(
     urls = ["https://github.com/kubernetes/repo-infra/archive/0aafaab9e158d3628804242c6a9c4dd3eb8bce1f.tar.gz"],
 )
 
+go_repository(
+    name = "io_k8s_code_generator",
+    commit = "a8e1019df0df00506fe1db5232a2af30ff4c87aa",
+    importpath = "k8s.io/code-generator",
+)
+
+go_repository(
+    name = "io_k8s_gengo",
+    commit = "75356185a9af8f0464efa792e2e9508d5b4be83c",
+    importpath = "k8s.io/gengo",
+)
+
 # dependent repos
 
 go_repository(

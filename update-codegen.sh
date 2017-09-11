@@ -18,29 +18,9 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-
 SCRIPT_PACKAGE=k8s.io/cluster-registry
 SCRIPT_ROOT=$(dirname "${BASH_SOURCE}")
-SCRIPT_BASE=${SCRIPT_ROOT}/../..
-CODEGEN_PKG=${CODEGEN_PKG:-$(cd ${SCRIPT_ROOT}; ls -d -1 ./vendor/k8s.io/code-generator 2>/dev/null || echo k8s.io/code-generator)}
-
-clientgen="${PWD}/client-gen-binary"
-conversiongen="${PWD}/conversion-gen-binary"
-deepcopygen="${PWD}/deepcopy-gen-binary"
-defaultergen="${PWD}/defaulter-gen-binary"
-informergen="${PWD}/informer-gen"
-listergen="${PWD}/lister-gen"
-
-# Register function to be called on EXIT to remove generated binary.
-function cleanup {
-  rm -f "${clientgen:-}"
-  rm -f "${conversiongen:-}"
-  rm -f "${deepcopygen:-}"
-  rm -f "${defaultergen:-}"
-  rm -f "${informergen:-}"
-  rm -f "${listergen:-}"
-}
-trap cleanup EXIT
+SCRIPT_BASE=$(cd ${SCRIPT_ROOT}/../..; pwd)
 
 function generate_group() {
   local GROUP_NAME=$1
@@ -54,24 +34,15 @@ function generate_group() {
     ${GROUP_NAME}/${VERSION}
   )
 
-  echo "Building client-gen"
-  go build -o "${clientgen}" ${CODEGEN_PKG}/cmd/client-gen
-
   echo "generating clientset for group ${GROUP_NAME} and version ${VERSION} at ${SCRIPT_BASE}/${CLIENT_PKG}"
-  ${clientgen} --input-base ${APIS_PKG} --input ${INPUT_APIS[@]} --clientset-path ${CLIENT_PKG}/clientset_generated --output-base=${SCRIPT_BASE}
-  ${clientgen} --clientset-name="clientset" --input-base ${APIS_PKG} --input ${GROUP_NAME}/${VERSION} --clientset-path ${CLIENT_PKG}/clientset_generated --output-base=${SCRIPT_BASE}
-
-  echo "Building lister-gen"
-  go build -o "${listergen}" ${CODEGEN_PKG}/cmd/lister-gen
+  bazel run @io_k8s_code_generator//cmd/client-gen -- --input-base ${APIS_PKG} --input ${INPUT_APIS[@]} --clientset-path ${CLIENT_PKG}/clientset_generated --output-base=${SCRIPT_BASE}
+  bazel run @io_k8s_code_generator//cmd/client-gen -- --clientset-name="clientset" --input-base ${APIS_PKG} --input ${GROUP_NAME}/${VERSION} --clientset-path ${CLIENT_PKG}/clientset_generated --output-base=${SCRIPT_BASE}
 
   echo "generating listers for group ${GROUP_NAME} and version ${VERSION} at ${SCRIPT_BASE}/${LISTERS_PKG}"
-  ${listergen} --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} --output-package ${LISTERS_PKG} --output-base ${SCRIPT_BASE}
-
-  echo "Building informer-gen"
-  go build -o "${informergen}" ${CODEGEN_PKG}/cmd/informer-gen
+  bazel run @io_k8s_code_generator//cmd/lister-gen -- --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} --output-package ${LISTERS_PKG} --output-base ${SCRIPT_BASE}
 
   echo "generating informers for group ${GROUP_NAME} and version ${VERSION} at ${SCRIPT_BASE}/${INFORMERS_PKG}"
-  ${informergen} \
+  bazel run @io_k8s_code_generator//cmd/informer-gen -- \
     --input-dirs ${APIS_PKG}/${GROUP_NAME} --input-dirs ${APIS_PKG}/${GROUP_NAME}/${VERSION} \
     --versioned-clientset-package ${CLIENT_PKG}/clientset_generated/clientset \
     --internal-clientset-package ${CLIENT_PKG}/clientset_generated/internalclientset \
@@ -79,24 +50,14 @@ function generate_group() {
     --output-package ${INFORMERS_PKG} \
     --output-base ${SCRIPT_BASE}
 
-  echo "Building deepcopy-gen"
-  go build -o "${deepcopygen}" ${CODEGEN_PKG}/cmd/deepcopy-gen
-
   echo "generating deep copies"
-  ${deepcopygen} --input-dirs ${APIS_PKG}/${GROUP_NAME} --input-dirs ${APIS_PKG}/${GROUP_NAME}/${VERSION}
-
-  echo "Building defaulter-gen"
-  go build -o "${defaultergen}" ${CODEGEN_PKG}/cmd/defaulter-gen
+  bazel run @io_k8s_code_generator//cmd/deepcopy-gen -- --input-dirs ${APIS_PKG}/${GROUP_NAME} --input-dirs ${APIS_PKG}/${GROUP_NAME}/${VERSION}
 
   echo "generating defaults"
-  ${defaultergen} --input-dirs ${APIS_PKG}/${GROUP_NAME} --input-dirs ${APIS_PKG}/${GROUP_NAME}/${VERSION}
-
-  echo "Building conversion-gen"
-  go build -o "${conversiongen}" ${CODEGEN_PKG}/cmd/conversion-gen
+  bazel run @io_k8s_code_generator//cmd/defaulter-gen -- --input-dirs ${APIS_PKG}/${GROUP_NAME} --input-dirs ${APIS_PKG}/${GROUP_NAME}/${VERSION}
 
   echo "generating conversions"
-  ${conversiongen} --input-dirs ${APIS_PKG}/${GROUP_NAME} --input-dirs ${APIS_PKG}/${GROUP_NAME}/${VERSION}
+  bazel run @io_k8s_code_generator//cmd/conversion-gen -- --input-dirs ${APIS_PKG}/${GROUP_NAME} --input-dirs ${APIS_PKG}/${GROUP_NAME}/${VERSION}
 }
 
 generate_group clusterregistry v1alpha1
-
