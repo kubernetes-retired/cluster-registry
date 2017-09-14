@@ -27,8 +27,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/version"
-	"k8s.io/apiserver/pkg/authentication/request/anonymous"
-	x509authenticator "k8s.io/apiserver/pkg/authentication/request/x509"
 	"k8s.io/apiserver/pkg/authorization/authorizerfactory"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	serverstorage "k8s.io/apiserver/pkg/server/storage"
@@ -149,8 +147,12 @@ func NonBlockingRun(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 		Major: "0",
 		Minor: "1",
 	}
-	genericConfig.Authenticator = x509authenticator.New(x509authenticator.DefaultVerifyOptions(), x509authenticator.CommonNameUserConversion)
-	genericConfig.Authenticator = anonymous.NewAuthenticator()
+
+	authenticator, _, err := s.Authentication.ToAuthenticationConfig().New()
+	if err != nil {
+		return err
+	}
+	genericConfig.Authenticator = authenticator
 	genericConfig.Authorizer = authorizerfactory.NewAlwaysAllowAuthorizer()
 	genericConfig.SwaggerConfig = genericapiserver.DefaultSwaggerConfig()
 
