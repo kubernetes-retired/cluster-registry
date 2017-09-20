@@ -41,7 +41,7 @@ From the root of the repository:
 1.  If you want to build a docker image, run `blaze build
     //cmd/clusterregistry-image`
 1.  To push an image to Google Container registry, you'll need to run `blaze run
-    //cmd/push-clusterregistry-image --define project=<your_project_id>
+    //cmd/push-clusterregistry-image --define project=<your_project_id>`
 
 ## Run all tests
 
