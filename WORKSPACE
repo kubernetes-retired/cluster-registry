@@ -89,7 +89,7 @@ http_archive(
 
 go_repository(
     name = "io_k8s_code_generator",
-    commit = "a8e1019df0df00506fe1db5232a2af30ff4c87aa",
+    commit = "7ab2c9f35b06d8d9f672ee64580e534d2ab5d27e",
     importpath = "k8s.io/code-generator",
 )
 
