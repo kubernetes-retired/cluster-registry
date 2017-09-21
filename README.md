@@ -1,7 +1,5 @@
 # cluster-registry
 
-Cluster Registry API
-
 This repository contains the code for the cluster registry. The cluster registry
 is an effort being led under the auspices of sig-multicluster.
 
