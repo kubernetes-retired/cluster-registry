@@ -1,6 +1,6 @@
 # cluster-registry
 
-This repository contains the code for the cluster registry. The cluster registry
+BLAH. This repository contains the code for the cluster registry. The cluster registry
 is an effort being led under the auspices of sig-multicluster.
 
 This is currently in the prototyping stage, and is not yet ready for use except
