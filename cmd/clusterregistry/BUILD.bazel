@@ -11,6 +11,6 @@ docker_push(
     name = "push-clusterregistry-image",
     image = ":clusterregistry-image",
     registry = "gcr.io",
-    repository = "kubetest-157500/clusterregistry",
+    repository = "$(project)/clusterregistry",
     tag = "dev",
 )
