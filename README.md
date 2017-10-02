@@ -21,6 +21,10 @@ the recommended way to build and test the cluster registry. Bazel is designed to
 maintain compatibility with standard Go tooling, but this is not tested on a
 regular basis, and some scripts/tooling in this project are built around Bazel.
 
+NOTE: There is an issue with version bazel 0.6.0. As a workaround, use 0.5.x, or
+pass the flag `--incompatible_comprehension_variables_do_not_leak=false` to bazel
+0.6.0 invocations.
+
 You will need the [Mercurial](https://www.mercurial-scm.org/) `hg` CLI command
 installed in order to have Bazel install some of the dependencies.
 
