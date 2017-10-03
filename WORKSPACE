@@ -391,8 +391,9 @@ go_repository(
 
 go_repository(
     name = "org_bitbucket_ww_goautoneg",
-    commit = "75cd24fc2f2c2a2088577d12123ddee5f54e0675",
     importpath = "bitbucket.org/ww/goautoneg",
+    strip_prefix = "ww-goautoneg-75cd24fc2f2c",
+    urls = ["https://bitbucket.org/ww/goautoneg/get/75cd24fc2f2c.zip"],
 )
 
 go_repository(
