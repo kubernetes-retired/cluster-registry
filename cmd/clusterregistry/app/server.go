@@ -86,9 +86,9 @@ func NonBlockingRun(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 	if err := s.SecureServing.ApplyTo(genericConfig); err != nil {
 		return err
 	}
-	//if err := s.Authentication.ApplyTo(genericConfig); err != nil {
-	//	return err
-	//}
+	if err := s.Authentication.ApplyTo(genericConfig); err != nil {
+		return err
+	}
 	if err := s.Audit.ApplyTo(genericConfig); err != nil {
 		return err
 	}
