@@ -29,7 +29,7 @@ import (
 	clusteretcd "k8s.io/cluster-registry/pkg/registry/cluster/etcd"
 )
 
-func installClusterRegistryAPIs(g *genericapiserver.GenericAPIServer, optsGetter generic.RESTOptionsGetter, apiResourceConfigSource storage.APIResourceConfigSource) {
+func installClusterAPIs(g *genericapiserver.GenericAPIServer, optsGetter generic.RESTOptionsGetter, apiResourceConfigSource storage.APIResourceConfigSource) {
 	clusterStorage, err := clusteretcd.NewREST(optsGetter, install.Scheme)
 	if err != nil {
 		glog.Fatalf("Error in creating cluster storage: %v", err)
