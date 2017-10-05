@@ -162,7 +162,7 @@ func NonBlockingRun(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 	}
 
 	apiResourceConfigSource := storageFactory.APIResourceConfigSource
-	installClusterRegistryAPIs(m, genericConfig.RESTOptionsGetter, apiResourceConfigSource)
+	installClusterAPIs(m, genericConfig.RESTOptionsGetter, apiResourceConfigSource)
 
 	err = m.PrepareRun().NonBlockingRun(stopCh)
 	if err == nil {
