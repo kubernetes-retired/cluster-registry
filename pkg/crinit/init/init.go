@@ -93,12 +93,8 @@ var (
 	}
 )
 
-type initClusterRegistry struct {
-	commonOptions util.SubcommandOptions
-	options       initClusterRegistryOptions
-}
-
 type initClusterRegistryOptions struct {
+	commonOptions                util.SubcommandOptions
 	serverImage                  string
 	etcdImage                    string
 	etcdPVCapacity               string
@@ -117,24 +113,24 @@ type initClusterRegistryOptions struct {
 }
 
 func (o *initClusterRegistryOptions) Bind(flags *pflag.FlagSet, defaultServerImage, defaultEtcdImage string) {
-	flags.StringVar(&o.serverImage, "image", defaultServerImage, "Image to use for clusterregistry API server and controller manager binaries.")
-	flags.StringVar(&o.etcdImage, "etcd-image", defaultEtcdImage, "Image to use for etcd server.")
-	flags.StringVar(&o.etcdPVCapacity, "etcd-pv-capacity", "10Gi", "Size of persistent volume claim to be used for etcd.")
+	flags.StringVar(&o.serverImage, "image", defaultServerImage, "Image to use for the cluster registry API server binary.")
+	flags.StringVar(&o.etcdImage, "etcd-image", defaultEtcdImage, "Image to use for the etcd server binary.")
+	flags.StringVar(&o.etcdPVCapacity, "etcd-pv-capacity", "10Gi", "Size of the persistent volume claim to be used for etcd.")
 	flags.StringVar(&o.etcdPVStorageClass, "etcd-pv-storage-class", "", "The storage class of the persistent volume claim used for etcd. Must be provided if a default storage class is not enabled for the host cluster.")
-	flags.BoolVar(&o.etcdPersistentStorage, "etcd-persistent-storage", true, "Use persistent volume for etcd. Defaults to 'true'.")
-	flags.BoolVar(&o.dryRun, "dry-run", false, "dry run without sending commands to server.")
-	flags.StringVar(&o.apiServerOverridesString, "apiserver-arg-overrides", "", "comma separated list of clusterregistry-apisererver arguments to override: Example \"--arg1=value1,--arg2=value2...\"")
+	flags.BoolVar(&o.etcdPersistentStorage, "etcd-persistent-storage", true, "Use a persistent volume for etcd. Defaults to 'true'.")
+	flags.BoolVar(&o.dryRun, "dry-run", false, "Run the command in dry-run mode, without making any server requests.")
+	flags.StringVar(&o.apiServerOverridesString, "apiserver-arg-overrides", "", "Comma-separated list of cluster registry API server arguments to override, e.g., \"--arg1=value1,--arg2=value2...\"")
 	flags.StringVar(&o.apiServerServiceTypeString, apiserverServiceTypeFlag, string(v1.ServiceTypeLoadBalancer), "The type of service to create for the cluster registry. Options: 'LoadBalancer' (default), 'NodePort'.")
 	flags.StringVar(&o.apiServerAdvertiseAddress, apiserverAdvertiseAddressFlag, "", "Preferred address at which to advertise the cluster registry API server NodePort service. Valid only if '"+apiserverServiceTypeFlag+"=NodePort'.")
-	flags.Int32Var(&o.apiServerNodePortPort, apiserverPortFlag, 0, "Preferred port to use for the cluster registyr API server NodePort service. Set to 0 to randomly assign a port. Valid only if '"+apiserverServiceTypeFlag+"=NodePort'.")
-	flags.BoolVar(&o.apiServerEnableHTTPBasicAuth, "apiserver-enable-basic-auth", false, "Enables HTTP Basic authentication for the clusterregistry-apiserver. Defaults to false.")
-	flags.BoolVar(&o.apiServerEnableTokenAuth, "apiserver-enable-token-auth", false, "Enables token authentication for the clusterregistry-apiserver. Defaults to false.")
+	flags.Int32Var(&o.apiServerNodePortPort, apiserverPortFlag, 0, "Preferred port to use for the cluster registry API server NodePort service. Set to 0 to randomly assign a port. Valid only if '"+apiserverServiceTypeFlag+"=NodePort'.")
+	flags.BoolVar(&o.apiServerEnableHTTPBasicAuth, "apiserver-enable-basic-auth", false, "Enables HTTP Basic authentication for the cluster registry API server. Defaults to false.")
+	flags.BoolVar(&o.apiServerEnableTokenAuth, "apiserver-enable-token-auth", false, "Enables token authentication for the cluster registry API server. Defaults to false.")
 }
 
 // NewCmdInit defines the `init` command that bootstraps a cluster registry
 // inside a host Kubernetes cluster.
 func NewCmdInit(cmdOut io.Writer, pathOptions *clientcmd.PathOptions, defaultServerImage, defaultEtcdImage string) *cobra.Command {
-	opts := &initClusterRegistry{}
+	opts := &initClusterRegistryOptions{}
 
 	cmd := &cobra.Command{
 		Use:     "init CLUSTER_REGISTRY_NAME --host-cluster-context=HOST_CONTEXT",
@@ -142,11 +138,30 @@ func NewCmdInit(cmdOut io.Writer, pathOptions *clientcmd.PathOptions, defaultSer
 		Long:    init_long,
 		Example: init_example,
 		Run: func(cmd *cobra.Command, args []string) {
-			err := opts.Complete(cmd, args)
+			err := opts.commonOptions.SetName(args)
 			if err != nil {
 				glog.Fatalf("error: %v", err)
 			}
-			err = opts.Run(cmdOut, pathOptions)
+
+			err = validateOptions(opts)
+			if err != nil {
+				glog.Fatalf("error: %v", err)
+			}
+
+			err = marshalOptions(opts)
+			if err != nil {
+				glog.Fatalf("error: %v", err)
+			}
+
+			hostConfig, err := util.GetClientConfig(pathOptions, opts.commonOptions.Host, opts.commonOptions.Kubeconfig).ClientConfig()
+			if err != nil {
+				glog.Fatalf("error: %v", err)
+			}
+			hostClientset, err := client.NewForConfig(hostConfig)
+			if err != nil {
+				glog.Fatalf("error: %v", err)
+			}
+			err = Run(opts, cmdOut, hostClientset, pathOptions)
 			if err != nil {
 				glog.Fatalf("error: %v", err)
 			}
@@ -155,7 +170,7 @@ func NewCmdInit(cmdOut io.Writer, pathOptions *clientcmd.PathOptions, defaultSer
 
 	flags := cmd.Flags()
 	opts.commonOptions.Bind(flags)
-	opts.options.Bind(flags, defaultServerImage, defaultEtcdImage)
+	opts.Bind(flags, defaultServerImage, defaultEtcdImage)
 
 	return cmd
 }
@@ -173,64 +188,71 @@ type credentials struct {
 	certEntKeyPairs *entityKeyPairs
 }
 
-// Complete ensures that options are valid and marshals them if necessary.
-func (i *initClusterRegistry) Complete(cmd *cobra.Command, args []string) error {
-	err := i.commonOptions.SetName(cmd, args)
-	if err != nil {
-		return err
+// validateOptions ensures that options are valid.
+func validateOptions(opts *initClusterRegistryOptions) error {
+	opts.apiServerServiceType = v1.ServiceType(opts.apiServerServiceTypeString)
+	if opts.apiServerServiceType != v1.ServiceTypeLoadBalancer && opts.apiServerServiceType != v1.ServiceTypeNodePort {
+		return fmt.Errorf("invalid %s: %s, should be either %s or %s", apiserverServiceTypeFlag, opts.apiServerServiceType, v1.ServiceTypeLoadBalancer, v1.ServiceTypeNodePort)
 	}
-
-	i.options.apiServerServiceType = v1.ServiceType(i.options.apiServerServiceTypeString)
-	if i.options.apiServerServiceType != v1.ServiceTypeLoadBalancer && i.options.apiServerServiceType != v1.ServiceTypeNodePort {
-		return fmt.Errorf("invalid %s: %s, should be either %s or %s", apiserverServiceTypeFlag, i.options.apiServerServiceType, v1.ServiceTypeLoadBalancer, v1.ServiceTypeNodePort)
-	}
-	if i.options.apiServerAdvertiseAddress != "" {
-		ip := net.ParseIP(i.options.apiServerAdvertiseAddress)
+	if opts.apiServerAdvertiseAddress != "" {
+		ip := net.ParseIP(opts.apiServerAdvertiseAddress)
 		if ip == nil {
-			return fmt.Errorf("invalid %s: %s, should be a valid ip address", apiserverAdvertiseAddressFlag, i.options.apiServerAdvertiseAddress)
+			return fmt.Errorf("invalid %s: %s, should be a valid ip address", apiserverAdvertiseAddressFlag, opts.apiServerAdvertiseAddress)
 		}
-		if i.options.apiServerServiceType != v1.ServiceTypeNodePort {
+		if opts.apiServerServiceType != v1.ServiceTypeNodePort {
 			return fmt.Errorf("%s should be passed only with '%s=NodePort'", apiserverAdvertiseAddressFlag, apiserverServiceTypeFlag)
 		}
 	}
 
-	if i.options.apiServerNodePortPort != 0 {
-		if i.options.apiServerServiceType != v1.ServiceTypeNodePort {
+	if opts.apiServerNodePortPort != 0 {
+		if opts.apiServerServiceType != v1.ServiceTypeNodePort {
 			return fmt.Errorf("%s should be passed only with '%s=NodePort'", apiserverPortFlag, apiserverServiceTypeFlag)
 		}
-		i.options.apiServerNodePortPortPtr = &i.options.apiServerNodePortPort
+		opts.apiServerNodePortPortPtr = &opts.apiServerNodePortPort
 	} else {
-		i.options.apiServerNodePortPortPtr = nil
+		opts.apiServerNodePortPortPtr = nil
 	}
-	if i.options.apiServerNodePortPort < 0 || i.options.apiServerNodePortPort > 65535 {
+	if opts.apiServerNodePortPort < 0 || opts.apiServerNodePortPort > 65535 {
 		return fmt.Errorf("Please provide a valid port number for %s", apiserverPortFlag)
-	}
-
-	i.options.apiServerOverrides, err = marshallOverrides(i.options.apiServerOverridesString)
-	if err != nil {
-		return fmt.Errorf("error marshalling --apiserver-arg-overrides: %v", err)
 	}
 
 	return nil
 }
 
-// Run initializes a cluster registry.
-func (i *initClusterRegistry) Run(cmdOut io.Writer, pathOptions *clientcmd.PathOptions) error {
-	hostConfig, err := util.GetClientConfig(pathOptions, i.commonOptions.Host, i.commonOptions.Kubeconfig).ClientConfig()
-	if err != nil {
-		return err
-	}
-	hostClientset, err := client.NewForConfig(hostConfig)
-	if err != nil {
-		return err
+// marshalOptions marshals options if necessary.
+func marshalOptions(opts *initClusterRegistryOptions) error {
+	if opts.apiServerOverridesString == "" {
+		return nil
 	}
 
-	serverName := fmt.Sprintf("%s-%s", i.commonOptions.Name, APIServerNameSuffix)
+	argsMap := make(map[string]string)
+	overrideArgs := strings.Split(opts.apiServerOverridesString, ",")
+	for _, overrideArg := range overrideArgs {
+		splitArg := strings.SplitN(overrideArg, "=", 2)
+		if len(splitArg) != 2 {
+			return fmt.Errorf("wrong format for override arg: %s", overrideArg)
+		}
+		key := strings.TrimSpace(splitArg[0])
+		val := strings.TrimSpace(splitArg[1])
+		if len(key) == 0 {
+			return fmt.Errorf("wrong format for override arg: %s, arg name cannot be empty", overrideArg)
+		}
+		argsMap[key] = val
+	}
+
+	opts.apiServerOverrides = argsMap
+
+	return nil
+}
+
+// Run initializes a cluster registry.
+func Run(opts *initClusterRegistryOptions, cmdOut io.Writer, hostClientset client.Interface, pathOptions *clientcmd.PathOptions) error {
+	serverName := fmt.Sprintf("%s-%s", opts.commonOptions.Name, APIServerNameSuffix)
 	serverCredName := fmt.Sprintf("%s-%s", serverName, CredentialSuffix)
 
-	fmt.Fprintf(cmdOut, "Creating a namespace %s for the cluster registry...", i.commonOptions.ClusterRegistryNamespace)
-	glog.V(4).Infof("Creating a namespace %s for the cluster registry", i.commonOptions.ClusterRegistryNamespace)
-	_, err = createNamespace(hostClientset, i.commonOptions.ClusterRegistryNamespace, i.options.dryRun)
+	fmt.Fprintf(cmdOut, "Creating a namespace %s for the cluster registry...", opts.commonOptions.ClusterRegistryNamespace)
+	glog.V(4).Infof("Creating a namespace %s for the cluster registry", opts.commonOptions.ClusterRegistryNamespace)
+	_, err := createNamespace(hostClientset, opts.commonOptions.ClusterRegistryNamespace, opts.dryRun)
 	if err != nil {
 		return err
 	}
@@ -239,7 +261,7 @@ func (i *initClusterRegistry) Run(cmdOut io.Writer, pathOptions *clientcmd.PathO
 
 	fmt.Fprint(cmdOut, "Creating cluster registry API server service...")
 	glog.V(4).Info("Creating cluster registry API server service")
-	svc, ips, hostnames, err := createService(cmdOut, hostClientset, i.commonOptions.ClusterRegistryNamespace, i.commonOptions.Name, i.options.apiServerAdvertiseAddress, i.options.apiServerNodePortPortPtr, i.options.apiServerServiceType, i.options.dryRun)
+	svc, ips, hostnames, err := createService(cmdOut, hostClientset, opts.commonOptions.ClusterRegistryNamespace, opts.commonOptions.Name, opts.apiServerAdvertiseAddress, opts.apiServerNodePortPortPtr, opts.apiServerServiceType, opts.dryRun)
 	if err != nil {
 		return err
 	}
@@ -248,13 +270,13 @@ func (i *initClusterRegistry) Run(cmdOut io.Writer, pathOptions *clientcmd.PathO
 
 	fmt.Fprint(cmdOut, "Creating cluster registry objects (credentials, persistent volume claim)...")
 	glog.V(4).Info("Generating TLS certificates and credentials for communicating with the cluster registry API server")
-	credentials, err := generateCredentials(i.commonOptions.ClusterRegistryNamespace, i.commonOptions.Name, svc.Name, HostClusterLocalDNSZoneName, serverCredName, ips, hostnames, i.options.apiServerEnableHTTPBasicAuth, i.options.apiServerEnableTokenAuth, i.options.dryRun)
+	credentials, err := generateCredentials(opts.commonOptions.ClusterRegistryNamespace, opts.commonOptions.Name, svc.Name, HostClusterLocalDNSZoneName, serverCredName, ips, hostnames, opts.apiServerEnableHTTPBasicAuth, opts.apiServerEnableTokenAuth)
 	if err != nil {
 		return err
 	}
 
 	// Create the secret containing the credentials.
-	_, err = createAPIServerCredentialsSecret(hostClientset, i.commonOptions.ClusterRegistryNamespace, serverCredName, credentials, i.options.dryRun)
+	_, err = createAPIServerCredentialsSecret(hostClientset, opts.commonOptions.ClusterRegistryNamespace, serverCredName, credentials, opts.dryRun)
 	if err != nil {
 		return err
 	}
@@ -262,8 +284,8 @@ func (i *initClusterRegistry) Run(cmdOut io.Writer, pathOptions *clientcmd.PathO
 
 	glog.V(4).Info("Creating a persistent volume and a claim to store the cluster registry API server's state, including etcd data")
 	var pvc *v1.PersistentVolumeClaim
-	if i.options.etcdPersistentStorage {
-		pvc, err = createPVC(hostClientset, i.commonOptions.ClusterRegistryNamespace, svc.Name, i.options.etcdPVCapacity, i.options.etcdPVStorageClass, i.options.dryRun)
+	if opts.etcdPersistentStorage {
+		pvc, err = createPVC(hostClientset, opts.commonOptions.ClusterRegistryNamespace, svc.Name, opts.etcdPVCapacity, opts.etcdPVStorageClass, opts.dryRun)
 		if err != nil {
 			return err
 		}
@@ -274,14 +296,14 @@ func (i *initClusterRegistry) Run(cmdOut io.Writer, pathOptions *clientcmd.PathO
 	// Since only one IP address can be specified as advertise address,
 	// we arbitrarily pick the first available IP address
 	// Pick user provided apiserverAdvertiseAddress over other available IP addresses.
-	advertiseAddress := i.options.apiServerAdvertiseAddress
+	advertiseAddress := opts.apiServerAdvertiseAddress
 	if advertiseAddress == "" && len(ips) > 0 {
 		advertiseAddress = ips[0]
 	}
 
 	fmt.Fprint(cmdOut, "Creating cluster registry deployment...")
 	glog.V(4).Info("Creating cluster registry deployment")
-	_, err = createAPIServer(hostClientset, i.commonOptions.ClusterRegistryNamespace, serverName, i.options.serverImage, i.options.etcdImage, advertiseAddress, serverCredName, i.options.apiServerEnableHTTPBasicAuth, i.options.apiServerEnableTokenAuth, i.options.apiServerOverrides, pvc, i.options.dryRun)
+	_, err = createAPIServer(hostClientset, opts.commonOptions.ClusterRegistryNamespace, serverName, opts.serverImage, opts.etcdImage, advertiseAddress, serverCredName, opts.apiServerEnableHTTPBasicAuth, opts.apiServerEnableTokenAuth, opts.apiServerOverrides, pvc, opts.dryRun)
 	if err != nil {
 		return err
 	}
@@ -299,11 +321,11 @@ func (i *initClusterRegistry) Run(cmdOut io.Writer, pathOptions *clientcmd.PathO
 		endpoint = hostnames[0]
 	}
 	// If the service is nodeport, need to append the port to endpoint as it is non-standard port
-	if i.options.apiServerServiceType == v1.ServiceTypeNodePort {
+	if opts.apiServerServiceType == v1.ServiceTypeNodePort {
 		endpoint = endpoint + ":" + strconv.Itoa(int(svc.Spec.Ports[0].NodePort))
 	}
 
-	err = updateKubeconfig(pathOptions, i.commonOptions.Name, endpoint, i.commonOptions.Kubeconfig, credentials, i.options.dryRun)
+	err = updateKubeconfig(pathOptions, opts.commonOptions.Name, endpoint, opts.commonOptions.Kubeconfig, credentials, opts.dryRun)
 	if err != nil {
 		glog.V(4).Infof("Failed to update kubeconfig: %v", err)
 		return err
@@ -311,14 +333,23 @@ func (i *initClusterRegistry) Run(cmdOut io.Writer, pathOptions *clientcmd.PathO
 	fmt.Fprintln(cmdOut, " done")
 	glog.V(4).Info("Successfully updated kubeconfig")
 
-	if !i.options.dryRun {
+	if !opts.dryRun {
 		fmt.Fprint(cmdOut, "Waiting for the cluster registry API server to come up...")
 		glog.V(4).Info("Waiting for the cluster registry API server to come up")
-		err = waitForPods(cmdOut, hostClientset, []string{serverName}, i.commonOptions.ClusterRegistryNamespace)
+		err = waitForPods(cmdOut, hostClientset, []string{serverName}, opts.commonOptions.ClusterRegistryNamespace)
 		if err != nil {
 			return err
 		}
-		err = waitSrvHealthy(cmdOut, pathOptions, i.commonOptions.Name, i.commonOptions.Kubeconfig)
+		crConfig, err := util.GetClientConfig(pathOptions, opts.commonOptions.Name, opts.commonOptions.Kubeconfig).ClientConfig()
+		if err != nil {
+			return err
+		}
+		crClientset, err := client.NewForConfig(crConfig)
+		if err != nil {
+			return err
+		}
+
+		err = waitSrvHealthy(cmdOut, crClientset)
 		if err != nil {
 			return err
 		}
@@ -390,12 +421,14 @@ func createService(cmdOut io.Writer, clientset client.Interface, namespace, svcN
 		}
 	}
 	if err != nil {
-		return svc, nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	return svc, ips, hostnames, err
 }
 
+// getClusterNodeIPs returns a list of the IP addresses of nodes in the cluster,
+// with a preference for external IP addresses.
 func getClusterNodeIPs(clientset client.Interface) ([]string, error) {
 	preferredAddressTypes := []v1.NodeAddressType{
 		v1.NodeExternalIP,
@@ -457,7 +490,7 @@ func waitForLoadBalancerAddress(cmdOut io.Writer, clientset client.Interface, sv
 	return ips, hostnames, nil
 }
 
-func generateCredentials(svcNamespace, name, svcName, localDNSZoneName, serverCredName string, ips, hostnames []string, enableHTTPBasicAuth, enableTokenAuth, dryRun bool) (*credentials, error) {
+func generateCredentials(svcNamespace, name, svcName, localDNSZoneName, serverCredName string, ips, hostnames []string, enableHTTPBasicAuth, enableTokenAuth bool) (*credentials, error) {
 	credentials := credentials{
 		username: AdminCN,
 	}
@@ -672,30 +705,7 @@ func createAPIServer(clientset client.Interface, namespace, name, serverImage, e
 		return dep, nil
 	}
 
-	createdDep, err := clientset.AppsV1beta1().Deployments(namespace).Create(dep)
-	return createdDep, err
-}
-
-func marshallOverrides(overrideArgString string) (map[string]string, error) {
-	if overrideArgString == "" {
-		return nil, nil
-	}
-
-	argsMap := make(map[string]string)
-	overrideArgs := strings.Split(overrideArgString, ",")
-	for _, overrideArg := range overrideArgs {
-		splitArg := strings.SplitN(overrideArg, "=", 2)
-		if len(splitArg) != 2 {
-			return nil, fmt.Errorf("wrong format for override arg: %s", overrideArg)
-		}
-		key := strings.TrimSpace(splitArg[0])
-		val := strings.TrimSpace(splitArg[1])
-		if len(key) == 0 {
-			return nil, fmt.Errorf("wrong format for override arg: %s, arg name cannot be empty", overrideArg)
-		}
-		argsMap[key] = val
-	}
-	return argsMap, nil
+	return clientset.AppsV1beta1().Deployments(namespace).Create(dep)
 }
 
 func argMapsToArgStrings(argsMap, overrides map[string]string) []string {
@@ -735,20 +745,11 @@ func waitForPods(cmdOut io.Writer, clientset client.Interface, pods []string, na
 	return err
 }
 
-func waitSrvHealthy(cmdOut io.Writer, pathOptions *clientcmd.PathOptions, crContext, kubeconfig string) error {
-	crConfig, err := util.GetClientConfig(pathOptions, crContext, kubeconfig).ClientConfig()
-	if err != nil {
-		return err
-	}
-	crClientset, err := client.NewForConfig(crConfig)
-	if err != nil {
-		return err
-	}
-
-	crDiscoveryClient := crClientset.Discovery()
-	err = wait.PollInfinite(podWaitInterval, func() (bool, error) {
+func waitSrvHealthy(cmdOut io.Writer, crClientset client.Interface) error {
+	discoveryClient := crClientset.Discovery()
+	return wait.PollInfinite(podWaitInterval, func() (bool, error) {
 		fmt.Fprint(cmdOut, ".")
-		body, err := crDiscoveryClient.RESTClient().Get().AbsPath("/healthz").Do().Raw()
+		body, err := discoveryClient.RESTClient().Get().AbsPath("/healthz").Do().Raw()
 		if err != nil {
 			return false, nil
 		}
@@ -757,7 +758,6 @@ func waitSrvHealthy(cmdOut io.Writer, pathOptions *clientcmd.PathOptions, crCont
 		}
 		return false, nil
 	})
-	return err
 }
 
 func printSuccess(cmdOut io.Writer, ips, hostnames []string, svc *v1.Service) error {
@@ -828,7 +828,7 @@ func updateKubeconfig(pathOptions *clientcmd.PathOptions, name, endpoint, kubeCo
 }
 
 // authFileContents returns a CSV string containing the contents of an
-// authentication file in the format required by the clusterregistry.
+// authentication file in the format required by the cluster registry.
 func authFileContents(username, authSecret string) []byte {
 	return []byte(fmt.Sprintf("%s,%s,%s\n", authSecret, username, uuid.NewUUID()))
 }
