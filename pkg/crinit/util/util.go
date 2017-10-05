@@ -21,7 +21,6 @@ import (
 
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
@@ -46,7 +45,7 @@ func (o *SubcommandOptions) Bind(flags *pflag.FlagSet) {
 	flags.StringVar(&o.ClusterRegistryNamespace, "cluster-registry-namespace", DefaultClusterRegistryNamespace, "Namespace in the host cluster where the cluster registry components are installed")
 }
 
-func (o *SubcommandOptions) SetName(cmd *cobra.Command, args []string) error {
+func (o *SubcommandOptions) SetName(args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("NAME is required")
 	}
