@@ -1,51 +1,38 @@
-# cluster-registry
+# Cluster Registry
 
-This repository contains the code for the cluster registry. The cluster registry
-is an effort being led under the auspices of sig-multicluster.
+A lightweight tool for maintaining a list of clusters and associated metadata.
 
-This is currently in the prototyping stage, and is not yet ready for use except
-by contributors and experimenters.
+# What is it?
 
-If you have questions, please reach out to
-[kubernetes-sig-federation](https://groups.google.com/forum/#!forum/kubernetes-sig-federation).
+The cluster registry helps you keep track of and perform operations on your
+clusters. This repository contains an implementation of the cluster API
+([code](https://github.com/kubernetes/cluster-registry/tree/master/pkg/apis/clusterregistry),
+[design](https://github.com/kubernetes/cluster-registry/tree/master/docs/api_design.md))
+backed by a Kubernetes-style API server, which is the canonical implementation
+of the cluster registry.
 
-[Cluster Registry API
-design](https://docs.google.com/document/d/1Oi9EO3Jwtp69obakl-9YpLkP764GZzsz95XJlX1a960/edit)
+# Documentation
+
+Documentation is in the
+[`/docs`](https://github.com/kubernetes/cluster-registry/tree/master/docs/)
+directory.
+
+# Getting involved
+
+The cluster registry is still a young project, but we welcome your
+contributions, suggestions and input! Please reach out to the
+[kubernetes-sig-multicluster](https://groups.google.com/forum/#!forum/kubernetes-sig-multicluster)
+mailing list, or find us on
+[Slack](https://github.com/kubernetes/community/blob/master/communication.md#social-media)
+in [#sig-multicluster](https://kubernetes.slack.com/messages/sig-multicluster/).
+
+## Maintainers
+
+-   [@perotinus](https://github.com/perotinus)
+-   [@font](https://github.com/font)
+-   [@madhusudancs](https://github.com/madhusudancs)
 
 # Development
 
-## Prerequisites
-
-You must have a recent version of [bazel](https://bazel.io) installed. Bazel is
-the recommended way to build and test the cluster registry. Bazel is designed to
-maintain compatibility with standard Go tooling, but this is not tested on a
-regular basis, and some scripts/tooling in this project are built around Bazel.
-
-NOTE: There is an issue with version bazel 0.6.0. As a workaround, use 0.5.x, or
-pass the flag `--incompatible_comprehension_variables_do_not_leak=false` to bazel
-0.6.0 invocations.
-
-Before doing any development work, you must (in order, from the repository root
-directory, after cloning):
-
-1.  run `update-codegen.sh`
-1.  run `bazel run //:gazelle`
-
-## Building crinit
-
-From the root of the repository:
-
-1.  Run `bazel build //cmd/crinit`.
-
-## Building clusterregistry
-
-1.  Run `bazel build //cmd/clusterregistry`
-1.  If you want to build a docker image, run `bazel build
-    //cmd/clusterregistry:clusterregistry-image`
-1.  To push an image to Google Container registry, you'll need to run `bazel run
-    //cmd/clusterregistry:push-clusterregistry-image --define project=<your_project_id>`
-
-## Run all tests
-
-You can run all the unit tests by running `bazel test ...` from the repository
-root.
+Basic instructions for working in the cluster-registry repo are
+[here](https://github.com/kubernetes/cluster-registry/tree/master/docs/development.md).
