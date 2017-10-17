@@ -29,9 +29,9 @@ import (
 // NewClusterregistryCommand creates the `clusterregistry` command.
 func NewClusterregistryCommand(out io.Writer, defaultServerImage, defaultEtcdImage string) *cobra.Command {
 	cmds := &cobra.Command{
-		Use:   "clusterregistry",
-		Short: "clusterregistry runs a cluster registry",
-		Long:  "clusterregistry runs a cluster registry.",
+		Use:   "crinit",
+		Short: "crinit runs a cluster registry in a Kubernetes cluster",
+		Long:  "crinit bootstraps and runs a cluster registry as a Deployment in an existing Kubernetes cluster.",
 		Run:   runHelp,
 	}
 
