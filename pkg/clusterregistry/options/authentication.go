@@ -25,7 +25,7 @@ import (
 
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	genericoptions "k8s.io/apiserver/pkg/server/options"
-	"k8s.io/cluster-registry/cmd/clusterregistry/app/authenticator"
+	"k8s.io/cluster-registry/pkg/clusterregistry/authenticator"
 )
 
 type BuiltInAuthenticationOptions struct {

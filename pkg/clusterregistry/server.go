@@ -14,15 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package app
+package clusterregistry
 
 import (
 	"fmt"
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
@@ -30,27 +28,14 @@ import (
 	"k8s.io/apiserver/pkg/authorization/authorizerfactory"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	serverstorage "k8s.io/apiserver/pkg/server/storage"
-	"k8s.io/cluster-registry/cmd/clusterregistry/app/options"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/install"
 	clusterregistryv1alpha1 "k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
 	clientset "k8s.io/cluster-registry/pkg/client/clientset_generated/internalclientset"
 	informers "k8s.io/cluster-registry/pkg/client/informers_generated/internalversion"
+	"k8s.io/cluster-registry/pkg/clusterregistry/options"
 )
 
-// NewAPIServerCommand creates a *cobra.Command object with default parameters.
-func NewAPIServerCommand() *cobra.Command {
-	s := options.NewServerRunOptions()
-	s.AddFlags(pflag.CommandLine)
-	cmd := &cobra.Command{
-		Use: "clusterregistry",
-		Long: `The cluster registry API server provides an API for managing a list of
-clusters and some associated metdata.`,
-		Run: func(cmd *cobra.Command, args []string) {},
-	}
-	return cmd
-}
-
-// Run runs the specified APIServer.  It only returns if stopCh is closed
+// Run runs the cluster registry API server. It only returns if stopCh is closed
 // or one of the ports cannot be listened on initially.
 func Run(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 	err := NonBlockingRun(s, stopCh)
@@ -74,7 +59,6 @@ func NonBlockingRun(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 	}
 	s.SecureServing.ForceLoopbackConfigUsage()
 
-	// validate options
 	if errs := s.Validate(); len(errs) != 0 {
 		return utilerrors.NewAggregate(errs)
 	}
