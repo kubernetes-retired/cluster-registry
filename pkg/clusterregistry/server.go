@@ -46,37 +46,47 @@ func Run(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 	return nil
 }
 
-// NonBlockingRun runs the specified APIServer and configures it to
+// NonBlockingRun runs the cluster registry API server and configures it to
 // stop with the given channel.
 func NonBlockingRun(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
-	// set defaults
-	if err := s.GenericServerRunOptions.DefaultAdvertiseAddress(s.SecureServing); err != nil {
+	server, err := CreateServer(s)
+	if err != nil {
 		return err
 	}
 
+	return server.PrepareRun().NonBlockingRun(stopCh)
+}
+
+// CreateServer creates a cluster registry API server.
+func CreateServer(s *options.ServerRunOptions) (*genericapiserver.GenericAPIServer, error) {
+	// set defaults
+	if err := s.GenericServerRunOptions.DefaultAdvertiseAddress(s.SecureServing); err != nil {
+		return nil, err
+	}
+
 	if err := s.SecureServing.MaybeDefaultWithSelfSignedCerts(s.GenericServerRunOptions.AdvertiseAddress.String(), nil, nil); err != nil {
-		return fmt.Errorf("error creating self-signed certificates: %v", err)
+		return nil, fmt.Errorf("error creating self-signed certificates: %v", err)
 	}
 
 	if errs := s.Validate(); len(errs) != 0 {
-		return utilerrors.NewAggregate(errs)
+		return nil, utilerrors.NewAggregate(errs)
 	}
 
 	genericConfig := genericapiserver.NewConfig(install.Codecs)
 	if err := s.GenericServerRunOptions.ApplyTo(genericConfig); err != nil {
-		return err
+		return nil, err
 	}
 	if err := s.SecureServing.ApplyTo(genericConfig); err != nil {
-		return err
+		return nil, err
 	}
 	if err := s.Authentication.ApplyTo(genericConfig); err != nil {
-		return err
+		return nil, err
 	}
 	if err := s.Audit.ApplyTo(genericConfig); err != nil {
-		return err
+		return nil, err
 	}
 	if err := s.Features.ApplyTo(genericConfig); err != nil {
-		return err
+		return nil, err
 	}
 
 	resourceConfig := defaultResourceConfig()
@@ -112,12 +122,12 @@ func NonBlockingRun(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 		storageFactory.SetEtcdLocation(groupResource, servers)
 	}
 	if err := s.Etcd.ApplyWithStorageFactoryTo(storageFactory, genericConfig); err != nil {
-		return err
+		return nil, err
 	}
 
 	client, err := clientset.NewForConfig(genericConfig.LoopbackClientConfig)
 	if err != nil {
-		return fmt.Errorf("failed to create clientset: %v", err)
+		return nil, fmt.Errorf("failed to create clientset: %v", err)
 	}
 
 	genericConfig.Version = &version.Info{
@@ -127,7 +137,7 @@ func NonBlockingRun(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 
 	authenticator, _, err := s.Authentication.ToAuthenticationConfig().New()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	genericConfig.Authenticator = authenticator
 	genericConfig.Authorizer = authorizerfactory.NewAlwaysAllowAuthorizer()
@@ -135,18 +145,18 @@ func NonBlockingRun(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 
 	m, err := genericConfig.Complete(nil).New("clusterregistry", genericapiserver.EmptyDelegate)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	apiResourceConfigSource := storageFactory.APIResourceConfigSource
 	installClusterAPIs(m, genericConfig.RESTOptionsGetter, apiResourceConfigSource)
 
 	sharedInformers := informers.NewSharedInformerFactory(client, genericConfig.LoopbackClientConfig.Timeout)
-	err = m.PrepareRun().NonBlockingRun(stopCh)
-	if err == nil {
-		sharedInformers.Start(stopCh)
-	}
-	return err
+	m.AddPostStartHook("start-informers", func(context genericapiserver.PostStartHookContext) error {
+		sharedInformers.Start(context.StopCh)
+		return nil
+	})
+	return m, nil
 }
 
 func defaultResourceConfig() *serverstorage.ResourceConfig {
