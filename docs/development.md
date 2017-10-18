@@ -11,6 +11,9 @@ NOTE: There is an issue with bazel 0.6.x. As a workaround, use 0.5.x, or pass
 the flag `--incompatible_comprehension_variables_do_not_leak=false` to bazel
 0.6.x invocations.
 
+To push an image to Google Container registry you'll also have to have [docker-credential-gcr](https://github.com/GoogleCloudPlatform/docker-credential-gcr#building-from-source) installed and configured. This allows  
+for Docker clients v1.11+ to easily make authenticated requests to GCR's repositories (gcr.io, eu.gcr.io, etc.).
+
 You'll need to clone the repository before doing any work. It's expedient to
 clone into $GOPATH/src/k8s.io/cluster-registry, since some Kubernetes and go
 tooling expect this, but the repository itself is location-agnostic.
