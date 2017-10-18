@@ -1,5 +1,5 @@
 /*
-Copyright 2016 The Kubernetes Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,14 +17,26 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
 	"os"
 
-	"k8s.io/cluster-registry/cmd/crinit/app"
+	"k8s.io/apiserver/pkg/util/logs"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"k8s.io/cluster-registry/pkg/crinit"
+)
+
+const (
+	clusterregistryImageName = "clusterregistry:dev"
+	defaultEtcdImage         = "gcr.io/google_containers/etcd:3.0.17"
 )
 
 func main() {
-	if err := app.Run(); err != nil {
+	logs.InitLogs()
+	defer logs.FlushLogs()
+
+	err := crinit.NewClusterregistryCommand(os.Stdout, clusterregistryImageName, defaultEtcdImage).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
-	os.Exit(0)
 }
