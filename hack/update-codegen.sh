@@ -89,6 +89,7 @@ function generate_group() {
   echo "generating conversions"
   bazel run @io_k8s_code_generator//cmd/conversion-gen -- \
     --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} \
+    --extra-peer-dirs "k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/conversion,k8s.io/apimachinery/pkg/runtime" \
     --output-base ${GEN_TMPDIR} \
     --output-file-base zz_generated.conversion
 
