@@ -49,5 +49,5 @@ To build it, from the root of the repository:
 ## Run all tests
 
 You can run all the unit tests by running
-`bazel test -- ... -//pkg/client/... -//cmd/clusterregistry:push-clusterregistry-image -//pkg/crinit/testing/...`
+`bazel test -- ... -//pkg/client/... -//cmd/clusterregistry:push-clusterregistry-image`
 from the repository root. (This may take a while the first time you run it.)
