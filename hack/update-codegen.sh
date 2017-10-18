@@ -20,7 +20,7 @@ set -o pipefail
 
 SCRIPT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SCRIPT_BASE=$(cd ${SCRIPT_ROOT}/../..; pwd)
-SCRIPT_PACKAGE=$(basename $(dirname "${SCRIPT_ROOT}"))
+REPO_DIRNAME=$(basename $(dirname "${SCRIPT_ROOT}"))
 TMP_GOPATH="$(mktemp -d /tmp/gopathXXXXXXXX)"
 
 # Called on EXIT after the temporary directory is created.
@@ -35,20 +35,23 @@ trap clean_up EXIT
 function generate_group() {
   local GROUP_NAME=$1
   local VERSION=$2
-  local CLIENT_PKG=${SCRIPT_PACKAGE}/pkg/client
-  local LISTERS_PKG=${CLIENT_PKG}/listers_generated local INFORMERS_PKG=${CLIENT_PKG}/informers_generated
+  local CLIENT_PKG=k8s.io/cluster-registry/pkg/client
+  local LISTERS_PKG=${CLIENT_PKG}/listers_generated
+  local INFORMERS_PKG=${CLIENT_PKG}/informers_generated
   local APIS_PKG=k8s.io/cluster-registry/pkg/apis
   local INPUT_APIS=(
     ${GROUP_NAME}/
     ${GROUP_NAME}/${VERSION}
   )
 
+  local GEN_TMPDIR="$(mktemp -d /tmp/genXXXXXXXX)"
+
   echo "generating clientset for group ${GROUP_NAME} and version ${VERSION} at ${SCRIPT_BASE}/${CLIENT_PKG}"
-  bazel run @io_k8s_code_generator//cmd/client-gen -- --input-base ${APIS_PKG} --input ${INPUT_APIS[@]} --clientset-path ${CLIENT_PKG}/clientset_generated --output-base ${SCRIPT_BASE}
-  bazel run @io_k8s_code_generator//cmd/client-gen -- --clientset-name "clientset" --input-base ${APIS_PKG} --input ${GROUP_NAME}/${VERSION} --clientset-path ${CLIENT_PKG}/clientset_generated --output-base ${SCRIPT_BASE}
+  bazel run @io_k8s_code_generator//cmd/client-gen -- --input-base ${APIS_PKG} --input ${INPUT_APIS[@]} --clientset-path ${CLIENT_PKG}/clientset_generated --output-base ${GEN_TMPDIR}
+  bazel run @io_k8s_code_generator//cmd/client-gen -- --clientset-name "clientset" --input-base ${APIS_PKG} --input ${GROUP_NAME}/${VERSION} --clientset-path ${CLIENT_PKG}/clientset_generated --output-base ${GEN_TMPDIR}
 
   echo "generating listers for group ${GROUP_NAME} and version ${VERSION} at ${SCRIPT_BASE}/${LISTERS_PKG}"
-  bazel run @io_k8s_code_generator//cmd/lister-gen -- --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} --output-package ${LISTERS_PKG} --output-base ${SCRIPT_BASE}
+  bazel run @io_k8s_code_generator//cmd/lister-gen -- --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} --output-package ${LISTERS_PKG} --output-base ${GEN_TMPDIR}
 
   echo "generating informers for group ${GROUP_NAME} and version ${VERSION} at ${SCRIPT_BASE}/${INFORMERS_PKG}"
   bazel run @io_k8s_code_generator//cmd/informer-gen -- \
@@ -57,11 +60,10 @@ function generate_group() {
     --internal-clientset-package ${CLIENT_PKG}/clientset_generated/internalclientset \
     --listers-package ${LISTERS_PKG} \
     --output-package ${INFORMERS_PKG} \
-    --output-base ${SCRIPT_BASE}
+    --output-base ${GEN_TMPDIR}
 
   # The following generators do not respect the --output-package, so generate
   # their output into a temporary location and rsync it over.
-  local GEN_TMPDIR="$(mktemp -d /tmp/genXXXXXXXX)"
 
   echo "generating deep copies"
   bazel run @io_k8s_code_generator//cmd/deepcopy-gen -- --input-dirs ${APIS_PKG}/${GROUP_NAME} --input-dirs ${APIS_PKG}/${GROUP_NAME}/${VERSION} --output-base ${GEN_TMPDIR}
@@ -72,7 +74,7 @@ function generate_group() {
   echo "generating conversions"
   bazel run @io_k8s_code_generator//cmd/conversion-gen -- --input-dirs ${APIS_PKG}/${GROUP_NAME} --input-dirs ${APIS_PKG}/${GROUP_NAME}/${VERSION} --output-base ${GEN_TMPDIR}
 
-  rsync -a "${GEN_TMPDIR}/k8s.io/cluster-registry/" "${SCRIPT_BASE}/${SCRIPT_PACKAGE}"
+  rsync -a "${GEN_TMPDIR}/k8s.io/cluster-registry/" "${SCRIPT_BASE}/${REPO_DIRNAME}"
 
   if [[ "${GEN_TMPDIR}" == "/tmp/gen"* ]]; then
     rm -rf "${GEN_TMPDIR}"
