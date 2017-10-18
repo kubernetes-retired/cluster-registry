@@ -25,7 +25,7 @@
 
 set -euo pipefail
 
-bazel fetch //:genfiles_dummy
+bazel fetch //:genfiles_deps
 
 SCRIPT_ROOT=$(dirname "${BASH_SOURCE}")
 TMP_GOPATH="$1"
