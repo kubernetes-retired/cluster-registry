@@ -14,9 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -o errexit
-set -o nounset
-set -o pipefail
+set -euo pipefail
 
 SCRIPT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SCRIPT_BASE=$(cd ${SCRIPT_ROOT}/../..; pwd)
@@ -93,10 +91,10 @@ function generate_group() {
     --output-base ${GEN_TMPDIR} \
     --output-file-base zz_generated.conversion
 
-  rsync -a "${GEN_TMPDIR}/k8s.io/cluster-registry/" "${SCRIPT_BASE}/${REPO_DIRNAME}"
+  cp -r "${GEN_TMPDIR}/k8s.io/cluster-registry/"* "${SCRIPT_BASE}/${REPO_DIRNAME}"
 }
 
 echo "Creating temporary GOPATH from bazel workspace"
-${SCRIPT_ROOT}/gopath_from_workspace.sh "${TMP_GOPATH}"
+${SCRIPT_ROOT}/gopath_from_workspace.py "${TMP_GOPATH}"
 export GOPATH="${TMP_GOPATH}"
 generate_group clusterregistry v1alpha1
