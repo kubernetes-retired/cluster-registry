@@ -18,7 +18,7 @@ tooling expect this, but the repository itself is location-agnostic.
 Before doing any development work, you must (in order, from the repository root
 directory, after cloning):
 
-1.  run `./update-codegen.sh`
+1.  run `./hack/update-codegen.sh`
 1.  run `bazel run //:gazelle`
 
 ## Building `clusterregistry`
