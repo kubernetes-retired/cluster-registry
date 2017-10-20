@@ -21,13 +21,12 @@
 # defined here:
 # https://github.com/kubernetes/test-infra/blob/master/scenarios/execute.py
 
-set -o errexit
-set -o nounset
-set -o pipefail
+set -euo pipefail
 
 SCRIPT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 cd "${SCRIPT_ROOT}/.."
 hack/update-codegen.sh
 bazel run //:gazelle
-../test-infra/scenarios/kubernetes_bazel.py --test="//... -//pkg/client/... -//cmd/clusterregistry:push-clusterregistry-image"
+# TODO: This is brittle. Find a better way to reference the test-infra repo.
+/workspace/test-infra/scenarios/kubernetes_bazel.py --test="//... -//pkg/client/... -//cmd/clusterregistry:push-clusterregistry-image"
