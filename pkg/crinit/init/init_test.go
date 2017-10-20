@@ -93,7 +93,7 @@ func TestValidateOptions(t *testing.T) {
 			err := validateOptions(tc.initialOpts)
 			if tc.errExpected {
 				if err == nil {
-					t.Errorf("expected error, but no error was returned")
+					t.Error("expected error, but no error was returned")
 				}
 			} else {
 				if err != nil {
@@ -182,13 +182,13 @@ func TestCreateNamespace(t *testing.T) {
 			t.Error("namespace not created")
 		}
 		if ns.Name != name {
-			t.Error("namespace has wrong name: got '%v', want '%v')", ns.Name, name)
+			t.Errorf("namespace has wrong name: got '%v', want '%v')", ns.Name, name)
 		}
 		if serverNs, _ := client.CoreV1().Namespaces().Get(name, metav1.GetOptions{}); serverNs == nil {
 			t.Error("namespace not created on server")
 		}
 		if err != nil {
-			t.Error("unexpected error: got %v", err)
+			t.Errorf("unexpected error: got %v", err)
 		}
 	})
 
@@ -200,7 +200,7 @@ func TestCreateNamespace(t *testing.T) {
 			t.Error("namespace not returned")
 		}
 		if ns.Name != name {
-			t.Error("namespace has wrong name: got '%v', want '%v')", ns.Name, name)
+			t.Errorf("namespace has wrong name: got '%v', want '%v')", ns.Name, name)
 		}
 		if serverNs, _ := client.CoreV1().Namespaces().Get(name, metav1.GetOptions{}); serverNs != nil {
 			t.Error("dry run should not create namespace")
@@ -243,19 +243,19 @@ func TestCreateService(t *testing.T) {
 			t.Error("service not returned")
 		}
 		if svc.Name != name {
-			t.Error("service has wrong name: got '%v', want '%v')", svc.Name, name)
+			t.Errorf("service has wrong name: got '%v', want '%v')", svc.Name, name)
 		}
 		if serverSvc, _ := client.CoreV1().Services("ns").Get(name, metav1.GetOptions{}); serverSvc != nil {
 			t.Error("dry run should not create service")
 		}
 		if len(ips) > 0 {
-			t.Error("ips not expected in dry-run mode: got %v", ips)
+			t.Errorf("ips not expected in dry-run mode: got %v", ips)
 		}
 		if len(hostnames) > 0 {
-			t.Error("hostnames not expected in dry-run mode: got %v", hostnames)
+			t.Errorf("hostnames not expected in dry-run mode: got %v", hostnames)
 		}
 		if err != nil {
-			t.Error("unexpected error: got %v", err)
+			t.Errorf("unexpected error: got %v", err)
 		}
 	})
 
@@ -333,13 +333,13 @@ func TestCreateService(t *testing.T) {
 				t.Error("service not returned")
 			}
 			if svc.Name != tc.name {
-				t.Error("service has wrong name: got '%v', want '%v')", svc.Name, tc.name)
+				t.Errorf("service has wrong name: got '%v', want '%v')", svc.Name, tc.name)
 			}
 			if !reflect.DeepEqual(ips, tc.expectedIPs) {
-				t.Error("unexpected ips returned: got %v, want: %v", ips, tc.expectedIPs)
+				t.Errorf("unexpected ips returned: got %v, want: %v", ips, tc.expectedIPs)
 			}
 			if !reflect.DeepEqual(hostnames, tc.expectedHostnames) {
-				t.Error("unexpected hostnames returned: got %v, want: %v", hostnames, tc.expectedHostnames)
+				t.Errorf("unexpected hostnames returned: got %v, want: %v", hostnames, tc.expectedHostnames)
 			}
 		})
 	}
@@ -382,13 +382,13 @@ func TestCreateService(t *testing.T) {
 				t.Error("Expected error, got none")
 			}
 			if svc != nil {
-				t.Error("service not expected with error: got %v", svc)
+				t.Errorf("service not expected with error: got %v", svc)
 			}
 			if ips != nil {
-				t.Error("ips not expected with error: got %v", ips)
+				t.Errorf("ips not expected with error: got %v", ips)
 			}
 			if hostnames != nil {
-				t.Error("hostnames not expected with error: got %v", hostnames)
+				t.Errorf("hostnames not expected with error: got %v", hostnames)
 			}
 		})
 	}
