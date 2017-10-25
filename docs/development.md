@@ -39,9 +39,9 @@ To build it, from the root of the repository:
 1.  Run `bazel build //cmd/clusterregistry`. (This may take a while the first
     time you run it.)
 1.  If you want to build a docker image, run
-    `bazel build //cmd/clusterregistry:clusterregistry-image`
+    `bazel build //:clusterregistry-image`
 1.  To push an image to Google Container registry, you'll need to run
-    `bazel run //cmd/clusterregistry:push-clusterregistry-image --define project=<your_project_id>`
+    `bazel run //:push-clusterregistry-image --define project=<your_project_id>`
 
 ## Building `crinit`
 
