@@ -22,7 +22,6 @@ import (
 
 	genericoptions "k8s.io/apiserver/pkg/server/options"
 	"k8s.io/apiserver/pkg/storage/storagebackend"
-	"k8s.io/cluster-registry/pkg/apis/clusterregistry/install"
 
 	"github.com/spf13/pflag"
 )
@@ -44,7 +43,7 @@ type ServerRunOptions struct {
 func NewServerRunOptions() *ServerRunOptions {
 	o := &ServerRunOptions{
 		GenericServerRunOptions: genericoptions.NewServerRunOptions(),
-		Etcd:           genericoptions.NewEtcdOptions(storagebackend.NewDefaultConfig("/registry/clusterregistry.kubernetes.io", install.Scheme, nil)),
+		Etcd:           genericoptions.NewEtcdOptions(storagebackend.NewDefaultConfig("/registry/clusterregistry.kubernetes.io", nil)),
 		SecureServing:  genericoptions.NewSecureServingOptions(),
 		Audit:          genericoptions.NewAuditOptions(),
 		Features:       genericoptions.NewFeatureOptions(),
