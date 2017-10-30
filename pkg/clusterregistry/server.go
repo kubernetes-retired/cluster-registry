@@ -57,7 +57,6 @@ func NonBlockingRun(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 	if err := s.SecureServing.MaybeDefaultWithSelfSignedCerts(s.GenericServerRunOptions.AdvertiseAddress.String(), nil, nil); err != nil {
 		return fmt.Errorf("error creating self-signed certificates: %v", err)
 	}
-	s.SecureServing.ForceLoopbackConfigUsage()
 
 	if errs := s.Validate(); len(errs) != 0 {
 		return utilerrors.NewAggregate(errs)
@@ -89,7 +88,8 @@ func NonBlockingRun(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 
 	storageFactory := serverstorage.NewDefaultStorageFactory(
 		s.Etcd.StorageConfig, s.Etcd.DefaultStorageMediaType, install.Codecs,
-		serverstorage.NewDefaultResourceEncodingConfig(install.Registry), resourceConfig,
+		serverstorage.NewDefaultResourceEncodingConfig(install.Registry),
+		resourceConfig, nil,
 	)
 
 	for _, override := range s.Etcd.EtcdServersOverrides {
@@ -122,7 +122,7 @@ func NonBlockingRun(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 
 	sharedInformers := informers.NewSharedInformerFactory(client, genericConfig.LoopbackClientConfig.Timeout)
 
-	err = s.Admission.ApplyTo(genericConfig)
+	err = s.Admission.ApplyTo(genericConfig, nil, nil, nil, install.Scheme)
 	if err != nil {
 		return fmt.Errorf("failed to initialize plugins: %v", err)
 	}
@@ -140,7 +140,7 @@ func NonBlockingRun(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 	genericConfig.Authorizer = authorizerfactory.NewAlwaysAllowAuthorizer()
 	genericConfig.SwaggerConfig = genericapiserver.DefaultSwaggerConfig()
 
-	m, err := genericConfig.Complete().New("clusterregistry", genericapiserver.EmptyDelegate)
+	m, err := genericConfig.Complete(nil).New("clusterregistry", genericapiserver.EmptyDelegate)
 	if err != nil {
 		return err
 	}

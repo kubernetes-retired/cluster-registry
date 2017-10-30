@@ -23,7 +23,6 @@ import (
 	genericapirequest "k8s.io/apiserver/pkg/endpoints/request"
 	"k8s.io/apiserver/pkg/registry/rest"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry"
-	"k8s.io/cluster-registry/pkg/apis/clusterregistry/install"
 )
 
 // Registry is an interface implemented by things that know how to store Cluster objects.
@@ -73,7 +72,7 @@ func (s *storage) CreateCluster(ctx genericapirequest.Context, cluster *clusterr
 }
 
 func (s *storage) UpdateCluster(ctx genericapirequest.Context, cluster *clusterregistry.Cluster) error {
-	_, _, err := s.Update(ctx, cluster.Name, rest.DefaultUpdatedObjectInfo(cluster, install.Scheme))
+	_, _, err := s.Update(ctx, cluster.Name, rest.DefaultUpdatedObjectInfo(cluster))
 	return err
 }
 

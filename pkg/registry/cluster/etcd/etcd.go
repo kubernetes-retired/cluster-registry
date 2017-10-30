@@ -31,7 +31,6 @@ type REST struct {
 // NewREST returns a RESTStorage object that will work against clusters.
 func NewREST(optsGetter generic.RESTOptionsGetter, scheme *runtime.Scheme) (*REST, error) {
 	store := &genericregistry.Store{
-		Copier:                   scheme,
 		NewFunc:                  func() runtime.Object { return &clusterregistry.Cluster{} },
 		NewListFunc:              func() runtime.Object { return &clusterregistry.ClusterList{} },
 		PredicateFunc:            cluster.MatchCluster,
