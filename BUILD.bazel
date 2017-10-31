@@ -1,16 +1,9 @@
 load("@io_bazel_rules_go//go:def.bzl", "gazelle", "go_prefix")
 
-gazelle(name = "gazelle")
+gazelle(
+    name = "gazelle",
+    external = "vendored",
+    args = ["-proto", "disable"],
+)
 
 go_prefix("k8s.io/cluster-registry")
-
-# Dummy rule that allows the codegen script to fetch the dependencies it needs.
-filegroup(
-    name = "genfiles_deps",
-    srcs = [
-        "@io_k8s_apimachinery//pkg/conversion:go_default_library",
-        "@io_k8s_apimachinery//pkg/fields:go_default_library",
-        "@io_k8s_apimachinery//pkg/runtime:go_default_library",
-        "@io_k8s_kubernetes//hack/boilerplate:boilerplate.go.txt",
-    ],
-)

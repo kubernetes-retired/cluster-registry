@@ -44,13 +44,15 @@ function generate_group() {
   local APIS_PKG=k8s.io/cluster-registry/pkg/apis
 
   echo "generating clientset for group ${GROUP_NAME} and version ${VERSION} at ${SCRIPT_BASE}/${CLIENT_PKG}"
-  bazel run @io_k8s_code_generator//cmd/client-gen -- \
+  bazel run //vendor/k8s.io/code-generator/cmd/client-gen -- \
+    --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
     --input-base ${APIS_PKG} \
     --input ${GROUP_NAME} \
     --clientset-path ${CLIENTSET_PKG} \
     --output-base ${GEN_TMPDIR} \
     --clientset-name "internalclientset"
-  bazel run @io_k8s_code_generator//cmd/client-gen -- \
+  bazel run //vendor/k8s.io/code-generator/cmd/client-gen -- \
+    --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
     --input-base ${APIS_PKG} \
     --input ${GROUP_NAME}/${VERSION} \
     --clientset-path ${CLIENTSET_PKG} \
@@ -58,13 +60,15 @@ function generate_group() {
     --clientset-name "clientset"
 
   echo "generating listers for group ${GROUP_NAME} and version ${VERSION} at ${SCRIPT_BASE}/${LISTERS_PKG}"
-  bazel run @io_k8s_code_generator//cmd/lister-gen -- \
+  bazel run //vendor/k8s.io/code-generator/cmd/lister-gen -- \
+    --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
     --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} \
     --output-package ${LISTERS_PKG} \
     --output-base ${GEN_TMPDIR}
 
   echo "generating informers for group ${GROUP_NAME} and version ${VERSION} at ${SCRIPT_BASE}/${INFORMERS_PKG}"
-  bazel run @io_k8s_code_generator//cmd/informer-gen -- \
+  bazel run //vendor/k8s.io/code-generator/cmd/informer-gen -- \
+    --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
     --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} \
     --versioned-clientset-package ${CLIENT_PKG}/clientset_generated/clientset \
     --internal-clientset-package ${CLIENT_PKG}/clientset_generated/internalclientset \
@@ -73,19 +77,22 @@ function generate_group() {
     --output-base ${GEN_TMPDIR}
 
   echo "generating deep copies"
-  bazel run @io_k8s_code_generator//cmd/deepcopy-gen -- \
+  bazel run //vendor/k8s.io/code-generator/cmd/deepcopy-gen -- \
+    --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
     --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} \
     --output-base ${GEN_TMPDIR} \
     --output-file-base zz_generated.deepcopy
 
   echo "generating defaults"
-  bazel run @io_k8s_code_generator//cmd/defaulter-gen -- \
+  bazel run //vendor/k8s.io/code-generator/cmd/defaulter-gen -- \
+    --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
     --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} \
     --output-base ${GEN_TMPDIR} \
     --output-file-base zz_generated.defaults
 
   echo "generating conversions"
-  bazel run @io_k8s_code_generator//cmd/conversion-gen -- \
+  bazel run //vendor/k8s.io/code-generator/cmd/conversion-gen -- \
+    --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
     --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} \
     --extra-peer-dirs "k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/conversion,k8s.io/apimachinery/pkg/runtime" \
     --output-base ${GEN_TMPDIR} \
@@ -94,7 +101,9 @@ function generate_group() {
   cp -r "${GEN_TMPDIR}/k8s.io/cluster-registry/"* "${SCRIPT_BASE}/${REPO_DIRNAME}"
 }
 
-echo "Creating temporary GOPATH from bazel workspace"
-${SCRIPT_ROOT}/gopath_from_workspace.py "${TMP_GOPATH}"
+mkdir -p "${TMP_GOPATH}/src/k8s.io/cluster-registry"
+mkdir -p "${TMP_GOPATH}/src/k8s.io/apimachinery"
+cp -r "${SCRIPT_ROOT}/../"* "${TMP_GOPATH}/src/k8s.io/cluster-registry"
+cp -r "${SCRIPT_ROOT}/../vendor/k8s.io/apimachinery/"* "${TMP_GOPATH}/src/k8s.io/apimachinery"
 export GOPATH="${TMP_GOPATH}"
 generate_group clusterregistry v1alpha1

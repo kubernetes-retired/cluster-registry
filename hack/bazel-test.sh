@@ -26,7 +26,8 @@ set -euo pipefail
 SCRIPT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 cd "${SCRIPT_ROOT}/.."
+bazel run //:gazelle
 hack/update-codegen.sh
 bazel run //:gazelle
 # TODO: This is brittle. Find a better way to reference the test-infra repo.
-/workspace/test-infra/scenarios/kubernetes_bazel.py --test="//... -//pkg/client/... -//cmd/clusterregistry:push-clusterregistry-image"
+/workspace/test-infra/scenarios/kubernetes_bazel.py --test="//cmd/... //pkg/... -//cmd/clusterregistry:push-clusterregistry-image -//pkg/client/..."
