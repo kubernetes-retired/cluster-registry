@@ -10,8 +10,6 @@ Before doing any development work, you must (in order, from the repository root
 directory, after cloning):
 
 1.  run `bazel run //:gazelle`
-1.  run `./hack/update-codegen.sh`
-1.  run `bazel run //:gazelle` (again)
 
 ### bazel
 
@@ -91,3 +89,12 @@ some warts.
 1.  When sending out a PR, please put the handmade changes in one commit and the
     generated updates in another commit so that it's easier for reviewers to
     see what's been done.
+
+## Updating generated code
+
+If you modify any files in `pkg/apis`, you will likely need to regenerate the
+generated clients and other generated files.
+
+1.  Run `./hack/update-codegen.sh` to update the files.
+1.  Add the generated files to your PR, preferably in a separate,
+    generated-only commit so that they are easier to review.
