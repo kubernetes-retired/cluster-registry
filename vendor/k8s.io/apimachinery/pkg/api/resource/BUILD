@@ -51,7 +51,7 @@ go_test(
     name = "go_default_xtest",
     srcs = ["quantity_example_test.go"],
     importpath = "k8s.io/apimachinery/pkg/api/resource_test",
-    deps = ["//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library"],
+    deps = [":go_default_library"],
 )
 
 filegroup(

@@ -13,5 +13,6 @@ go_library(
         "fail.go",
         "pass.go",
     ],
+    importpath = "github.com/kubernetes/repo-infra/verify/boilerplate/test",
     tags = ["automanaged"],
 )

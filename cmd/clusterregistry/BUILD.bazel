@@ -1,3 +1,4 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("@io_bazel_rules_docker//docker:docker.bzl", "docker_build", "docker_push")
 
 docker_build(
@@ -13,4 +14,26 @@ docker_push(
     registry = "gcr.io",
     repository = "$(project)/clusterregistry",
     tag = "dev",
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = ["clusterregistry.go"],
+    importpath = "k8s.io/cluster-registry/cmd/clusterregistry",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//pkg/clusterregistry:go_default_library",
+        "//pkg/clusterregistry/options:go_default_library",
+        "//vendor/github.com/spf13/pflag:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
+        "//vendor/k8s.io/apiserver/pkg/util/flag:go_default_library",
+        "//vendor/k8s.io/apiserver/pkg/util/logs:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "clusterregistry",
+    importpath = "k8s.io/cluster-registry/cmd/clusterregistry",
+    library = ":go_default_library",
+    visibility = ["//visibility:public"],
 )

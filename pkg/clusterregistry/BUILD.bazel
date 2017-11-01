@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "cluster.go",
+        "server.go",
+    ],
+    importpath = "k8s.io/cluster-registry/pkg/clusterregistry",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/apis/clusterregistry:go_default_library",
+        "//pkg/apis/clusterregistry/install:go_default_library",
+        "//pkg/apis/clusterregistry/v1alpha1:go_default_library",
+        "//pkg/client/clientset_generated/internalclientset:go_default_library",
+        "//pkg/client/informers_generated/internalversion:go_default_library",
+        "//pkg/clusterregistry/options:go_default_library",
+        "//pkg/registry/cluster/etcd:go_default_library",
+        "//vendor/github.com/golang/glog:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/util/errors:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/version:go_default_library",
+        "//vendor/k8s.io/apiserver/pkg/authorization/authorizerfactory:go_default_library",
+        "//vendor/k8s.io/apiserver/pkg/registry/generic:go_default_library",
+        "//vendor/k8s.io/apiserver/pkg/registry/rest:go_default_library",
+        "//vendor/k8s.io/apiserver/pkg/server:go_default_library",
+        "//vendor/k8s.io/apiserver/pkg/server/storage:go_default_library",
+    ],
+)

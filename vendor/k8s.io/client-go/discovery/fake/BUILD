@@ -39,8 +39,8 @@ go_test(
     srcs = ["discovery_test.go"],
     importpath = "k8s.io/client-go/discovery/fake_test",
     deps = [
+        ":go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/version:go_default_library",
-        "//vendor/k8s.io/client-go/discovery/fake:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes/fake:go_default_library",
     ],
 )
