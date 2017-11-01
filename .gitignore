@@ -1,4 +1,1 @@
 /bazel-*
-BUILD.bazel
-!/BUILD.bazel
-!/cmd/clusterregistry/BUILD.bazel

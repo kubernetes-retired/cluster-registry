@@ -68,6 +68,14 @@ You can run all the unit tests by running
 `bazel test -- //cmd/... //pkg/...  -//cmd/clusterregistry:push-clusterregistry-image -//pkg/client/...`
 from the repository root. (This may take a while the first time you run it.)
 
+## Updating Bazel files
+
+You will need to update the BUILD and BUILD.bazel files when making changes that
+cause the Go imports to change.
+
+1.  Run `./hack/update-bazel.sh`
+1.  Add the updated `BUILD.bazel` and `BUILD` files to your commit.
+
 ## Updating vendored dependencies
 
 The `dep` tool is currently only marginally supported by k/ repos. There are
@@ -84,7 +92,7 @@ some warts.
     -   As of #58, it was necessary to modify the BUILD file in
         `vendor/k8s.io/client-go/util/cert` to have the go_library not reference
         testdata.
-1.  Run the commands from the [Prerequisites](#Prerequisites).
+1.  [Update the BUILD and BUILD.bazel files](#updating-bazel-files).
 1.  Run the tests and fix any breakages.
 1.  When sending out a PR, please put the handmade changes in one commit and the
     generated updates in another commit so that it's easier for reviewers to

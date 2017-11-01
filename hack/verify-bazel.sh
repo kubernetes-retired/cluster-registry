@@ -1,5 +1,4 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
 # Copyright 2017 The Kubernetes Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,17 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Generates all necessary files and runs bazel test against the targets in
-# the repository.
-#
-# This is meant to be used from a Kubernetes test-infra execute scenario, as
-# defined here:
-# https://github.com/kubernetes/test-infra/blob/master/scenarios/execute.py
-
 set -euo pipefail
 
-SCRIPT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+diff=$(bazel run //:gazelle -- -mode diff || true)
 
-cd "${SCRIPT_ROOT}/.."
-# TODO: Replace with a kubernetes-bazel scenario.
-/workspace/test-infra/scenarios/kubernetes_bazel.py --test="//cmd/... //pkg/... -//cmd/clusterregistry:push-clusterregistry-image -//pkg/client/..."
+if [[ -n "${diff}" ]]; then
+  echo "${diff}"
+  echo
+  echo "Run ./hack/update-bazel.sh"
+  exit 1
+fi
