@@ -33,10 +33,13 @@ function clean_up() {
 }
 trap clean_up EXIT
 
-# Generates code for the provided groupname ($1) and version ($2).
+# Generates code for the provided groupname ($1) and version ($2) using $3
+# as the --output-base flag for all generation commands.
+# To verify instead of generating, pass "--verify-only" as $4.
 function generate_group() {
   local GROUP_NAME=$1
   local VERSION=$2
+  local OUTPUT_BASE=$3
   local CLIENT_PKG=k8s.io/cluster-registry/pkg/client
   local CLIENTSET_PKG=${CLIENT_PKG}/clientset_generated
   local LISTERS_PKG=${CLIENT_PKG}/listers_generated
@@ -49,22 +52,25 @@ function generate_group() {
     --input-base ${APIS_PKG} \
     --input ${GROUP_NAME} \
     --clientset-path ${CLIENTSET_PKG} \
-    --output-base ${GEN_TMPDIR} \
-    --clientset-name "internalclientset"
+    --output-base "${OUTPUT_BASE}" \
+    --clientset-name "internalclientset" \
+    "$4"
   bazel run //vendor/k8s.io/code-generator/cmd/client-gen -- \
     --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
     --input-base ${APIS_PKG} \
     --input ${GROUP_NAME}/${VERSION} \
     --clientset-path ${CLIENTSET_PKG} \
-    --output-base ${GEN_TMPDIR} \
-    --clientset-name "clientset"
+    --output-base "${OUTPUT_BASE}" \
+    --clientset-name "clientset" \
+    "$4"
 
   echo "generating listers for group ${GROUP_NAME} and version ${VERSION} at ${SCRIPT_BASE}/${LISTERS_PKG}"
   bazel run //vendor/k8s.io/code-generator/cmd/lister-gen -- \
     --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
     --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} \
     --output-package ${LISTERS_PKG} \
-    --output-base ${GEN_TMPDIR}
+    --output-base "${OUTPUT_BASE}" \
+    "$4"
 
   echo "generating informers for group ${GROUP_NAME} and version ${VERSION} at ${SCRIPT_BASE}/${INFORMERS_PKG}"
   bazel run //vendor/k8s.io/code-generator/cmd/informer-gen -- \
@@ -74,36 +80,52 @@ function generate_group() {
     --internal-clientset-package ${CLIENT_PKG}/clientset_generated/internalclientset \
     --listers-package ${LISTERS_PKG} \
     --output-package ${INFORMERS_PKG} \
-    --output-base ${GEN_TMPDIR}
+    --output-base "${OUTPUT_BASE}" \
+    "$4"
 
   echo "generating deep copies"
   bazel run //vendor/k8s.io/code-generator/cmd/deepcopy-gen -- \
     --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
     --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} \
-    --output-base ${GEN_TMPDIR} \
-    --output-file-base zz_generated.deepcopy
+    --output-base "${OUTPUT_BASE}" \
+    --output-file-base zz_generated.deepcopy \
+    "$4"
 
   echo "generating defaults"
   bazel run //vendor/k8s.io/code-generator/cmd/defaulter-gen -- \
     --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
     --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} \
-    --output-base ${GEN_TMPDIR} \
-    --output-file-base zz_generated.defaults
+    --output-base "${OUTPUT_BASE}" \
+    --output-file-base zz_generated.defaults \
+    "$4"
 
   echo "generating conversions"
   bazel run //vendor/k8s.io/code-generator/cmd/conversion-gen -- \
     --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
     --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} \
     --extra-peer-dirs "k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/conversion,k8s.io/apimachinery/pkg/runtime" \
-    --output-base ${GEN_TMPDIR} \
-    --output-file-base zz_generated.conversion
-
-  cp -r "${GEN_TMPDIR}/k8s.io/cluster-registry/"* "${SCRIPT_BASE}/${REPO_DIRNAME}"
+    --output-base "${OUTPUT_BASE}" \
+    --output-file-base zz_generated.conversion \
+    "$4"
 }
 
+# Set up the temporary GOPATH with necessary dependencies.
 mkdir -p "${TMP_GOPATH}/src/k8s.io/cluster-registry"
 mkdir -p "${TMP_GOPATH}/src/k8s.io/apimachinery"
 cp -r "${SCRIPT_ROOT}/../"* "${TMP_GOPATH}/src/k8s.io/cluster-registry"
 cp -r "${SCRIPT_ROOT}/../vendor/k8s.io/apimachinery/"* "${TMP_GOPATH}/src/k8s.io/apimachinery"
+
+# In verify mode, generate into the temporary GOPATH.
+OUTPUT_BASE="${GEN_TMPDIR}"
+if [ -n "$@" ]; then
+  OUTPUT_BASE="${TMP_GOPATH}/src"
+fi
+
+# Perform the code generation.
 export GOPATH="${TMP_GOPATH}"
-generate_group clusterregistry v1alpha1
+generate_group clusterregistry v1alpha1 "${OUTPUT_BASE}" "${@-}"
+
+# In generate mode, copy the generated files back into the tree.
+if [ -n "$@" ]; then
+  cp -r "${OUTPUT_BASE}/k8s.io/cluster-registry/"* "${SCRIPT_BASE}/${REPO_DIRNAME}"
+fi
