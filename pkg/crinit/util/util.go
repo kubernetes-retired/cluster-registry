@@ -26,7 +26,7 @@ import (
 
 const (
 	// DefaultClusterRegistryNamespace is the default namespace in which
-	// cluster registry cmponents are hosted.
+	// cluster registry components are hosted.
 	DefaultClusterRegistryNamespace = "clusterregistry"
 )
 

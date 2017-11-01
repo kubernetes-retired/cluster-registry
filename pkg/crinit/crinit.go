@@ -17,32 +17,35 @@ limitations under the License.
 package crinit
 
 import (
+	"flag"
 	"io"
 
-	"k8s.io/apiserver/pkg/util/flag"
+	apiserverflag "k8s.io/apiserver/pkg/util/flag"
 	"k8s.io/client-go/tools/clientcmd"
 	crinitinit "k8s.io/cluster-registry/pkg/crinit/init"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 // NewClusterregistryCommand creates the `clusterregistry` command.
 func NewClusterregistryCommand(out io.Writer, defaultServerImage, defaultEtcdImage string) *cobra.Command {
-	cmds := &cobra.Command{
+	rootCmd := &cobra.Command{
 		Use:   "crinit",
 		Short: "crinit runs a cluster registry in a Kubernetes cluster",
 		Long:  "crinit bootstraps and runs a cluster registry as a Deployment in an existing Kubernetes cluster.",
-		Run:   runHelp,
 	}
 
-	// From this point and forward we get warnings on flags that contain "_" separators
-	cmds.SetGlobalNormalizationFunc(flag.WarnWordSepNormalizeFunc)
+	// Add the command line flags from other dependencies (e.g., glog), but do not
+	// warn if they contain underscores.
+	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
+	pflag.CommandLine.SetNormalizeFunc(apiserverflag.WordSepNormalizeFunc)
+	rootCmd.PersistentFlags().AddFlagSet(pflag.CommandLine)
 
-	cmds.AddCommand(crinitinit.NewCmdInit(out, clientcmd.NewDefaultPathOptions(), defaultServerImage, defaultEtcdImage))
+	// Warn for other flags that contain underscores.
+	rootCmd.SetGlobalNormalizationFunc(apiserverflag.WarnWordSepNormalizeFunc)
 
-	return cmds
-}
+	rootCmd.AddCommand(crinitinit.NewCmdInit(out, clientcmd.NewDefaultPathOptions(), defaultServerImage, defaultEtcdImage))
 
-func runHelp(cmd *cobra.Command, args []string) {
-	cmd.Help()
+	return rootCmd
 }
