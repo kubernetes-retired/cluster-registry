@@ -57,6 +57,7 @@ const (
 	apiserverServiceTypeFlag      = "api-server-service-type"
 	apiserverAdvertiseAddressFlag = "api-server-advertise-address"
 	apiserverPortFlag             = "api-server-port"
+	apiServerStandaloneFlag       = "api-server-standalone"
 
 	apiServerSecurePortName = "https"
 	// Set the secure port to 8443 to avoid requiring root privileges
@@ -110,6 +111,7 @@ type initClusterRegistryOptions struct {
 	apiServerNodePortPortPtr     *int32
 	apiServerEnableHTTPBasicAuth bool
 	apiServerEnableTokenAuth     bool
+	apiServerStandalone          bool
 }
 
 func (o *initClusterRegistryOptions) Bind(flags *pflag.FlagSet, defaultServerImage, defaultEtcdImage string) {
@@ -120,11 +122,12 @@ func (o *initClusterRegistryOptions) Bind(flags *pflag.FlagSet, defaultServerIma
 	flags.BoolVar(&o.etcdPersistentStorage, "etcd-persistent-storage", true, "Use a persistent volume for etcd. Defaults to 'true'.")
 	flags.BoolVar(&o.dryRun, "dry-run", false, "Run the command in dry-run mode, without making any server requests.")
 	flags.StringVar(&o.apiServerOverridesString, "apiserver-arg-overrides", "", "Comma-separated list of cluster registry API server arguments to override, e.g., \"--arg1=value1,--arg2=value2...\"")
-	flags.StringVar(&o.apiServerServiceTypeString, apiserverServiceTypeFlag, string(v1.ServiceTypeLoadBalancer), "The type of service to create for the cluster registry. Options: 'LoadBalancer' (default), 'NodePort'.")
+	flags.StringVar(&o.apiServerServiceTypeString, apiserverServiceTypeFlag, string(v1.ServiceTypeNodePort), "The type of service to create for the cluster registry. Options: 'LoadBalancer', 'NodePort'.")
 	flags.StringVar(&o.apiServerAdvertiseAddress, apiserverAdvertiseAddressFlag, "", "Preferred address at which to advertise the cluster registry API server NodePort service. Valid only if '"+apiserverServiceTypeFlag+"=NodePort'.")
 	flags.Int32Var(&o.apiServerNodePortPort, apiserverPortFlag, 0, "Preferred port to use for the cluster registry API server NodePort service. Set to 0 to randomly assign a port. Valid only if '"+apiserverServiceTypeFlag+"=NodePort'.")
 	flags.BoolVar(&o.apiServerEnableHTTPBasicAuth, "apiserver-enable-basic-auth", false, "Enables HTTP Basic authentication for the cluster registry API server. Defaults to false.")
 	flags.BoolVar(&o.apiServerEnableTokenAuth, "apiserver-enable-token-auth", false, "Enables token authentication for the cluster registry API server. Defaults to false.")
+	flags.BoolVar(&o.apiServerStandalone, apiServerStandaloneFlag, false, "Disables the use of the Kubernetes API aggregation layer")
 }
 
 // NewCmdInit defines the `init` command that bootstraps a cluster registry
@@ -193,7 +196,10 @@ func validateOptions(opts *initClusterRegistryOptions) error {
 	opts.apiServerServiceType = v1.ServiceType(opts.apiServerServiceTypeString)
 	if opts.apiServerServiceType != v1.ServiceTypeLoadBalancer && opts.apiServerServiceType != v1.ServiceTypeNodePort {
 		return fmt.Errorf("invalid %s: %s, should be either %s or %s", apiserverServiceTypeFlag, opts.apiServerServiceType, v1.ServiceTypeLoadBalancer, v1.ServiceTypeNodePort)
+	} else if opts.apiServerServiceType == v1.ServiceTypeLoadBalancer && !opts.apiServerStandalone {
+		return fmt.Errorf("%s should only be used with %s", opts.apiServerServiceType, apiServerStandaloneFlag)
 	}
+
 	if opts.apiServerAdvertiseAddress != "" {
 		ip := net.ParseIP(opts.apiServerAdvertiseAddress)
 		if ip == nil {
@@ -261,7 +267,7 @@ func Run(opts *initClusterRegistryOptions, cmdOut io.Writer, hostClientset clien
 
 	fmt.Fprint(cmdOut, "Creating cluster registry API server service...")
 	glog.V(4).Info("Creating cluster registry API server service")
-	svc, ips, hostnames, err := createService(cmdOut, hostClientset, opts.commonOptions.ClusterRegistryNamespace, opts.commonOptions.Name, opts.apiServerAdvertiseAddress, opts.apiServerNodePortPortPtr, opts.apiServerServiceType, opts.dryRun)
+	svc, ips, hostnames, err := createService(cmdOut, hostClientset, opts.commonOptions.ClusterRegistryNamespace, opts.commonOptions.Name, opts.apiServerAdvertiseAddress, opts.apiServerNodePortPortPtr, opts.apiServerServiceType, opts.apiServerStandalone, opts.dryRun)
 	if err != nil {
 		return err
 	}
@@ -376,7 +382,7 @@ func createNamespace(clientset client.Interface, namespace string, dryRun bool) 
 	return clientset.CoreV1().Namespaces().Create(ns)
 }
 
-func createService(cmdOut io.Writer, clientset client.Interface, namespace, svcName, apiserverAdvertiseAddress string, apiserverPort *int32, apiserverServiceType v1.ServiceType, dryRun bool) (*v1.Service, []string, []string, error) {
+func createService(cmdOut io.Writer, clientset client.Interface, namespace, svcName, apiserverAdvertiseAddress string, apiserverPort *int32, apiserverServiceType v1.ServiceType, apiServerStandalone, dryRun bool) (*v1.Service, []string, []string, error) {
 	port := v1.ServicePort{
 		Name:       "https",
 		Protocol:   "TCP",
@@ -411,17 +417,20 @@ func createService(cmdOut io.Writer, clientset client.Interface, namespace, svcN
 
 	ips := []string{}
 	hostnames := []string{}
-	if apiserverServiceType == v1.ServiceTypeLoadBalancer {
-		ips, hostnames, err = waitForLoadBalancerAddress(cmdOut, clientset, svc, dryRun)
-	} else {
-		if apiserverAdvertiseAddress != "" {
-			ips = append(ips, apiserverAdvertiseAddress)
+
+	if apiServerStandalone {
+		if apiserverServiceType == v1.ServiceTypeLoadBalancer {
+			ips, hostnames, err = waitForLoadBalancerAddress(cmdOut, clientset, svc, dryRun)
 		} else {
-			ips, err = getClusterNodeIPs(clientset)
+			if apiserverAdvertiseAddress != "" {
+				ips = append(ips, apiserverAdvertiseAddress)
+			} else {
+				ips, err = getClusterNodeIPs(clientset)
+			}
 		}
-	}
-	if err != nil {
-		return nil, nil, nil, err
+		if err != nil {
+			return nil, nil, nil, err
+		}
 	}
 
 	return svc, ips, hostnames, err
