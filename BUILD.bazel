@@ -14,3 +14,20 @@ filegroup(
         "@io_k8s_kubernetes//hack/boilerplate:boilerplate.go.txt",
     ],
 )
+
+load("@io_bazel_rules_docker//docker:docker.bzl", "docker_build", "docker_push")
+
+docker_build(
+    name = "clusterregistry-image",
+    base = "@ubuntu//image",
+    cmd = ["./clusterregistry"],
+    files = ["//cmd/clusterregistry"],
+)
+
+docker_push(
+    name = "push-clusterregistry-image",
+    image = ":clusterregistry-image",
+    registry = "gcr.io",
+    repository = "$(project)/clusterregistry",
+    tag = "dev",
+)
