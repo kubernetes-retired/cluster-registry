@@ -1,5 +1,5 @@
 /*
-Copyright 2016 The Kubernetes Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ import (
 
 	apiserverflag "k8s.io/apiserver/pkg/util/flag"
 	"k8s.io/client-go/tools/clientcmd"
-	crinitinit "k8s.io/cluster-registry/pkg/crinit/init"
+	"k8s.io/cluster-registry/pkg/crinit/aggregated"
+	"k8s.io/cluster-registry/pkg/crinit/standalone"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -45,7 +46,8 @@ func NewClusterregistryCommand(out io.Writer, defaultServerImage, defaultEtcdIma
 	// Warn for other flags that contain underscores.
 	rootCmd.SetGlobalNormalizationFunc(apiserverflag.WarnWordSepNormalizeFunc)
 
-	rootCmd.AddCommand(crinitinit.NewCmdInit(out, clientcmd.NewDefaultPathOptions(), defaultServerImage, defaultEtcdImage))
+	rootCmd.AddCommand(standalone.NewCmdStandalone(out, clientcmd.NewDefaultPathOptions(), defaultServerImage, defaultEtcdImage))
+	rootCmd.AddCommand(aggregated.NewCmdAggregated(out, clientcmd.NewDefaultPathOptions(), defaultServerImage, defaultEtcdImage))
 
 	return rootCmd
 }
