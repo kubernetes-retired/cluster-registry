@@ -120,13 +120,6 @@ func NonBlockingRun(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 		return fmt.Errorf("failed to create clientset: %v", err)
 	}
 
-	sharedInformers := informers.NewSharedInformerFactory(client, genericConfig.LoopbackClientConfig.Timeout)
-
-	err = s.Admission.ApplyTo(genericConfig, nil, nil, nil, install.Scheme)
-	if err != nil {
-		return fmt.Errorf("failed to initialize plugins: %v", err)
-	}
-
 	genericConfig.Version = &version.Info{
 		Major: "0",
 		Minor: "1",
@@ -148,6 +141,7 @@ func NonBlockingRun(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 	apiResourceConfigSource := storageFactory.APIResourceConfigSource
 	installClusterAPIs(m, genericConfig.RESTOptionsGetter, apiResourceConfigSource)
 
+	sharedInformers := informers.NewSharedInformerFactory(client, genericConfig.LoopbackClientConfig.Timeout)
 	err = m.PrepareRun().NonBlockingRun(stopCh)
 	if err == nil {
 		sharedInformers.Start(stopCh)
