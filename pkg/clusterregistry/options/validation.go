@@ -35,9 +35,6 @@ func (options *ServerRunOptions) Validate() []error {
 	if errs := options.Features.Validate(); len(errs) > 0 {
 		errors = append(errors, errs...)
 	}
-	if errs := options.Admission.Validate(); len(errs) > 0 {
-		errors = append(errors, errs...)
-	}
 	if options.EventTTL <= 0 {
 		errors = append(errors, fmt.Errorf("--event-ttl must be greater than 0"))
 	}

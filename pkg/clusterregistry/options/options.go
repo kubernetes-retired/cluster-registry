@@ -33,7 +33,6 @@ type ServerRunOptions struct {
 	SecureServing           *genericoptions.SecureServingOptions
 	Audit                   *genericoptions.AuditOptions
 	Features                *genericoptions.FeatureOptions
-	Admission               *genericoptions.AdmissionOptions
 	Authentication          *BuiltInAuthenticationOptions
 
 	EventTTL time.Duration
@@ -47,7 +46,6 @@ func NewServerRunOptions() *ServerRunOptions {
 		SecureServing:  genericoptions.NewSecureServingOptions(),
 		Audit:          genericoptions.NewAuditOptions(),
 		Features:       genericoptions.NewFeatureOptions(),
-		Admission:      genericoptions.NewAdmissionOptions(),
 		Authentication: NewBuiltInAuthenticationOptions().WithAll(),
 
 		EventTTL: 1 * time.Hour,
@@ -64,7 +62,6 @@ func (s *ServerRunOptions) AddFlags(fs *pflag.FlagSet) {
 	s.Audit.AddFlags(fs)
 	s.Features.AddFlags(fs)
 	s.Authentication.AddFlags(fs)
-	s.Admission.AddFlags(fs)
 
 	fs.DurationVar(&s.EventTTL, "event-ttl", s.EventTTL, "Amount of time to retain events.")
 }
