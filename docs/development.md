@@ -38,6 +38,13 @@ This repository maintains its `vendor` directory with
 [dep](https://github.com/golang/dep). You must have v0.3.2 or newer of the tool
 installed if you intend to update the vendored dependencies.
 
+### hg
+
+If you plan to use `dep`, you will need to install the Mercurial `hg` command.
+This is because of a transitive dependency created by `k8s.io/apiserver` for
+the repo `goautoneg` that is hosted at bitbucket.org.  Otherwise the `dep`
+commands may hang on you unexpectedly.
+
 ## Building `clusterregistry`
 
 `clusterregistry` is the binary for the Kubernetes API server that serves the
