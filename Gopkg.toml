@@ -78,3 +78,7 @@ ignored = ["github.com/kubernetes/repo-infra/kazel"]
 [[override]]
   name = "k8s.io/gengo"
   revision = "75356185a9af8f0464efa792e2e9508d5b4be83c"
+
+[[constraint]]
+  branch = "master"
+  name = "k8s.io/kube-aggregator"

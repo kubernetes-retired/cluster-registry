@@ -441,6 +441,12 @@
 
 [[projects]]
   branch = "master"
+  name = "k8s.io/kube-aggregator"
+  packages = ["pkg/apis/apiregistration","pkg/apis/apiregistration/v1beta1","pkg/client/clientset_generated/clientset","pkg/client/clientset_generated/clientset/scheme","pkg/client/clientset_generated/clientset/typed/apiregistration/v1beta1"]
+  revision = "f44a75f488b92e99f8cd13640ef03a6aeda7be48"
+
+[[projects]]
+  branch = "master"
   name = "k8s.io/kube-openapi"
   packages = ["pkg/builder","pkg/common","pkg/generators","pkg/handler","pkg/util"]
   revision = "d52097ab4580a8f654862188cd66db48e87f62a3"
