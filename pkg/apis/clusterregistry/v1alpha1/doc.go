@@ -16,5 +16,6 @@ limitations under the License.
 
 // +k8s:conversion-gen=k8s.io/cluster-registry/pkg/apis/clusterregistry
 // +k8s:deepcopy-gen=package,register
-
+// +k8s:openapi-gen=true
+// +groupName=clusterregistry.k8s.io
 package v1alpha1 // import "k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"

@@ -141,7 +141,10 @@ func CreateServer(s *options.ServerRunOptions) (*genericapiserver.GenericAPIServ
 	}
 	genericConfig.Authenticator = authenticator
 	genericConfig.Authorizer = authorizerfactory.NewAlwaysAllowAuthorizer()
-	genericConfig.SwaggerConfig = genericapiserver.DefaultSwaggerConfig()
+
+	genericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(clusterregistryv1alpha1.GetOpenAPIDefinitions, install.Scheme)
+	genericConfig.OpenAPIConfig.Info.Title = "Cluster Registry"
+	genericConfig.OpenAPIConfig.Info.Version = fmt.Sprintf("v%s.%s", genericConfig.Version.Major, genericConfig.Version.Minor)
 
 	m, err := genericConfig.Complete(nil).New("clusterregistry", genericapiserver.EmptyDelegate)
 	if err != nil {
