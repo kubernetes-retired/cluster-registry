@@ -15,5 +15,5 @@ limitations under the License.
 */
 
 // +k8s:deepcopy-gen=package,register
-
+// +groupName=clusterregistry.k8s.io
 package clusterregistry // import "k8s.io/cluster-registry/pkg/apis/clusterregistry"

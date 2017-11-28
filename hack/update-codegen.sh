@@ -44,6 +44,7 @@ function generate_group() {
   local CLIENTSET_PKG=${CLIENT_PKG}/clientset_generated
   local LISTERS_PKG=${CLIENT_PKG}/listers_generated
   local INFORMERS_PKG=${CLIENT_PKG}/informers_generated
+  local OPENAPI_PKG=${CLIENT_PKG}/openapi_generated
   local APIS_PKG=k8s.io/cluster-registry/pkg/apis
 
   echo "generating clientset for group ${GROUP_NAME} and version ${VERSION} at ${SCRIPT_BASE}/${CLIENT_PKG}"
@@ -106,6 +107,16 @@ function generate_group() {
     --extra-peer-dirs "k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/conversion,k8s.io/apimachinery/pkg/runtime" \
     --output-base "${OUTPUT_BASE}" \
     --output-file-base zz_generated.conversion \
+    "$4"
+
+  echo "generating openapi"
+  mkdir -p "${OUTPUT_BASE}/${OPENAPI_PKG}"
+  bazel run //vendor/k8s.io/code-generator/cmd/openapi-gen -- \
+    --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
+    --input-dirs ${APIS_PKG}/${GROUP_NAME}/${VERSION},k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/version,k8s.io/apimachinery/pkg/runtime \
+    --output-base "${OUTPUT_BASE}" \
+    --output-package "${APIS_PKG}/${GROUP_NAME}/${VERSION}" \
+    --output-file-base zz_generated.openapi \
     "$4"
 }
 
