@@ -26,7 +26,7 @@ type ClusterregistryInterface interface {
 	ClustersGetter
 }
 
-// ClusterregistryClient is used to interact with features provided by the clusterregistry group.
+// ClusterregistryClient is used to interact with features provided by the clusterregistry.k8s.io group.
 type ClusterregistryClient struct {
 	restClient rest.Interface
 }
@@ -64,7 +64,7 @@ func New(c rest.Interface) *ClusterregistryClient {
 }
 
 func setConfigDefaults(config *rest.Config) error {
-	g, err := scheme.Registry.Group("clusterregistry")
+	g, err := scheme.Registry.Group("clusterregistry.k8s.io")
 	if err != nil {
 		return err
 	}

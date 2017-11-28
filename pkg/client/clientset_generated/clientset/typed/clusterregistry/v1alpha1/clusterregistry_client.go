@@ -28,7 +28,7 @@ type ClusterregistryV1alpha1Interface interface {
 	ClustersGetter
 }
 
-// ClusterregistryV1alpha1Client is used to interact with features provided by the clusterregistry group.
+// ClusterregistryV1alpha1Client is used to interact with features provided by the clusterregistry.k8s.io group.
 type ClusterregistryV1alpha1Client struct {
 	restClient rest.Interface
 }
