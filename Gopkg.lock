@@ -431,7 +431,7 @@
 
 [[projects]]
   name = "k8s.io/code-generator"
-  packages = ["cmd/client-gen","cmd/client-gen/args","cmd/client-gen/generators","cmd/client-gen/generators/fake","cmd/client-gen/generators/scheme","cmd/client-gen/generators/util","cmd/client-gen/path","cmd/client-gen/types","cmd/conversion-gen","cmd/conversion-gen/generators","cmd/deepcopy-gen","cmd/defaulter-gen","cmd/informer-gen","cmd/informer-gen/generators","cmd/lister-gen","cmd/lister-gen/generators","cmd/set-gen"]
+  packages = ["cmd/client-gen","cmd/client-gen/args","cmd/client-gen/generators","cmd/client-gen/generators/fake","cmd/client-gen/generators/scheme","cmd/client-gen/generators/util","cmd/client-gen/path","cmd/client-gen/types","cmd/conversion-gen","cmd/conversion-gen/generators","cmd/deepcopy-gen","cmd/defaulter-gen","cmd/informer-gen","cmd/informer-gen/generators","cmd/lister-gen","cmd/lister-gen/generators","cmd/openapi-gen","cmd/set-gen"]
   revision = "7ab2c9f35b06d8d9f672ee64580e534d2ab5d27e"
 
 [[projects]]
@@ -442,12 +442,12 @@
 [[projects]]
   branch = "master"
   name = "k8s.io/kube-openapi"
-  packages = ["pkg/builder","pkg/common","pkg/handler","pkg/util"]
+  packages = ["pkg/builder","pkg/common","pkg/generators","pkg/handler","pkg/util"]
   revision = "d52097ab4580a8f654862188cd66db48e87f62a3"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0e95da9a54b18849cff5008263c4b7654162e367be977c46219af7b1a0b14055"
+  inputs-digest = "92daab7a7231032b04b613b0b8ee2f40ea4114288c4b53694a69448124d3de97"
   solver-name = "gps-cdcl"
   solver-version = 1
