@@ -57,7 +57,9 @@ To build it, from the root of the repository:
 1.  If you want to build a docker image, run
     `bazel build //cmd/clusterregistry:clusterregistry-image`
 1.  To push an image to Google Container registry, you'll need to run
-    `bazel run //cmd/clusterregistry:push-clusterregistry-image --define project=<your_project_id>`
+    `bazel run //cmd/clusterregistry:push-clusterregistry-image --define repository=<your_gcr_repository_path>`
+     where `your_gcr_repository_path` is your GCP project name followed by
+     your image name, e.g., `myproject/myimage`.
 
 ## Building `crinit`
 
@@ -111,5 +113,51 @@ If you modify any files in `pkg/apis`, you will likely need to regenerate the
 generated clients and other generated files.
 
 1.  Run `./hack/update-codegen.sh` to update the files.
-1.  Add the generated files to your PR, preferably in a separate,
-    generated-only commit so that they are easier to review.
+1.  Add the generated files to your PR, preferably in a separate, generated-only
+    commit so that they are easier to review.
+
+## Nightly releases
+
+The cluster registry has a script, [`hack/release.sh`](../hack/release.sh), that
+is used to build releases and push them for public consumption. This script is
+run nightly by Prow.
+
+### Binaries
+
+Binaries are stored in Google Cloud Storage, in the `crreleases` bucket.
+Currently there are only binaries releases for 64-bit Linux.
+
+To get the latest client library (i.e., `crinit`), run:
+
+```sh
+PACKAGE=client
+LATEST=$(curl https://storage.googleapis.com/crreleases/nightly/latest)
+curl -O http://storage.googleapis.com/crreleases/nightly/$LATEST/clusterregistry-$PACKAGE.tar.gz
+```
+
+To verify, run:
+
+```sh
+curl http://storage.googleapis.com/crreleases/nightly/$LATEST/clusterregistry-$PACKAGE.tar.gz.sha | sha256sum -c -
+```
+
+To get the latest server binaries, run the commands above but replace
+`PACKAGE=client` with `PACKAGE=server`.
+
+### Images
+
+A Docker image for the [`clusterregistry`](../cmd/clusterregistry) binary is
+pushed to GCR.
+
+To pull the latest image, run:
+
+```sh
+docker pull gcr.io/crreleases/nightly/clusterregistry:latest_nightly
+```
+
+To pull an image from a specific date, replace `latest` with the date in
+`YYYYMMDD` format. For example,
+
+```sh
+docker pull gcr.io/crreleases/nightly/clusterregistry:20171201
+```
