@@ -29,6 +29,12 @@ trap clean_up EXIT
 BUILD_DATE="$(TZ=Etc/UTC date +%Y%m%d)"
 RELEASE_DIR="${TMPDIR}/${BUILD_DATE}"
 
+# Check for and install necessary dependencies.
+command -v bazel >/dev/null 2>&1 || { echo >&2 "Please install bazel before running this script."; exit 1; }
+command -v gcloud >/dev/null 2>&1 || { echo >&2 "Please install gcloud before running this script."; exit 1; }
+gcloud components install gsutil docker-credential-gcr
+docker-credential-gcr configure-docker
+
 cd "${SCRIPT_ROOT}/.."
 
 # Build the tools.
