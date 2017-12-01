@@ -34,5 +34,7 @@ in [#sig-multicluster](https://kubernetes.slack.com/messages/sig-multicluster/).
 
 # Development
 
+There is a [nightly build here](https://k8s-testgrid.appspot.com/sig-multicluster-cluster-registry)
+
 Basic instructions for working in the cluster-registry repo are
 [here](https://github.com/kubernetes/cluster-registry/tree/master/docs/development.md).
