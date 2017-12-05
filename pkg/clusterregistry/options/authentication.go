@@ -17,24 +17,21 @@ limitations under the License.
 package options
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/golang/glog"
 	"github.com/spf13/pflag"
 
-	"k8s.io/apiserver/pkg/authentication/authenticatorfactory"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	genericoptions "k8s.io/apiserver/pkg/server/options"
 	"k8s.io/cluster-registry/pkg/clusterregistry/authenticator"
 )
 
-type BuiltInAuthenticationOptions struct {
+type StandaloneAuthenticationOptions struct {
 	Anonymous      *AnonymousAuthenticationOptions
 	BootstrapToken *BootstrapTokenAuthenticationOptions
 	ClientCert     *genericoptions.ClientCertAuthenticationOptions
-	Delegating     *genericoptions.DelegatingAuthenticationOptions
 	PasswordFile   *PasswordFileAuthenticationOptions
 	TokenFile      *TokenFileAuthenticationOptions
 	WebHook        *WebHookAuthenticationOptions
@@ -64,55 +61,49 @@ type WebHookAuthenticationOptions struct {
 	CacheTTL   time.Duration
 }
 
-func NewBuiltInAuthenticationOptions() *BuiltInAuthenticationOptions {
-	return &BuiltInAuthenticationOptions{
+func NewStandaloneAuthenticationOptions() *StandaloneAuthenticationOptions {
+	return &StandaloneAuthenticationOptions{
 		TokenSuccessCacheTTL: 10 * time.Second,
 		TokenFailureCacheTTL: 0 * time.Second,
 	}
 }
 
-func (s *BuiltInAuthenticationOptions) WithAll() *BuiltInAuthenticationOptions {
+func (s *StandaloneAuthenticationOptions) WithAll() *StandaloneAuthenticationOptions {
 	return s.
 		WithAnonymous().
 		WithBootstrapToken().
 		WithClientCert().
-		WithDelegating().
 		WithPasswordFile().
 		WithTokenFile().
 		WithWebHook()
 }
 
-func (s *BuiltInAuthenticationOptions) WithAnonymous() *BuiltInAuthenticationOptions {
+func (s *StandaloneAuthenticationOptions) WithAnonymous() *StandaloneAuthenticationOptions {
 	s.Anonymous = &AnonymousAuthenticationOptions{Allow: true}
 	return s
 }
 
-func (s *BuiltInAuthenticationOptions) WithBootstrapToken() *BuiltInAuthenticationOptions {
+func (s *StandaloneAuthenticationOptions) WithBootstrapToken() *StandaloneAuthenticationOptions {
 	s.BootstrapToken = &BootstrapTokenAuthenticationOptions{}
 	return s
 }
 
-func (s *BuiltInAuthenticationOptions) WithClientCert() *BuiltInAuthenticationOptions {
+func (s *StandaloneAuthenticationOptions) WithClientCert() *StandaloneAuthenticationOptions {
 	s.ClientCert = &genericoptions.ClientCertAuthenticationOptions{}
 	return s
 }
 
-func (s *BuiltInAuthenticationOptions) WithDelegating() *BuiltInAuthenticationOptions {
-	s.Delegating = genericoptions.NewDelegatingAuthenticationOptions()
-	return s
-}
-
-func (s *BuiltInAuthenticationOptions) WithPasswordFile() *BuiltInAuthenticationOptions {
+func (s *StandaloneAuthenticationOptions) WithPasswordFile() *StandaloneAuthenticationOptions {
 	s.PasswordFile = &PasswordFileAuthenticationOptions{}
 	return s
 }
 
-func (s *BuiltInAuthenticationOptions) WithTokenFile() *BuiltInAuthenticationOptions {
+func (s *StandaloneAuthenticationOptions) WithTokenFile() *StandaloneAuthenticationOptions {
 	s.TokenFile = &TokenFileAuthenticationOptions{}
 	return s
 }
 
-func (s *BuiltInAuthenticationOptions) WithWebHook() *BuiltInAuthenticationOptions {
+func (s *StandaloneAuthenticationOptions) WithWebHook() *StandaloneAuthenticationOptions {
 	s.WebHook = &WebHookAuthenticationOptions{
 		CacheTTL: 2 * time.Minute,
 	}
@@ -120,14 +111,11 @@ func (s *BuiltInAuthenticationOptions) WithWebHook() *BuiltInAuthenticationOptio
 }
 
 // Validate checks invalid config combination
-func (s *BuiltInAuthenticationOptions) Validate() []error {
-	if s.Delegating != nil {
-		return s.Delegating.Validate()
-	}
+func (s *StandaloneAuthenticationOptions) Validate() []error {
 	return []error{}
 }
 
-func (s *BuiltInAuthenticationOptions) AddFlags(fs *pflag.FlagSet) {
+func (s *StandaloneAuthenticationOptions) AddFlags(fs *pflag.FlagSet) {
 	if s.Anonymous != nil {
 		fs.BoolVar(&s.Anonymous.Allow, "anonymous-auth", s.Anonymous.Allow, ""+
 			"Enables anonymous requests to the secure port of the API server. "+
@@ -152,22 +140,6 @@ func (s *BuiltInAuthenticationOptions) AddFlags(fs *pflag.FlagSet) {
 	// delegated and standalone modes. The wart here is that these flags must be
 	// added before the flag that tells the cluster registry to use delegated
 	// auth is parsed.
-	if s.Delegating != nil {
-		s.Delegating.AddFlags(fs)
-	} else {
-		if s.ClientCert != nil {
-			s.ClientCert.AddFlags(fs)
-		}
-
-		if s.WebHook != nil {
-			fs.StringVar(&s.WebHook.ConfigFile, "authentication-token-webhook-config-file", s.WebHook.ConfigFile, ""+
-				"File with webhook configuration for token authentication in kubeconfig format. "+
-				"The API server will query the remote service to determine authentication for bearer tokens.")
-
-			fs.DurationVar(&s.WebHook.CacheTTL, "authentication-token-webhook-cache-ttl", s.WebHook.CacheTTL,
-				"The duration to cache responses from the webhook token authenticator.")
-		}
-	}
 
 	if s.PasswordFile != nil {
 		fs.StringVar(&s.PasswordFile.BasicAuthFile, "basic-auth-file", s.PasswordFile.BasicAuthFile, ""+
@@ -183,11 +155,7 @@ func (s *BuiltInAuthenticationOptions) AddFlags(fs *pflag.FlagSet) {
 
 }
 
-func (o *BuiltInAuthenticationOptions) ApplyTo(c *genericapiserver.Config) error {
-	if o.Delegating != nil {
-		return o.Delegating.ApplyTo(c)
-	}
-
+func (o *StandaloneAuthenticationOptions) ApplyTo(c *genericapiserver.Config) error {
 	var err error
 	if o.ClientCert != nil {
 		c, err = c.ApplyClientCert(o.ClientCert.ClientCA)
@@ -198,10 +166,18 @@ func (o *BuiltInAuthenticationOptions) ApplyTo(c *genericapiserver.Config) error
 
 	c.SupportsBasicAuth = o.PasswordFile != nil && len(o.PasswordFile.BasicAuthFile) > 0
 
+	authenticator, securityDefinitions, err := o.toAuthenticationConfig().New()
+	if err != nil {
+		return err
+	}
+	c.Authenticator = authenticator
+	if c.OpenAPIConfig != nil {
+		c.OpenAPIConfig.SecurityDefinitions = securityDefinitions
+	}
 	return nil
 }
 
-func (s *BuiltInAuthenticationOptions) ToStandaloneAuthenticationConfig() authenticator.AuthenticatorConfig {
+func (s *StandaloneAuthenticationOptions) toAuthenticationConfig() authenticator.AuthenticatorConfig {
 	ret := authenticator.AuthenticatorConfig{
 		TokenSuccessCacheTTL: s.TokenSuccessCacheTTL,
 		TokenFailureCacheTTL: s.TokenFailureCacheTTL,
@@ -242,11 +218,4 @@ func (s *BuiltInAuthenticationOptions) ToStandaloneAuthenticationConfig() authen
 	}
 
 	return ret
-}
-
-func (s *BuiltInAuthenticationOptions) ToDelegatedAuthenticationConfig() (authenticatorfactory.DelegatingAuthenticatorConfig, error) {
-	if s.Delegating != nil {
-		return s.Delegating.ToAuthenticationConfig()
-	}
-	return authenticatorfactory.DelegatingAuthenticatorConfig{}, errors.New("delegating authentication config requested, but no delegating authentication options present")
 }

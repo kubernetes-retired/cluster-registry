@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-openapi/spec"
 	"github.com/golang/glog"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -73,17 +72,35 @@ func CreateServer(s *options.ServerRunOptions) (*genericapiserver.GenericAPIServ
 	}
 
 	genericConfig := genericapiserver.NewConfig(install.Codecs)
+	genericConfig.Version = &version.Info{
+		Major: "0",
+		Minor: "1",
+	}
+
+	genericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(clusterregistryv1alpha1.GetOpenAPIDefinitions, install.Scheme)
+	genericConfig.OpenAPIConfig.Info.Title = "Cluster Registry"
+	genericConfig.OpenAPIConfig.Info.Version = fmt.Sprintf("v%s.%s", genericConfig.Version.Major, genericConfig.Version.Minor)
+
 	if err := s.GenericServerRunOptions.ApplyTo(genericConfig); err != nil {
 		return nil, err
 	}
 	if err := s.SecureServing.ApplyTo(genericConfig); err != nil {
 		return nil, err
 	}
-	if err := s.Authentication.ApplyTo(genericConfig); err != nil {
-		return nil, err
-	}
-	if err := s.Authorization.ApplyTo(genericConfig); err != nil {
-		return nil, err
+	if s.UseDelegatedAuth {
+		if err := s.DelegatingAuthentication.ApplyTo(genericConfig); err != nil {
+			return nil, err
+		}
+		if err := s.DelegatingAuthorization.ApplyTo(genericConfig); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := s.StandaloneAuthentication.ApplyTo(genericConfig); err != nil {
+			return nil, err
+		}
+		if err := s.StandaloneAuthorization.ApplyTo(genericConfig); err != nil {
+			return nil, err
+		}
 	}
 	if err := s.Audit.ApplyTo(genericConfig); err != nil {
 		return nil, err
@@ -132,53 +149,6 @@ func CreateServer(s *options.ServerRunOptions) (*genericapiserver.GenericAPIServ
 	if err != nil {
 		return nil, fmt.Errorf("failed to create clientset: %v", err)
 	}
-
-	genericConfig.Version = &version.Info{
-		Major: "0",
-		Minor: "1",
-	}
-
-	var securityDefinitions *spec.SecurityDefinitions
-	if s.UseDelegatedAuth {
-		config, err := s.Authentication.ToDelegatedAuthenticationConfig()
-		if err != nil {
-			return nil, err
-		}
-		authenticator, innerSecurityDefinitions, err := config.New()
-		if err != nil {
-			return nil, err
-		}
-		genericConfig.Authenticator = authenticator
-		securityDefinitions = innerSecurityDefinitions
-
-		authorizationConfig, err := s.Authorization.ToDelegatedAuthorizationConfig()
-		if err != nil {
-			return nil, err
-		}
-		authorizer, err := authorizationConfig.New()
-		if err != nil {
-			return nil, err
-		}
-		genericConfig.Authorizer = authorizer
-	} else {
-		authenticator, innerSecurityDefinitions, err := s.Authentication.ToStandaloneAuthenticationConfig().New()
-		if err != nil {
-			return nil, err
-		}
-		genericConfig.Authenticator = authenticator
-		securityDefinitions = innerSecurityDefinitions
-
-		authorizer, err := s.Authorization.ToStandaloneAuthorizationConfig().New()
-		if err != nil {
-			return nil, err
-		}
-		genericConfig.Authorizer = authorizer
-	}
-
-	genericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(clusterregistryv1alpha1.GetOpenAPIDefinitions, install.Scheme)
-	genericConfig.OpenAPIConfig.Info.Title = "Cluster Registry"
-	genericConfig.OpenAPIConfig.Info.Version = fmt.Sprintf("v%s.%s", genericConfig.Version.Major, genericConfig.Version.Minor)
-	genericConfig.OpenAPIConfig.SecurityDefinitions = securityDefinitions
 
 	m, err := genericConfig.Complete(nil).New("clusterregistry", genericapiserver.EmptyDelegate)
 	if err != nil {

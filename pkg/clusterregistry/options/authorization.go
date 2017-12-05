@@ -17,14 +17,11 @@ limitations under the License.
 package options
 
 import (
-	"errors"
-
 	"github.com/spf13/pflag"
 
 	"k8s.io/apiserver/pkg/authorization/authorizer"
 	"k8s.io/apiserver/pkg/authorization/authorizerfactory"
 	genericapiserver "k8s.io/apiserver/pkg/server"
-	genericoptions "k8s.io/apiserver/pkg/server/options"
 )
 
 // StandaloneAuthorizerConfig configures an authorizer for the standalone
@@ -40,57 +37,34 @@ func (s StandaloneAuthorizerConfig) New() (authorizer.Authorizer, error) {
 	return authorizerfactory.NewAlwaysDenyAuthorizer(), nil
 }
 
-// BuiltInAuthorizationOptions configures authorization in the cluster registry.
-type BuiltInAuthorizationOptions struct {
-	Standalone *StandaloneAuthorizationOptions
-	Delegating *genericoptions.DelegatingAuthorizationOptions
-}
-
 // StandaloneAuthorizationOptions configure authorization in the cluster registry
 // when it is run as a standalone API server.
 type StandaloneAuthorizationOptions struct {
 	AlwaysAllow bool
 }
 
-func NewBuiltInAuthorizationOptions() *BuiltInAuthorizationOptions {
-	return &BuiltInAuthorizationOptions{
-		Standalone: &StandaloneAuthorizationOptions{AlwaysAllow: true},
-		Delegating: genericoptions.NewDelegatingAuthorizationOptions(),
-	}
+func NewStandaloneAuthorizationOptions() *StandaloneAuthorizationOptions {
+	return &StandaloneAuthorizationOptions{AlwaysAllow: true}
 }
 
 // Validate checks that the configuration is valid.
-func (b *BuiltInAuthorizationOptions) Validate() []error {
-	if b.Delegating != nil {
-		return b.Delegating.Validate()
-	}
+func (s *StandaloneAuthorizationOptions) Validate() []error {
 	return []error{}
 }
 
-func (b *BuiltInAuthorizationOptions) AddFlags(fs *pflag.FlagSet) {
-	if b.Delegating != nil {
-		b.Delegating.AddFlags(fs)
-	}
+func (s *StandaloneAuthorizationOptions) AddFlags(fs *pflag.FlagSet) {
+	// TODO: Add a flag to set AlwaysAllow.
 }
 
-func (b *BuiltInAuthorizationOptions) ApplyTo(c *genericapiserver.Config) error {
-	if b.Delegating != nil {
-		return b.Delegating.ApplyTo(c)
+func (s *StandaloneAuthorizationOptions) ApplyTo(c *genericapiserver.Config) error {
+	authorizer, err := s.toAuthorizationConfig().New()
+	if err != nil {
+		return err
 	}
+	c.Authorizer = authorizer
 	return nil
 }
 
-func (b *BuiltInAuthorizationOptions) ToStandaloneAuthorizationConfig() StandaloneAuthorizerConfig {
-	config := StandaloneAuthorizerConfig{}
-	if b.Standalone != nil {
-		config.AlwaysAllow = b.Standalone.AlwaysAllow
-	}
-	return config
-}
-
-func (b *BuiltInAuthorizationOptions) ToDelegatedAuthorizationConfig() (authorizerfactory.DelegatingAuthorizerConfig, error) {
-	if b.Delegating != nil {
-		return b.Delegating.ToAuthorizationConfig()
-	}
-	return authorizerfactory.DelegatingAuthorizerConfig{}, errors.New("delegating authorization config requested, but no delegating authorization options present")
+func (s *StandaloneAuthorizationOptions) toAuthorizationConfig() StandaloneAuthorizerConfig {
+	return StandaloneAuthorizerConfig{AlwaysAllow: s.AlwaysAllow}
 }
