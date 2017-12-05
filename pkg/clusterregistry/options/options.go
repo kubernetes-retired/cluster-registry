@@ -26,7 +26,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// Runtime options for the clusterregistry-apiserver.
+// Runtime options for the cluster registry.
 type ServerRunOptions struct {
 	GenericServerRunOptions *genericoptions.ServerRunOptions
 	Etcd                    *genericoptions.EtcdOptions
@@ -34,8 +34,10 @@ type ServerRunOptions struct {
 	Audit                   *genericoptions.AuditOptions
 	Features                *genericoptions.FeatureOptions
 	Authentication          *BuiltInAuthenticationOptions
+	Authorization           *BuiltInAuthorizationOptions
 
-	EventTTL time.Duration
+	EventTTL         time.Duration
+	UseDelegatedAuth bool
 }
 
 // NewServerRunOptions creates a new ServerRunOptions object with default values.
@@ -47,10 +49,11 @@ func NewServerRunOptions() *ServerRunOptions {
 		Audit:          genericoptions.NewAuditOptions(),
 		Features:       genericoptions.NewFeatureOptions(),
 		Authentication: NewBuiltInAuthenticationOptions().WithAll(),
+		Authorization:  NewBuiltInAuthorizationOptions(),
 
-		EventTTL: 1 * time.Hour,
+		EventTTL:         1 * time.Hour,
+		UseDelegatedAuth: false,
 	}
-	o.Authentication.Anonymous.Allow = false
 	return o
 }
 
@@ -62,6 +65,8 @@ func (s *ServerRunOptions) AddFlags(fs *pflag.FlagSet) {
 	s.Audit.AddFlags(fs)
 	s.Features.AddFlags(fs)
 	s.Authentication.AddFlags(fs)
+	s.Authorization.AddFlags(fs)
 
 	fs.DurationVar(&s.EventTTL, "event-ttl", s.EventTTL, "Amount of time to retain events.")
+	fs.BoolVar(&s.UseDelegatedAuth, "use-delegated-auth", s.UseDelegatedAuth, "Whether to delegate authentication/authorization to another API server.")
 }

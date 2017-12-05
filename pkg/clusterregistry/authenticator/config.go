@@ -26,6 +26,7 @@ import (
 	"k8s.io/apiserver/pkg/authentication/group"
 	"k8s.io/apiserver/pkg/authentication/request/anonymous"
 	"k8s.io/apiserver/pkg/authentication/request/bearertoken"
+	"k8s.io/apiserver/pkg/authentication/request/headerrequest"
 	"k8s.io/apiserver/pkg/authentication/request/union"
 	"k8s.io/apiserver/pkg/authentication/request/websocket"
 	"k8s.io/apiserver/pkg/authentication/request/x509"
@@ -68,6 +69,19 @@ func (config AuthenticatorConfig) New() (authenticator.Request, *spec.SecurityDe
 
 	// front-proxy, BasicAuth methods, local first, then remote
 	// Add the front proxy authenticator if requested
+	if config.RequestHeaderConfig != nil {
+		requestHeaderAuthenticator, err := headerrequest.NewSecure(
+			config.RequestHeaderConfig.ClientCA,
+			config.RequestHeaderConfig.AllowedClientNames,
+			config.RequestHeaderConfig.UsernameHeaders,
+			config.RequestHeaderConfig.GroupHeaders,
+			config.RequestHeaderConfig.ExtraHeaderPrefixes,
+		)
+		if err != nil {
+			return nil, nil, err
+		}
+		authenticators = append(authenticators, requestHeaderAuthenticator)
+	}
 
 	if len(config.BasicAuthFile) > 0 {
 		basicAuth, err := newAuthenticatorFromBasicAuthFile(config.BasicAuthFile)
