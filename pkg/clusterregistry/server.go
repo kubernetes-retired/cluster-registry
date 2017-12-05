@@ -79,14 +79,31 @@ func CreateServer(s *options.ServerRunOptions) (*genericapiserver.GenericAPIServ
 	if err := s.SecureServing.ApplyTo(genericConfig); err != nil {
 		return nil, err
 	}
-	if err := s.Authentication.ApplyTo(genericConfig); err != nil {
-		return nil, err
-	}
 	if err := s.Audit.ApplyTo(genericConfig); err != nil {
 		return nil, err
 	}
 	if err := s.Features.ApplyTo(genericConfig); err != nil {
 		return nil, err
+	}
+
+	if s.StandaloneMode {
+		if err := s.StandaloneAuthentication.ApplyTo(genericConfig); err != nil {
+			return nil, err
+		}
+
+		authenticator, _, err := s.StandaloneAuthentication.ToAuthenticationConfig().New()
+		if err != nil {
+			return nil, err
+		}
+		genericConfig.Authenticator = authenticator
+		genericConfig.Authorizer = authorizerfactory.NewAlwaysAllowAuthorizer()
+	} else { // Delegated Mode
+		if err := s.DelegatedAuthentication.ApplyTo(genericConfig); err != nil {
+			return nil, err
+		}
+		if err := s.DelegatedAuthorization.ApplyTo(genericConfig); err != nil {
+			return nil, err
+		}
 	}
 
 	resourceConfig := defaultResourceConfig()
@@ -134,13 +151,6 @@ func CreateServer(s *options.ServerRunOptions) (*genericapiserver.GenericAPIServ
 		Major: "0",
 		Minor: "1",
 	}
-
-	authenticator, _, err := s.Authentication.ToAuthenticationConfig().New()
-	if err != nil {
-		return nil, err
-	}
-	genericConfig.Authenticator = authenticator
-	genericConfig.Authorizer = authorizerfactory.NewAlwaysAllowAuthorizer()
 
 	genericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(clusterregistryv1alpha1.GetOpenAPIDefinitions, install.Scheme)
 	genericConfig.OpenAPIConfig.Info.Title = "Cluster Registry"
