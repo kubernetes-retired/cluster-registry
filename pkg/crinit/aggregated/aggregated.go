@@ -20,6 +20,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io"
+	"strings"
 
 	"k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -60,7 +61,7 @@ var (
 
 	// Name used for our cluster registry service account object to be used
 	// with our cluster role objects.
-	serviceAccountName = v1alpha1.GroupName + "-apiserver"
+	serviceAccountName = strings.Replace(v1alpha1.GroupName, ".", "-", -1) + "-apiserver"
 
 	// Name used for our cluster role object to subsequently specify what
 	// operations we want to allow on our API resources via cluster role
@@ -85,6 +86,11 @@ var (
 	// Name used for our cluster registry cluster role binding (CRB) object that
 	// allows delegated authentication and authorization checks.
 	authDelegatorCRBName = v1alpha1.GroupName + ":apiserver-auth-delegator"
+
+	// Name used for the cluster registry role binding that allows the cluster
+	// registry service account to access the extension-apiserver-authentication
+	// ConfigMap.
+	extensionAPIServerRBName = v1alpha1.GroupName + ":extension-apiserver-authentication-reader"
 )
 
 type aggregatedClusterRegistryOptions struct {
@@ -186,18 +192,18 @@ func Run(opts *aggregatedClusterRegistryOptions, cmdOut io.Writer,
 		return err
 	}
 
-	err = opts.CreateAPIServer(cmdOut, hostClientset, false, false, ips, pvc)
+	sa, err := createRBACObjects(cmdOut, hostClientset, opts)
+	if err != nil {
+		return err
+	}
+
+	err = opts.CreateAPIServer(cmdOut, hostClientset, false, false, ips, pvc, sa.Name, true)
 	if err != nil {
 		return err
 	}
 
 	_, err = createAPIService(cmdOut, apiSvcClientset, opts,
 		util.GetCAKeyPair(credentials).Cert)
-	if err != nil {
-		return err
-	}
-
-	err = createRBACObjects(cmdOut, hostClientset, opts)
 	if err != nil {
 		return err
 	}
@@ -215,7 +221,7 @@ func Run(opts *aggregatedClusterRegistryOptions, cmdOut io.Writer,
 // createRBACObjects handles the creation of all the RBAC objects necessary
 // to deploy the cluster registry in aggregated mode.
 func createRBACObjects(cmdOut io.Writer, clientset client.Interface,
-	opts *aggregatedClusterRegistryOptions) error {
+	opts *aggregatedClusterRegistryOptions) (*v1.ServiceAccount, error) {
 
 	fmt.Fprintf(cmdOut, "Creating RBAC objects...")
 
@@ -228,7 +234,7 @@ func createRBACObjects(cmdOut io.Writer, clientset client.Interface,
 
 	if err != nil {
 		glog.V(4).Infof("Failed to create service account %v: %v", sa, err)
-		return err
+		return nil, err
 	}
 
 	glog.V(4).Info("Successfully created service account")
@@ -241,7 +247,7 @@ func createRBACObjects(cmdOut io.Writer, clientset client.Interface,
 
 	if err != nil {
 		glog.V(4).Infof("Failed to create cluster role %v: %v", cr, err)
-		return err
+		return nil, err
 	}
 
 	glog.V(4).Info("Successfully created cluster role")
@@ -254,12 +260,23 @@ func createRBACObjects(cmdOut io.Writer, clientset client.Interface,
 
 	if err != nil {
 		glog.V(4).Infof("Failed to create cluster role bindings")
-		return err
+		return nil, err
+	}
+
+	// Create a role binding to allow the cluster registry service account to
+	// access the extension-apiserver-authentication configmap.
+	glog.V(4).Infof("Creating role %v for accessing extension-apiserver-authentication ConfigMap", extensionAPIServerRBName)
+
+	_, err = createExtensionAPIServerAuthenticationRoleBinding(clientset, extensionAPIServerRBName, opts.ClusterRegistryNamespace, opts.DryRun)
+
+	if err != nil {
+		glog.V(4).Infof("Failed to create extension-apiserver-authentication ConfigMap reader role binding")
+		return nil, err
 	}
 
 	glog.V(4).Info("Successfully created cluster role bindings")
 	fmt.Fprintln(cmdOut, " done")
-	return nil
+	return sa, nil
 }
 
 // createServiceAccount handles the creation of the service account for
@@ -367,6 +384,36 @@ func createClusterRoleBindingObject(clientset client.Interface, name, subjectKin
 	}
 
 	return clientset.RbacV1().ClusterRoleBindings().Create(crb)
+}
+
+// createExtensionApiserverAuthenticationRoleBinding creates and returns a rolebinding
+// object to allow the cluster registry to access the extension-apiserver-authentication
+// ConfigMap.
+func createExtensionAPIServerAuthenticationRoleBinding(clientset client.Interface, name, namespace string, dryRun bool) (*rbacv1.RoleBinding, error) {
+	rb := &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   name,
+			Labels: util.ComponentLabel,
+		},
+		Subjects: []rbacv1.Subject{
+			rbacv1.Subject{
+				Kind:      rbacv1.ServiceAccountKind,
+				Name:      serviceAccountName,
+				Namespace: namespace,
+			},
+		},
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: rbacv1.GroupName,
+			Kind:     "Role",
+			Name:     "extension-apiserver-authentication-reader",
+		},
+	}
+
+	if dryRun {
+		return rb, nil
+	}
+
+	return clientset.RbacV1().RoleBindings("kube-system").Create(rb)
 }
 
 // createAPIService creates the Kubernetes API Service to handle the cluster

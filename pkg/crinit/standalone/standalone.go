@@ -146,7 +146,7 @@ func Run(opts *standaloneClusterRegistryOptions, cmdOut io.Writer,
 	}
 
 	err = opts.CreateAPIServer(cmdOut, hostClientset, opts.apiServerEnableHTTPBasicAuth,
-		opts.apiServerEnableTokenAuth, ips, pvc)
+		opts.apiServerEnableTokenAuth, ips, pvc, "default", false)
 	if err != nil {
 		return err
 	}
