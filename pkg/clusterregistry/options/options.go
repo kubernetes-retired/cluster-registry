@@ -56,7 +56,7 @@ func NewServerRunOptions() *ServerRunOptions {
 		DelegatingAuthorization:  genericoptions.NewDelegatingAuthorizationOptions(),
 
 		EventTTL:         1 * time.Hour,
-		UseDelegatedAuth: false,
+		UseDelegatedAuth: true,
 	}
 	return o
 }

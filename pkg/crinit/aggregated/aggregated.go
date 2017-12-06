@@ -197,7 +197,7 @@ func Run(opts *aggregatedClusterRegistryOptions, cmdOut io.Writer,
 		return err
 	}
 
-	err = opts.CreateAPIServer(cmdOut, hostClientset, false, false, ips, pvc, sa.Name, true)
+	err = opts.CreateAPIServer(cmdOut, hostClientset, false, false, true, ips, pvc, sa.Name)
 	if err != nil {
 		return err
 	}
