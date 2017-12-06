@@ -600,7 +600,7 @@ func (o *SubcommandOptions) CreateAPIServer(cmdOut io.Writer, clientset client.I
 	_, err := createAPIServer(clientset, o.ClusterRegistryNamespace,
 		serverName, o.ServerImage, o.EtcdImage, advertiseAddress, serverCredName,
 		serviceAccountName, apiServerEnableHTTPBasicAuth, apiServerEnableTokenAuth,
-		aggregated, o.ApiServerOverrides, pvc, aggregated, o.DryRun)
+		o.ApiServerOverrides, pvc, aggregated, o.DryRun)
 
 	if err != nil {
 		glog.V(4).Infof("Failed to create API server: %v", err)
