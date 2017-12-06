@@ -35,7 +35,7 @@ func TestValidateCluster(t *testing.T) {
 	}
 
 	errorCases := map[string]clusterregistry.Cluster{
-		"invalid_label": {
+		"invalid label": {
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "cluster-f",
 				Labels: map[string]string{
@@ -45,6 +45,9 @@ func TestValidateCluster(t *testing.T) {
 		},
 		"invalid cluster name (is a subdomain)": {
 			ObjectMeta: metav1.ObjectMeta{Name: "mycluster.mycompany"},
+		},
+		"clusterName is set": {
+			ObjectMeta: metav1.ObjectMeta{Name: "mycluster", ClusterName: "nonEmpty"},
 		},
 	}
 	for testName, errorCase := range errorCases {
@@ -88,8 +91,18 @@ func TestValidateClusterUpdate(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{Name: "cluster-newname"},
 			},
 		},
+		"clusterName is set": {
+			old: clusterregistry.Cluster{
+				ObjectMeta: metav1.ObjectMeta{Name: "cluster-s"},
+			},
+			update: clusterregistry.Cluster{
+				ObjectMeta: metav1.ObjectMeta{Name: "cluster-s", ClusterName: "nonEmpty"},
+			},
+		},
 	}
 	for testName, errorCase := range errorCases {
+		errorCase.old.ObjectMeta.ResourceVersion = "1"
+		errorCase.update.ObjectMeta.ResourceVersion = "1"
 		errs := ValidateClusterUpdate(&errorCase.update, &errorCase.old)
 		if len(errs) == 0 {
 			t.Errorf("expected failure: %s", testName)

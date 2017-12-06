@@ -23,14 +23,24 @@ import (
 )
 
 func ValidateCluster(cluster *clusterregistry.Cluster) field.ErrorList {
-	return validation.ValidateObjectMeta(&cluster.ObjectMeta, false, validation.ValidateClusterName, field.NewPath("metadata"))
+	allErrs := validation.ValidateObjectMeta(&cluster.ObjectMeta, false, validation.ValidateClusterName, field.NewPath("metadata"))
+	allErrs = append(allErrs, validateClusterName(cluster)...)
+	return allErrs
 }
 
 func ValidateClusterUpdate(cluster, oldCluster *clusterregistry.Cluster) field.ErrorList {
 	allErrs := validation.ValidateObjectMetaUpdate(&cluster.ObjectMeta, &oldCluster.ObjectMeta, field.NewPath("metadata"))
 	if cluster.Name != oldCluster.Name {
-		allErrs = append(allErrs, field.Invalid(field.NewPath("meta", "name"),
+		allErrs = append(allErrs, field.Invalid(field.NewPath("metadata", "name"),
 			cluster.Name+" != "+oldCluster.Name, "cannot change cluster name"))
 	}
+	allErrs = append(allErrs, validateClusterName(cluster)...)
 	return allErrs
+}
+
+func validateClusterName(cluster *clusterregistry.Cluster) field.ErrorList {
+	if len(cluster.ClusterName) > 0 {
+		return field.ErrorList{field.Invalid(field.NewPath("metadata", "clusterName"), "len(ClusterName) > 0", "clusterName is not used and must not be set.")}
+	}
+	return field.ErrorList{}
 }
