@@ -18,12 +18,14 @@ package crinit
 
 import (
 	"flag"
+	"fmt"
 	"io"
 
 	apiserverflag "k8s.io/apiserver/pkg/util/flag"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/cluster-registry/pkg/crinit/aggregated"
 	"k8s.io/cluster-registry/pkg/crinit/standalone"
+	"k8s.io/cluster-registry/pkg/version"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -46,8 +48,17 @@ func NewClusterregistryCommand(out io.Writer, defaultServerImage, defaultEtcdIma
 	// Warn for other flags that contain underscores.
 	rootCmd.SetGlobalNormalizationFunc(apiserverflag.WarnWordSepNormalizeFunc)
 
+	versionCmd := &cobra.Command{
+		Use:   "version",
+		Short: "Prints the version",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("%#v", version.Get())
+		},
+	}
+
 	rootCmd.AddCommand(standalone.NewCmdStandalone(out, clientcmd.NewDefaultPathOptions(), defaultServerImage, defaultEtcdImage))
 	rootCmd.AddCommand(aggregated.NewCmdAggregated(out, clientcmd.NewDefaultPathOptions(), defaultServerImage, defaultEtcdImage))
+	rootCmd.AddCommand(versionCmd)
 
 	return rootCmd
 }

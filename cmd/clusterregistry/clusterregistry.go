@@ -28,6 +28,7 @@ import (
 	"k8s.io/apiserver/pkg/util/logs"
 	"k8s.io/cluster-registry/pkg/clusterregistry"
 	"k8s.io/cluster-registry/pkg/clusterregistry/options"
+	"k8s.io/cluster-registry/pkg/version"
 
 	"github.com/spf13/pflag"
 )
@@ -39,8 +40,16 @@ func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	s := options.NewServerRunOptions()
+
 	s.AddFlags(pflag.CommandLine)
+	versionFlag := pflag.CommandLine.Bool("version", false, "Prints out version information and exits.")
+
 	flag.InitFlags()
+
+	if *versionFlag {
+		fmt.Printf("%#v\n", version.Get())
+		return
+	}
 
 	if err := clusterregistry.Run(s, wait.NeverStop); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
