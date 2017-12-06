@@ -116,6 +116,30 @@ generated clients and other generated files.
 1.  Add the generated files to your PR, preferably in a separate, generated-only
     commit so that they are easier to review.
 
+## Release and build versioning
+
+[`pkg/version`](/pkg/version) contains infrastructure for generating version
+information for builds of the cluster registry. Version info is provided to the
+go_binary build rules in the `x_refs` parameter by
+[`pkg/version/def.bzl`](/pkg/version/def.bzl). The information is derived from
+the Git repository state and build state by
+[`hack/print-workspace-status.sh`](/hack/print-workspace-status.sh). This script
+is run on each `bazel build` invocation by way of a [`.bazelrc`](\.bazelrc) file
+in the repository's root directory. There is some more info about bazel build
+stamping
+[here](https://www.kchodorow.com/blog/2017/03/27/stamping-your-builds/). Builds
+done without `bazel` will get default version information.
+
+### Tagging
+
+The version information is derived largely from annotated git tags. Tags for a
+release should be of the form `vX.Y.Z`. Release candidates should be of the form
+`vX.Y.Z-rc.N`, where `N` starts at 0 and is incremented with each release
+candidate.
+
+This tagging scheme is subject to change as the cluster registry moves through
+alpha and beta.
+
 ## Nightly releases
 
 The cluster registry has a script, [`hack/release.sh`](../hack/release.sh), that
