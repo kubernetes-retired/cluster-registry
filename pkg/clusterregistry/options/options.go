@@ -28,29 +28,35 @@ import (
 
 // Runtime options for the clusterregistry-apiserver.
 type ServerRunOptions struct {
-	GenericServerRunOptions *genericoptions.ServerRunOptions
-	Etcd                    *genericoptions.EtcdOptions
-	SecureServing           *genericoptions.SecureServingOptions
-	Audit                   *genericoptions.AuditOptions
-	Features                *genericoptions.FeatureOptions
-	Authentication          *BuiltInAuthenticationOptions
+	GenericServerRunOptions  *genericoptions.ServerRunOptions
+	Etcd                     *genericoptions.EtcdOptions
+	SecureServing            *genericoptions.SecureServingOptions
+	Audit                    *genericoptions.AuditOptions
+	Features                 *genericoptions.FeatureOptions
+	StandaloneAuthentication *BuiltInAuthenticationOptions
+	DelegatedAuthentication  *genericoptions.DelegatingAuthenticationOptions
+	DelegatedAuthorization   *genericoptions.DelegatingAuthorizationOptions
 
 	EventTTL time.Duration
+	// StandaloneMode - if true, does not depend on a kube-apiserver
+	StandaloneMode bool
 }
 
 // NewServerRunOptions creates a new ServerRunOptions object with default values.
 func NewServerRunOptions() *ServerRunOptions {
 	o := &ServerRunOptions{
 		GenericServerRunOptions: genericoptions.NewServerRunOptions(),
-		Etcd:           genericoptions.NewEtcdOptions(storagebackend.NewDefaultConfig("/registry/clusterregistry.kubernetes.io", nil)),
-		SecureServing:  genericoptions.NewSecureServingOptions(),
-		Audit:          genericoptions.NewAuditOptions(),
-		Features:       genericoptions.NewFeatureOptions(),
-		Authentication: NewBuiltInAuthenticationOptions().WithAll(),
+		Etcd:                     genericoptions.NewEtcdOptions(storagebackend.NewDefaultConfig("/registry/clusterregistry.kubernetes.io", nil)),
+		SecureServing:            genericoptions.NewSecureServingOptions(),
+		Audit:                    genericoptions.NewAuditOptions(),
+		Features:                 genericoptions.NewFeatureOptions(),
+		StandaloneAuthentication: NewBuiltInAuthenticationOptions().WithAll(),
+		DelegatedAuthentication:  genericoptions.NewDelegatingAuthenticationOptions(),
+		DelegatedAuthorization:   genericoptions.NewDelegatingAuthorizationOptions(),
 
 		EventTTL: 1 * time.Hour,
 	}
-	o.Authentication.Anonymous.Allow = false
+	o.StandaloneAuthentication.Anonymous.Allow = false
 	return o
 }
 
@@ -61,7 +67,17 @@ func (s *ServerRunOptions) AddFlags(fs *pflag.FlagSet) {
 	s.SecureServing.AddFlags(fs)
 	s.Audit.AddFlags(fs)
 	s.Features.AddFlags(fs)
-	s.Authentication.AddFlags(fs)
+	s.StandaloneAuthentication.AddFlags(fs)
+	// TODO: commented out below line due to re-defined flags caused by the
+	// StandaloneAuthentication flags
+	//s.DelegatedAuthentication.AddFlags(fs)
+	s.DelegatedAuthorization.AddFlags(fs)
 
 	fs.DurationVar(&s.EventTTL, "event-ttl", s.EventTTL, "Amount of time to retain events.")
+	fs.BoolVar(
+		&s.StandaloneMode,
+		"api-server-standalone",
+		false,
+		"Do not depend on a Kubernetes API Server e.g. use delegated authentication and authorization",
+	)
 }

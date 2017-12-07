@@ -60,7 +60,7 @@ var (
 
 	// Name used for our cluster registry service account object to be used
 	// with our cluster role objects.
-	serviceAccountName = v1alpha1.GroupName + "-apiserver"
+	serviceAccountName = "clusterregistry-apiserver"
 
 	// Name used for our cluster role object to subsequently specify what
 	// operations we want to allow on our API resources via cluster role
@@ -85,6 +85,10 @@ var (
 	// Name used for our cluster registry cluster role binding (CRB) object that
 	// allows delegated authentication and authorization checks.
 	authDelegatorCRBName = v1alpha1.GroupName + ":apiserver-auth-delegator"
+
+	// Name used for our cluster registry role binding (RB) object to allow the
+	// cluster registry apiserver to read authentication.
+	authReaderRBName = v1alpha1.GroupName + ":apiserver-authentication-reader"
 )
 
 type aggregatedClusterRegistryOptions struct {
@@ -186,7 +190,7 @@ func Run(opts *aggregatedClusterRegistryOptions, cmdOut io.Writer,
 		return err
 	}
 
-	err = opts.CreateAPIServer(cmdOut, hostClientset, false, false, ips, pvc)
+	err = opts.CreateAPIServer(cmdOut, hostClientset, false, false, false, ips, pvc, serviceAccountName)
 	if err != nil {
 		return err
 	}
@@ -258,6 +262,23 @@ func createRBACObjects(cmdOut io.Writer, clientset client.Interface,
 	}
 
 	glog.V(4).Info("Successfully created cluster role bindings")
+
+	// Create a Kubernetes role binding from the default service account in our namespace
+	// to the extension-apiserver-authentication-reader role. This gives the
+	// apiserver the ability to read authentication by allowing it to read the
+	// specific configmap that has the requestheader-* entries to enable api
+	// aggregation
+	glog.V(4).Infof("Creating role binding %v", authReaderRBName)
+
+	rb, err := createRoleBinding(clientset, opts.ClusterRegistryNamespace, opts.DryRun)
+
+	if err != nil {
+		glog.V(4).Infof("Failed to create role binding %v: %v", rb, err)
+		return err
+	}
+
+	glog.V(4).Info("Successfully created role binding")
+
 	fmt.Fprintln(cmdOut, " done")
 	return nil
 }
@@ -367,6 +388,37 @@ func createClusterRoleBindingObject(clientset client.Interface, name, subjectKin
 	}
 
 	return clientset.RbacV1().ClusterRoleBindings().Create(crb)
+}
+
+// createRoleBinding creates the role binding to enable our cluster registry
+// API server to read authentication by allowing it to read the specific
+// configmap that has the requestheader-* entries to enable API aggregation.
+func createRoleBinding(clientset client.Interface, namespace string,
+	dryRun bool) (*rbacv1.RoleBinding, error) {
+	rb := &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      authReaderRBName,
+			Namespace: "kube-system",
+		},
+		Subjects: []rbacv1.Subject{
+			rbacv1.Subject{
+				Kind:      rbacv1.ServiceAccountKind,
+				Name:      serviceAccountName,
+				Namespace: namespace,
+			},
+		},
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: rbacv1.GroupName,
+			Kind:     "Role",
+			Name:     "extension-apiserver-authentication-reader",
+		},
+	}
+
+	if dryRun {
+		return rb, nil
+	}
+
+	return clientset.RbacV1().RoleBindings("kube-system").Create(rb)
 }
 
 // createAPIService creates the Kubernetes API Service to handle the cluster

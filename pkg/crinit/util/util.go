@@ -584,8 +584,8 @@ func createPVC(clientset client.Interface, namespace, svcName, etcdPVCapacity,
 }
 
 func (o *SubcommandOptions) CreateAPIServer(cmdOut io.Writer, clientset client.Interface,
-	apiServerEnableHTTPBasicAuth, apiServerEnableTokenAuth bool, ips []string,
-	pvc *v1.PersistentVolumeClaim) error {
+	standaloneMode, apiServerEnableHTTPBasicAuth, apiServerEnableTokenAuth bool, ips []string,
+	pvc *v1.PersistentVolumeClaim, serviceAccountName string) error {
 	// Since only one IP address can be specified as advertise address,
 	// we arbitrarily pick the first available IP address.
 	// Pick user provided apiserverAdvertiseAddress over other available IP addresses.
@@ -598,8 +598,8 @@ func (o *SubcommandOptions) CreateAPIServer(cmdOut io.Writer, clientset client.I
 	glog.V(4).Info("Creating cluster registry deployment")
 
 	_, err := createAPIServer(clientset, o.ClusterRegistryNamespace,
-		serverName, o.ServerImage, o.EtcdImage, advertiseAddress, serverCredName,
-		apiServerEnableHTTPBasicAuth, apiServerEnableTokenAuth,
+		serverName, o.ServerImage, o.EtcdImage, advertiseAddress, serverCredName, serviceAccountName,
+		standaloneMode, apiServerEnableHTTPBasicAuth, apiServerEnableTokenAuth,
 		o.ApiServerOverrides, pvc, o.DryRun)
 
 	if err != nil {
@@ -616,8 +616,8 @@ func (o *SubcommandOptions) CreateAPIServer(cmdOut io.Writer, clientset client.I
 // createAPIServer helper to create the apiserver deployment object and
 // return the object.
 func createAPIServer(clientset client.Interface, namespace, name, serverImage,
-	etcdImage, advertiseAddress, credentialsName string, hasHTTPBasicAuthFile,
-	hasTokenAuthFile bool, argOverrides map[string]string,
+	etcdImage, advertiseAddress, credentialsName, serviceAccountName string, standaloneMode,
+	hasHTTPBasicAuthFile, hasTokenAuthFile bool, argOverrides map[string]string,
 	pvc *v1.PersistentVolumeClaim, dryRun bool) (*appsv1beta1.Deployment, error) {
 
 	command := []string{"./clusterregistry"}
@@ -639,6 +639,9 @@ func createAPIServer(clientset client.Interface, namespace, name, serverImage,
 	if hasTokenAuthFile {
 		argsMap["--token-auth-file"] = "/etc/clusterregistry/apiserver/token.csv"
 	}
+	if standaloneMode {
+		argsMap["--api-server-standalone"] = "true"
+	}
 
 	args := argMapsToArgStrings(argsMap, argOverrides)
 	command = append(command, args...)
@@ -658,6 +661,7 @@ func createAPIServer(clientset client.Interface, namespace, name, serverImage,
 					Labels: apiserverPodLabels,
 				},
 				Spec: v1.PodSpec{
+					ServiceAccountName: serviceAccountName,
 					Containers: []v1.Container{
 						{
 							Name:            "clusterregistry",
