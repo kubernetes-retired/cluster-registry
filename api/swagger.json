@@ -31,6 +31,9 @@
        "schema": {
         "$ref": "#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.APIGroupList"
        }
+      },
+      "401": {
+       "description": "Unauthorized"
       }
      }
     }
@@ -61,6 +64,9 @@
        "schema": {
         "$ref": "#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.APIGroup"
        }
+      },
+      "401": {
+       "description": "Unauthorized"
       }
      }
     }
@@ -91,6 +97,9 @@
        "schema": {
         "$ref": "#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.APIResourceList"
        }
+      },
+      "401": {
+       "description": "Unauthorized"
       }
      }
     }
@@ -179,6 +188,9 @@
        "schema": {
         "$ref": "#/definitions/io.k8s.cluster-registry.pkg.apis.clusterregistry.v1alpha1.ClusterList"
        }
+      },
+      "401": {
+       "description": "Unauthorized"
       }
      },
      "x-kubernetes-action": "list",
@@ -233,6 +245,9 @@
        "schema": {
         "$ref": "#/definitions/io.k8s.cluster-registry.pkg.apis.clusterregistry.v1alpha1.Cluster"
        }
+      },
+      "401": {
+       "description": "Unauthorized"
       }
      },
      "x-kubernetes-action": "post",
@@ -323,6 +338,9 @@
        "schema": {
         "$ref": "#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.Status"
        }
+      },
+      "401": {
+       "description": "Unauthorized"
       }
      },
      "x-kubernetes-action": "deletecollection",
@@ -382,6 +400,9 @@
        "schema": {
         "$ref": "#/definitions/io.k8s.cluster-registry.pkg.apis.clusterregistry.v1alpha1.Cluster"
        }
+      },
+      "401": {
+       "description": "Unauthorized"
       }
      },
      "x-kubernetes-action": "get",
@@ -430,6 +451,9 @@
        "schema": {
         "$ref": "#/definitions/io.k8s.cluster-registry.pkg.apis.clusterregistry.v1alpha1.Cluster"
        }
+      },
+      "401": {
+       "description": "Unauthorized"
       }
      },
      "x-kubernetes-action": "put",
@@ -493,6 +517,9 @@
        "schema": {
         "$ref": "#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.Status"
        }
+      },
+      "401": {
+       "description": "Unauthorized"
       }
      },
      "x-kubernetes-action": "delete",
@@ -537,6 +564,9 @@
        "schema": {
         "$ref": "#/definitions/io.k8s.cluster-registry.pkg.apis.clusterregistry.v1alpha1.Cluster"
        }
+      },
+      "401": {
+       "description": "Unauthorized"
       }
      },
      "x-kubernetes-action": "patch",
@@ -590,6 +620,9 @@
        "schema": {
         "$ref": "#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.WatchEvent"
        }
+      },
+      "401": {
+       "description": "Unauthorized"
       }
      },
      "x-kubernetes-action": "watchlist",
@@ -691,6 +724,9 @@
        "schema": {
         "$ref": "#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.WatchEvent"
        }
+      },
+      "401": {
+       "description": "Unauthorized"
       }
      },
      "x-kubernetes-action": "watch",
@@ -796,6 +832,9 @@
        "schema": {
         "$ref": "#/definitions/io.k8s.apimachinery.pkg.version.Info"
        }
+      },
+      "401": {
+       "description": "Unauthorized"
       }
      }
     }
