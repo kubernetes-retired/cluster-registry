@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package common contains code shared between the subcommands of crinit.
 package common
 
 import (
@@ -63,7 +64,7 @@ var (
 )
 
 type EntityKeyPairs struct {
-	Ca     *triple.KeyPair
+	CA     *triple.KeyPair
 	Server *triple.KeyPair
 	Admin  *triple.KeyPair
 }
@@ -182,10 +183,10 @@ func GetClusterNodeIPs(clientset client.Interface) ([]string, error) {
 // CreateAPIServerCredentialsSecret helper to create secret object and return
 // the object.
 func CreateAPIServerCredentialsSecret(clientset client.Interface, namespace,
-credentialsName string, credentials Credentials, dryRun bool) (*v1.Secret, error) {
+credentialsName string, credentials *Credentials, dryRun bool) (*v1.Secret, error) {
 	// Build the secret object with API server credentials.
 	data := map[string][]byte{
-		"ca.crt":     certutil.EncodeCertPEM(credentials.CertEntKeyPairs.Ca.Cert),
+		"ca.crt":     certutil.EncodeCertPEM(credentials.CertEntKeyPairs.CA.Cert),
 		"server.crt": certutil.EncodeCertPEM(credentials.CertEntKeyPairs.Server.Cert),
 		"server.key": certutil.EncodePrivateKeyPEM(credentials.CertEntKeyPairs.Server.Key),
 	}
@@ -251,7 +252,7 @@ etcdPVStorageClass string, dryRun bool) (*v1.PersistentVolumeClaim, error) {
 	return clientset.CoreV1().PersistentVolumeClaims(namespace).Create(pvc)
 }
 
-// createAPIServer helper to create the apiserver deployment object and
+// CreateAPIServer helper to create the apiserver deployment object and
 // return the object.
 func CreateAPIServer(clientset client.Interface, namespace, name, serverImage,
 etcdImage, advertiseAddress, credentialsName, serviceAccountName string, hasHTTPBasicAuthFile,

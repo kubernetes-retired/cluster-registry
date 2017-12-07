@@ -77,7 +77,7 @@ func GenCerts(svcNamespace, name, svcName, localDNSZoneName string,
 		return nil, fmt.Errorf("failed to create client key and certificate for an admin: %v", err)
 	}
 	return &common.EntityKeyPairs{
-		Ca:     ca,
+		CA:     ca,
 		Server: server,
 		Admin:  admin,
 	}, nil
@@ -116,7 +116,7 @@ kubeConfigPath string, credentials *common.Credentials, dryRun bool) error {
 	}
 
 	cluster.Server = endpoint
-	cluster.CertificateAuthorityData = certutil.EncodeCertPEM(credentials.CertEntKeyPairs.Ca.Cert)
+	cluster.CertificateAuthorityData = certutil.EncodeCertPEM(credentials.CertEntKeyPairs.CA.Cert)
 
 	// Populate credentials.
 	authInfo := clientcmdapi.NewAuthInfo()
@@ -199,5 +199,5 @@ func GetCAKeyPair(credentials *common.Credentials) *triple.KeyPair {
 		return nil
 	}
 
-	return credentials.CertEntKeyPairs.Ca
+	return credentials.CertEntKeyPairs.CA
 }

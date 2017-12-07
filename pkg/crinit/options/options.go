@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package options contains implemention for SubcommandOptions.
 package options
 
 import (
@@ -42,7 +43,7 @@ const (
 	APIServerNameSuffix             = "apiserver"
 	CredentialSuffix                = "credentials"
 
-	apiserverAdvertiseAddressFlag = "api-server-advertise-address"
+	APIServerAdvertiseAddressFlag = "api-server-advertise-address"
 	APIServerServiceTypeFlag      = "api-server-service-type"
 	apiserverPortFlag             = "api-server-port"
 )
@@ -65,12 +66,12 @@ type SubcommandOptions struct {
 	EtcdPVStorageClass        string
 	EtcdPersistentStorage     bool
 	DryRun                    bool
-	ApiServerOverridesString  string
-	ApiServerOverrides        map[string]string
-	ApiServerServiceType      v1.ServiceType
-	ApiServerAdvertiseAddress string
-	ApiServerNodePortPort     int32
-	ApiServerNodePortPortPtr  *int32
+	APIServerOverridesString  string
+	APIServerOverrides        map[string]string
+	APIServerServiceType      v1.ServiceType
+	APIServerAdvertiseAddress string
+	APIServerNodePortPort     int32
+	APIServerNodePortPortPtr  *int32
 }
 
 // BindCommon adds the common options that are shared by different
@@ -95,11 +96,11 @@ func (o *SubcommandOptions) BindCommon(flags *pflag.FlagSet, defaultServerImage,
 		"Use a persistent volume for etcd. Defaults to 'true'.")
 	flags.BoolVar(&o.DryRun, "dry-run", false,
 		"Run the command in dry-run mode, without making any server requests.")
-	flags.StringVar(&o.ApiServerOverridesString, "apiserver-arg-overrides", "",
+	flags.StringVar(&o.APIServerOverridesString, "apiserver-arg-overrides", "",
 		"Comma-separated list of cluster registry API server arguments to override, e.g., \"--arg1=value1,--arg2=value2...\"")
-	flags.StringVar(&o.ApiServerAdvertiseAddress, apiserverAdvertiseAddressFlag, "",
+	flags.StringVar(&o.APIServerAdvertiseAddress, APIServerAdvertiseAddressFlag, "",
 		"Preferred address at which to advertise the cluster registry API server NodePort service. Valid only if '"+APIServerServiceTypeFlag+"=NodePort'.")
-	flags.Int32Var(&o.ApiServerNodePortPort, apiserverPortFlag, 0,
+	flags.Int32Var(&o.APIServerNodePortPort, apiserverPortFlag, 0,
 		"Preferred port to use for the cluster registry API server NodePort service. Set to 0 to randomly assign a port. Valid only if '"+APIServerServiceTypeFlag+"=NodePort'.")
 }
 
@@ -118,36 +119,36 @@ func (o *SubcommandOptions) ValidateCommonOptions() error {
 	serverName = fmt.Sprintf("%s-%s", o.Name, APIServerNameSuffix)
 	serverCredName = fmt.Sprintf("%s-%s", serverName, CredentialSuffix)
 
-	if o.ApiServerServiceType != v1.ServiceTypeLoadBalancer &&
-		o.ApiServerServiceType != v1.ServiceTypeNodePort {
+	if o.APIServerServiceType != v1.ServiceTypeLoadBalancer &&
+		o.APIServerServiceType != v1.ServiceTypeNodePort {
 		return fmt.Errorf("invalid %s: %s, should be either %s or %s",
-			APIServerServiceTypeFlag, o.ApiServerServiceType,
+			APIServerServiceTypeFlag, o.APIServerServiceType,
 			v1.ServiceTypeLoadBalancer, v1.ServiceTypeNodePort)
 	}
 
-	if o.ApiServerAdvertiseAddress != "" {
-		ip := net.ParseIP(o.ApiServerAdvertiseAddress)
+	if o.APIServerAdvertiseAddress != "" {
+		ip := net.ParseIP(o.APIServerAdvertiseAddress)
 		if ip == nil {
 			return fmt.Errorf("invalid %s: %s, should be a valid ip address",
-				apiserverAdvertiseAddressFlag, o.ApiServerAdvertiseAddress)
+				APIServerAdvertiseAddressFlag, o.APIServerAdvertiseAddress)
 		}
-		if o.ApiServerServiceType != v1.ServiceTypeNodePort {
+		if o.APIServerServiceType != v1.ServiceTypeNodePort {
 			return fmt.Errorf("%s should be passed only with '%s=NodePort'",
-				apiserverAdvertiseAddressFlag, APIServerServiceTypeFlag)
+				APIServerAdvertiseAddressFlag, APIServerServiceTypeFlag)
 		}
 	}
 
-	if o.ApiServerNodePortPort != 0 {
-		if o.ApiServerServiceType != v1.ServiceTypeNodePort {
+	if o.APIServerNodePortPort != 0 {
+		if o.APIServerServiceType != v1.ServiceTypeNodePort {
 			return fmt.Errorf("%s should be passed only with '%s=NodePort'",
 				apiserverPortFlag, APIServerServiceTypeFlag)
 		}
-		o.ApiServerNodePortPortPtr = &o.ApiServerNodePortPort
+		o.APIServerNodePortPortPtr = &o.APIServerNodePortPort
 	} else {
-		o.ApiServerNodePortPortPtr = nil
+		o.APIServerNodePortPortPtr = nil
 	}
 
-	if o.ApiServerNodePortPort < 0 || o.ApiServerNodePortPort > 65535 {
+	if o.APIServerNodePortPort < 0 || o.APIServerNodePortPort > 65535 {
 		return fmt.Errorf("Please provide a valid port number for %s", apiserverPortFlag)
 	}
 
@@ -156,12 +157,12 @@ func (o *SubcommandOptions) ValidateCommonOptions() error {
 
 // marshalOptions marshals options if necessary.
 func (o *SubcommandOptions) MarshalOptions() error {
-	if o.ApiServerOverridesString == "" {
+	if o.APIServerOverridesString == "" {
 		return nil
 	}
 
 	argsMap := make(map[string]string)
-	overrideArgs := strings.Split(o.ApiServerOverridesString, ",")
+	overrideArgs := strings.Split(o.APIServerOverridesString, ",")
 	for _, overrideArg := range overrideArgs {
 		splitArg := strings.SplitN(overrideArg, "=", 2)
 		if len(splitArg) != 2 {
@@ -175,7 +176,7 @@ func (o *SubcommandOptions) MarshalOptions() error {
 		argsMap[key] = val
 	}
 
-	o.ApiServerOverrides = argsMap
+	o.APIServerOverrides = argsMap
 
 	return nil
 }
@@ -208,8 +209,8 @@ func (o *SubcommandOptions) CreateService(cmdOut io.Writer,
 	glog.V(4).Info("Creating cluster registry API server service")
 
 	svc, ips, hostnames, err := common.CreateService(cmdOut, clientset,
-		o.ClusterRegistryNamespace, o.Name, o.ApiServerAdvertiseAddress,
-		o.ApiServerNodePortPortPtr, o.ApiServerServiceType, o.DryRun)
+		o.ClusterRegistryNamespace, o.Name, o.APIServerAdvertiseAddress,
+		o.APIServerNodePortPortPtr, o.APIServerServiceType, o.DryRun)
 
 	if err != nil {
 		return nil, nil, nil, err
@@ -245,7 +246,7 @@ func (o *SubcommandOptions) GenerateCredentials(cmdOut io.Writer, svcName string
 // CreateAPIServerCredentialsSecret creates the secret containing the
 // apiserver credentials passed in.
 func (o *SubcommandOptions) CreateAPIServerCredentialsSecret(clientset client.Interface,
-	credentials common.Credentials) error {
+	credentials *common.Credentials) error {
 
 	_, err := common.CreateAPIServerCredentialsSecret(clientset,
 		o.ClusterRegistryNamespace, serverCredName, credentials, o.DryRun)
@@ -285,8 +286,8 @@ func (o *SubcommandOptions) CreateAPIServer(cmdOut io.Writer, clientset client.I
 	pvc *v1.PersistentVolumeClaim, serviceAccountName string) error {
 	// Since only one IP address can be specified as advertise address,
 	// we arbitrarily pick the first available IP address.
-	// Pick user provided apiserverAdvertiseAddress over other available IP addresses.
-	advertiseAddress := o.ApiServerAdvertiseAddress
+	// Pick user provided APIServerAdvertiseAddress over other available IP addresses.
+	advertiseAddress := o.APIServerAdvertiseAddress
 	if advertiseAddress == "" && len(ips) > 0 {
 		advertiseAddress = ips[0]
 	}
@@ -297,7 +298,7 @@ func (o *SubcommandOptions) CreateAPIServer(cmdOut io.Writer, clientset client.I
 	_, err := common.CreateAPIServer(clientset, o.ClusterRegistryNamespace,
 		serverName, o.ServerImage, o.EtcdImage, advertiseAddress, serverCredName,
 		serviceAccountName, apiServerEnableHTTPBasicAuth, apiServerEnableTokenAuth,
-		o.ApiServerOverrides, pvc, aggregated, o.DryRun)
+		o.APIServerOverrides, pvc, aggregated, o.DryRun)
 
 	if err != nil {
 		glog.V(4).Infof("Failed to create API server: %v", err)
@@ -331,7 +332,7 @@ func (o *SubcommandOptions) UpdateKubeconfig(cmdOut io.Writer,
 
 	// If the service is nodeport, need to append the port to endpoint as it is
 	// non-standard port.
-	if o.ApiServerServiceType == v1.ServiceTypeNodePort {
+	if o.APIServerServiceType == v1.ServiceTypeNodePort {
 		endpoint = endpoint + ":" + strconv.Itoa(int(svc.Spec.Ports[0].NodePort))
 	}
 
