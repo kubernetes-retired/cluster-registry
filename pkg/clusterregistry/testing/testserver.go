@@ -102,6 +102,7 @@ func startTestServer(t *testing.T) (result *restclient.Config, tearDownForCaller
 	s.SecureServing.ServerCert.CertDirectory = tmpDir
 	s.Etcd.StorageConfig = *storageConfig
 	s.Etcd.DefaultStorageMediaType = "application/json"
+	s.UseDelegatedAuth = false
 
 	t.Logf("Starting cluster registry...")
 	server, err := clusterregistry.CreateServer(s)

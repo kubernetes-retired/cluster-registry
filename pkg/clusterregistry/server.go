@@ -25,7 +25,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/version"
-	"k8s.io/apiserver/pkg/authorization/authorizerfactory"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	serverstorage "k8s.io/apiserver/pkg/server/storage"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/install"
@@ -73,14 +72,35 @@ func CreateServer(s *options.ServerRunOptions) (*genericapiserver.GenericAPIServ
 	}
 
 	genericConfig := genericapiserver.NewConfig(install.Codecs)
+	genericConfig.Version = &version.Info{
+		Major: "0",
+		Minor: "1",
+	}
+
+	genericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(clusterregistryv1alpha1.GetOpenAPIDefinitions, install.Scheme)
+	genericConfig.OpenAPIConfig.Info.Title = "Cluster Registry"
+	genericConfig.OpenAPIConfig.Info.Version = fmt.Sprintf("v%s.%s", genericConfig.Version.Major, genericConfig.Version.Minor)
+
 	if err := s.GenericServerRunOptions.ApplyTo(genericConfig); err != nil {
 		return nil, err
 	}
 	if err := s.SecureServing.ApplyTo(genericConfig); err != nil {
 		return nil, err
 	}
-	if err := s.Authentication.ApplyTo(genericConfig); err != nil {
-		return nil, err
+	if s.UseDelegatedAuth {
+		if err := s.DelegatingAuthentication.ApplyTo(genericConfig); err != nil {
+			return nil, err
+		}
+		if err := s.DelegatingAuthorization.ApplyTo(genericConfig); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := s.StandaloneAuthentication.ApplyTo(genericConfig); err != nil {
+			return nil, err
+		}
+		if err := s.StandaloneAuthorization.ApplyTo(genericConfig); err != nil {
+			return nil, err
+		}
 	}
 	if err := s.Audit.ApplyTo(genericConfig); err != nil {
 		return nil, err
@@ -129,22 +149,6 @@ func CreateServer(s *options.ServerRunOptions) (*genericapiserver.GenericAPIServ
 	if err != nil {
 		return nil, fmt.Errorf("failed to create clientset: %v", err)
 	}
-
-	genericConfig.Version = &version.Info{
-		Major: "0",
-		Minor: "1",
-	}
-
-	authenticator, _, err := s.Authentication.ToAuthenticationConfig().New()
-	if err != nil {
-		return nil, err
-	}
-	genericConfig.Authenticator = authenticator
-	genericConfig.Authorizer = authorizerfactory.NewAlwaysAllowAuthorizer()
-
-	genericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(clusterregistryv1alpha1.GetOpenAPIDefinitions, install.Scheme)
-	genericConfig.OpenAPIConfig.Info.Title = "Cluster Registry"
-	genericConfig.OpenAPIConfig.Info.Version = fmt.Sprintf("v%s.%s", genericConfig.Version.Major, genericConfig.Version.Minor)
 
 	m, err := genericConfig.Complete(nil).New("clusterregistry", genericapiserver.EmptyDelegate)
 	if err != nil {

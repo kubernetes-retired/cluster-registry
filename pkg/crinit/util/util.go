@@ -584,8 +584,8 @@ func createPVC(clientset client.Interface, namespace, svcName, etcdPVCapacity,
 }
 
 func (o *SubcommandOptions) CreateAPIServer(cmdOut io.Writer, clientset client.Interface,
-	apiServerEnableHTTPBasicAuth, apiServerEnableTokenAuth bool, ips []string,
-	pvc *v1.PersistentVolumeClaim) error {
+	apiServerEnableHTTPBasicAuth, apiServerEnableTokenAuth, aggregated bool, ips []string,
+	pvc *v1.PersistentVolumeClaim, serviceAccountName string) error {
 	// Since only one IP address can be specified as advertise address,
 	// we arbitrarily pick the first available IP address.
 	// Pick user provided apiserverAdvertiseAddress over other available IP addresses.
@@ -599,8 +599,8 @@ func (o *SubcommandOptions) CreateAPIServer(cmdOut io.Writer, clientset client.I
 
 	_, err := createAPIServer(clientset, o.ClusterRegistryNamespace,
 		serverName, o.ServerImage, o.EtcdImage, advertiseAddress, serverCredName,
-		apiServerEnableHTTPBasicAuth, apiServerEnableTokenAuth,
-		o.ApiServerOverrides, pvc, o.DryRun)
+		serviceAccountName, apiServerEnableHTTPBasicAuth, apiServerEnableTokenAuth,
+		o.ApiServerOverrides, pvc, aggregated, o.DryRun)
 
 	if err != nil {
 		glog.V(4).Infof("Failed to create API server: %v", err)
@@ -616,9 +616,9 @@ func (o *SubcommandOptions) CreateAPIServer(cmdOut io.Writer, clientset client.I
 // createAPIServer helper to create the apiserver deployment object and
 // return the object.
 func createAPIServer(clientset client.Interface, namespace, name, serverImage,
-	etcdImage, advertiseAddress, credentialsName string, hasHTTPBasicAuthFile,
+	etcdImage, advertiseAddress, credentialsName, serviceAccountName string, hasHTTPBasicAuthFile,
 	hasTokenAuthFile bool, argOverrides map[string]string,
-	pvc *v1.PersistentVolumeClaim, dryRun bool) (*appsv1beta1.Deployment, error) {
+	pvc *v1.PersistentVolumeClaim, aggregated, dryRun bool) (*appsv1beta1.Deployment, error) {
 
 	command := []string{"./clusterregistry"}
 	argsMap := map[string]string{
@@ -642,6 +642,9 @@ func createAPIServer(clientset client.Interface, namespace, name, serverImage,
 
 	args := argMapsToArgStrings(argsMap, argOverrides)
 	command = append(command, args...)
+	if aggregated {
+		command = append(command, "--use-delegated-auth")
+	}
 
 	replicas := int32(1)
 	dep := &appsv1beta1.Deployment{
@@ -724,6 +727,10 @@ func createAPIServer(clientset client.Interface, namespace, name, serverImage,
 				dep.Spec.Template.Spec.Containers[i].VolumeMounts = append(dep.Spec.Template.Spec.Containers[i].VolumeMounts, etcdVolumeMount)
 			}
 		}
+	}
+
+	if len(serviceAccountName) > 0 {
+		dep.Spec.Template.Spec.ServiceAccountName = serviceAccountName
 	}
 
 	if dryRun {

@@ -26,31 +26,38 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// Runtime options for the clusterregistry-apiserver.
+// Runtime options for the cluster registry.
 type ServerRunOptions struct {
-	GenericServerRunOptions *genericoptions.ServerRunOptions
-	Etcd                    *genericoptions.EtcdOptions
-	SecureServing           *genericoptions.SecureServingOptions
-	Audit                   *genericoptions.AuditOptions
-	Features                *genericoptions.FeatureOptions
-	Authentication          *BuiltInAuthenticationOptions
+	GenericServerRunOptions  *genericoptions.ServerRunOptions
+	Etcd                     *genericoptions.EtcdOptions
+	SecureServing            *genericoptions.SecureServingOptions
+	Audit                    *genericoptions.AuditOptions
+	Features                 *genericoptions.FeatureOptions
+	StandaloneAuthentication *StandaloneAuthenticationOptions
+	StandaloneAuthorization  *StandaloneAuthorizationOptions
+	DelegatingAuthentication *genericoptions.DelegatingAuthenticationOptions
+	DelegatingAuthorization  *genericoptions.DelegatingAuthorizationOptions
 
-	EventTTL time.Duration
+	EventTTL         time.Duration
+	UseDelegatedAuth bool
 }
 
 // NewServerRunOptions creates a new ServerRunOptions object with default values.
 func NewServerRunOptions() *ServerRunOptions {
 	o := &ServerRunOptions{
 		GenericServerRunOptions: genericoptions.NewServerRunOptions(),
-		Etcd:           genericoptions.NewEtcdOptions(storagebackend.NewDefaultConfig("/registry/clusterregistry.kubernetes.io", nil)),
-		SecureServing:  genericoptions.NewSecureServingOptions(),
-		Audit:          genericoptions.NewAuditOptions(),
-		Features:       genericoptions.NewFeatureOptions(),
-		Authentication: NewBuiltInAuthenticationOptions().WithAll(),
+		Etcd:                     genericoptions.NewEtcdOptions(storagebackend.NewDefaultConfig("/registry/clusterregistry.kubernetes.io", nil)),
+		SecureServing:            genericoptions.NewSecureServingOptions(),
+		Audit:                    genericoptions.NewAuditOptions(),
+		Features:                 genericoptions.NewFeatureOptions(),
+		StandaloneAuthentication: NewStandaloneAuthenticationOptions().WithAll(),
+		StandaloneAuthorization:  NewStandaloneAuthorizationOptions(),
+		DelegatingAuthentication: genericoptions.NewDelegatingAuthenticationOptions(),
+		DelegatingAuthorization:  genericoptions.NewDelegatingAuthorizationOptions(),
 
-		EventTTL: 1 * time.Hour,
+		EventTTL:         1 * time.Hour,
+		UseDelegatedAuth: true,
 	}
-	o.Authentication.Anonymous.Allow = false
 	return o
 }
 
@@ -61,7 +68,11 @@ func (s *ServerRunOptions) AddFlags(fs *pflag.FlagSet) {
 	s.SecureServing.AddFlags(fs)
 	s.Audit.AddFlags(fs)
 	s.Features.AddFlags(fs)
-	s.Authentication.AddFlags(fs)
+	s.StandaloneAuthentication.AddFlags(fs)
+	s.StandaloneAuthorization.AddFlags(fs)
+	s.DelegatingAuthentication.AddFlags(fs)
+	s.DelegatingAuthorization.AddFlags(fs)
 
 	fs.DurationVar(&s.EventTTL, "event-ttl", s.EventTTL, "Amount of time to retain events.")
+	fs.BoolVar(&s.UseDelegatedAuth, "use-delegated-auth", s.UseDelegatedAuth, "Whether to delegate authentication/authorization to another API server.")
 }
