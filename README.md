@@ -1,5 +1,14 @@
 # Cluster Registry
 
+[![GoReportCard Widget]][GoReportCard] [![GoDoc Widget]][GoDoc] [![Slack Widget]][Slack]
+
+[GoDoc]: https://godoc.org/k8s.io/cluster-registry
+[GoDoc Widget]: https://godoc.org/k8s.io/cluster-registry?status.svg
+[Slack]: http://slack.kubernetes.io#sig-multicluster
+[Slack Widget]: https://s3.eu-central-1.amazonaws.com/ngtuna/join-us-on-slack.png
+[GoReportCard Widget]: https://goreportcard.com/badge/k8s.io/cluster-registry
+[GoReportCard]: https://goreportcard.com/report/k8s.io/cluster-registry
+
 A lightweight tool for maintaining a list of clusters and associated metadata.
 
 # What is it?
@@ -16,6 +25,11 @@ of the cluster registry.
 Documentation is in the
 [`/docs`](https://github.com/kubernetes/cluster-registry/tree/master/docs/)
 directory.
+
+Most directories containing Go code have package documentation, which you can
+view on [Godoc](https://godoc.org/k8s.io/cluster-registry). Most directories
+that have interesting content but do not have Go code have README.md files that
+briefly describe their contents.
 
 # Getting involved
 
