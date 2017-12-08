@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package etcd contains an implementation of a store for Cluster objects.
 package etcd
 
 import (
@@ -28,7 +29,7 @@ type REST struct {
 	*genericregistry.Store
 }
 
-// NewREST returns a RESTStorage object that will work against clusters.
+// NewREST returns a RESTStorage object that will work against Cluster objects.
 func NewREST(optsGetter generic.RESTOptionsGetter, scheme *runtime.Scheme) (*REST, error) {
 	store := &genericregistry.Store{
 		NewFunc:                  func() runtime.Object { return &clusterregistry.Cluster{} },

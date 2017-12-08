@@ -18,6 +18,7 @@ package options
 
 import "fmt"
 
+// Validate validates the options in the receiver.
 func (options *ServerRunOptions) Validate() []error {
 	var errors []error
 	if errs := options.GenericServerRunOptions.Validate(); len(errs) > 0 {

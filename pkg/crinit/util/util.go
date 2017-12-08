@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package util contains code shared between the subcommands of crinit.
 package util
 
 import (
@@ -46,18 +47,35 @@ const (
 	// DefaultClusterRegistryNamespace is the default namespace in which
 	// cluster registry components are hosted.
 	DefaultClusterRegistryNamespace = "clusterregistry"
-	APIServerCN                     = "clusterregistry"
-	AdminCN                         = "admin"
-	HostClusterLocalDNSZoneName     = "cluster.local."
-	APIServerNameSuffix             = "apiserver"
-	CredentialSuffix                = "credentials"
+
+	// APIServerCN is the Common Name used in the clusterregistry TLS cert.
+	APIServerCN = "clusterregistry"
+
+	// AdminCN is the Common Name used in the cluster registry client cert.
+	AdminCN = "admin"
+
+	// HostClusterLocalDNSZoneName is the DNS zone name of cluster local
+	// DNS names.
+	HostClusterLocalDNSZoneName = "cluster.local."
+
+	// APIServerNameSuffix is the suffix appended to the provided cluster registry
+	// name to derive the API server Deployment name.
+	APIServerNameSuffix = "apiserver"
+
+	// CredentialSuffix is the string appended to the provided cluste registry
+	// name to derive the name of the Secret that contains the API server
+	// certificates and keys.
+	CredentialSuffix = "credentials"
 
 	lbAddrRetryInterval = 5 * time.Second
 	podWaitInterval     = 2 * time.Second
 
 	apiserverAdvertiseAddressFlag = "api-server-advertise-address"
-	APIServerServiceTypeFlag      = "api-server-service-type"
-	apiserverPortFlag             = "api-server-port"
+
+	// APIServerServiceTypeFlag is the name of the flag used to set the service
+	// type used for the k8s Service that exposes the cluster registry.
+	APIServerServiceTypeFlag = "api-server-service-type"
+	apiserverPortFlag        = "api-server-port"
 
 	apiServerSecurePortName = "https"
 	// Set the secure port to 8443 to avoid requiring root privileges
@@ -70,6 +88,8 @@ var (
 	serverName     string
 	serverCredName string
 
+	// ComponentLabel is the label applied to resources created in the host
+	// cluster.
 	ComponentLabel = map[string]string{
 		"app": "clusterregistry",
 	}
@@ -98,12 +118,12 @@ type SubcommandOptions struct {
 	EtcdPVStorageClass        string
 	EtcdPersistentStorage     bool
 	DryRun                    bool
-	ApiServerOverridesString  string
-	ApiServerOverrides        map[string]string
-	ApiServerServiceType      v1.ServiceType
-	ApiServerAdvertiseAddress string
-	ApiServerNodePortPort     int32
-	ApiServerNodePortPortPtr  *int32
+	APIServerOverridesString  string
+	APIServerOverrides        map[string]string
+	APIServerServiceType      v1.ServiceType
+	APIServerAdvertiseAddress string
+	APIServerNodePortPort     int32
+	APIServerNodePortPortPtr  *int32
 }
 
 type entityKeyPairs struct {
@@ -112,7 +132,9 @@ type entityKeyPairs struct {
 	admin  *triple.KeyPair
 }
 
-type credentials struct {
+// Credentials is the set of credentials and certificates that are
+// used by a cluster registry.
+type Credentials struct {
 	username        string
 	password        string
 	token           string
@@ -141,11 +163,11 @@ func (o *SubcommandOptions) BindCommon(flags *pflag.FlagSet, defaultServerImage,
 		"Use a persistent volume for etcd. Defaults to 'true'.")
 	flags.BoolVar(&o.DryRun, "dry-run", false,
 		"Run the command in dry-run mode, without making any server requests.")
-	flags.StringVar(&o.ApiServerOverridesString, "apiserver-arg-overrides", "",
+	flags.StringVar(&o.APIServerOverridesString, "apiserver-arg-overrides", "",
 		"Comma-separated list of cluster registry API server arguments to override, e.g., \"--arg1=value1,--arg2=value2...\"")
-	flags.StringVar(&o.ApiServerAdvertiseAddress, apiserverAdvertiseAddressFlag, "",
+	flags.StringVar(&o.APIServerAdvertiseAddress, apiserverAdvertiseAddressFlag, "",
 		"Preferred address at which to advertise the cluster registry API server NodePort service. Valid only if '"+APIServerServiceTypeFlag+"=NodePort'.")
-	flags.Int32Var(&o.ApiServerNodePortPort, apiserverPortFlag, 0,
+	flags.Int32Var(&o.APIServerNodePortPort, apiserverPortFlag, 0,
 		"Preferred port to use for the cluster registry API server NodePort service. Set to 0 to randomly assign a port. Valid only if '"+APIServerServiceTypeFlag+"=NodePort'.")
 }
 
@@ -164,50 +186,50 @@ func (o *SubcommandOptions) ValidateCommonOptions() error {
 	serverName = fmt.Sprintf("%s-%s", o.Name, APIServerNameSuffix)
 	serverCredName = fmt.Sprintf("%s-%s", serverName, CredentialSuffix)
 
-	if o.ApiServerServiceType != v1.ServiceTypeLoadBalancer &&
-		o.ApiServerServiceType != v1.ServiceTypeNodePort {
+	if o.APIServerServiceType != v1.ServiceTypeLoadBalancer &&
+		o.APIServerServiceType != v1.ServiceTypeNodePort {
 		return fmt.Errorf("invalid %s: %s, should be either %s or %s",
-			APIServerServiceTypeFlag, o.ApiServerServiceType,
+			APIServerServiceTypeFlag, o.APIServerServiceType,
 			v1.ServiceTypeLoadBalancer, v1.ServiceTypeNodePort)
 	}
 
-	if o.ApiServerAdvertiseAddress != "" {
-		ip := net.ParseIP(o.ApiServerAdvertiseAddress)
+	if o.APIServerAdvertiseAddress != "" {
+		ip := net.ParseIP(o.APIServerAdvertiseAddress)
 		if ip == nil {
 			return fmt.Errorf("invalid %s: %s, should be a valid ip address",
-				apiserverAdvertiseAddressFlag, o.ApiServerAdvertiseAddress)
+				apiserverAdvertiseAddressFlag, o.APIServerAdvertiseAddress)
 		}
-		if o.ApiServerServiceType != v1.ServiceTypeNodePort {
+		if o.APIServerServiceType != v1.ServiceTypeNodePort {
 			return fmt.Errorf("%s should be passed only with '%s=NodePort'",
 				apiserverAdvertiseAddressFlag, APIServerServiceTypeFlag)
 		}
 	}
 
-	if o.ApiServerNodePortPort != 0 {
-		if o.ApiServerServiceType != v1.ServiceTypeNodePort {
+	if o.APIServerNodePortPort != 0 {
+		if o.APIServerServiceType != v1.ServiceTypeNodePort {
 			return fmt.Errorf("%s should be passed only with '%s=NodePort'",
 				apiserverPortFlag, APIServerServiceTypeFlag)
 		}
-		o.ApiServerNodePortPortPtr = &o.ApiServerNodePortPort
+		o.APIServerNodePortPortPtr = &o.APIServerNodePortPort
 	} else {
-		o.ApiServerNodePortPortPtr = nil
+		o.APIServerNodePortPortPtr = nil
 	}
 
-	if o.ApiServerNodePortPort < 0 || o.ApiServerNodePortPort > 65535 {
+	if o.APIServerNodePortPort < 0 || o.APIServerNodePortPort > 65535 {
 		return fmt.Errorf("Please provide a valid port number for %s", apiserverPortFlag)
 	}
 
 	return nil
 }
 
-// marshalOptions marshals options if necessary.
+// MarshalOptions marshals options if necessary.
 func (o *SubcommandOptions) MarshalOptions() error {
-	if o.ApiServerOverridesString == "" {
+	if o.APIServerOverridesString == "" {
 		return nil
 	}
 
 	argsMap := make(map[string]string)
-	overrideArgs := strings.Split(o.ApiServerOverridesString, ",")
+	overrideArgs := strings.Split(o.APIServerOverridesString, ",")
 	for _, overrideArg := range overrideArgs {
 		splitArg := strings.SplitN(overrideArg, "=", 2)
 		if len(splitArg) != 2 {
@@ -221,7 +243,7 @@ func (o *SubcommandOptions) MarshalOptions() error {
 		argsMap[key] = val
 	}
 
-	o.ApiServerOverrides = argsMap
+	o.APIServerOverrides = argsMap
 
 	return nil
 }
@@ -270,8 +292,8 @@ func (o *SubcommandOptions) CreateService(cmdOut io.Writer,
 	glog.V(4).Info("Creating cluster registry API server service")
 
 	svc, ips, hostnames, err := CreateService(cmdOut, clientset,
-		o.ClusterRegistryNamespace, o.Name, o.ApiServerAdvertiseAddress,
-		o.ApiServerNodePortPortPtr, o.ApiServerServiceType, o.DryRun)
+		o.ClusterRegistryNamespace, o.Name, o.APIServerAdvertiseAddress,
+		o.APIServerNodePortPortPtr, o.APIServerServiceType, o.DryRun)
 
 	if err != nil {
 		return nil, nil, nil, err
@@ -412,7 +434,7 @@ func waitForLoadBalancerAddress(cmdOut io.Writer, clientset client.Interface, sv
 // GenerateCredentials creates the credentials for apiserver secret.
 func (o *SubcommandOptions) GenerateCredentials(cmdOut io.Writer, svcName string,
 	ips, hostnames []string, apiServerEnableHTTPBasicAuth,
-	apiServerEnableTokenAuth bool) (*credentials, error) {
+	apiServerEnableTokenAuth bool) (*Credentials, error) {
 
 	fmt.Fprint(cmdOut,
 		"Creating cluster registry objects (credentials, persistent volume claim)...")
@@ -431,9 +453,9 @@ func (o *SubcommandOptions) GenerateCredentials(cmdOut io.Writer, svcName string
 
 // generateCredentials helper to create the certs for the apiserver.
 func generateCredentials(svcNamespace, name, svcName, localDNSZoneName string,
-	ips, hostnames []string, enableHTTPBasicAuth, enableTokenAuth bool) (*credentials, error) {
+	ips, hostnames []string, enableHTTPBasicAuth, enableTokenAuth bool) (*Credentials, error) {
 
-	credentials := credentials{
+	credentials := Credentials{
 		username: AdminCN,
 	}
 	if enableHTTPBasicAuth {
@@ -476,7 +498,7 @@ func genCerts(svcNamespace, name, svcName, localDNSZoneName string,
 // CreateAPIServerCredentialsSecret creates the secret containing the
 // apiserver credentials passed in.
 func (o *SubcommandOptions) CreateAPIServerCredentialsSecret(clientset client.Interface,
-	credentials *credentials) error {
+	credentials *Credentials) error {
 
 	_, err := createAPIServerCredentialsSecret(clientset,
 		o.ClusterRegistryNamespace, serverCredName, credentials, o.DryRun)
@@ -492,7 +514,7 @@ func (o *SubcommandOptions) CreateAPIServerCredentialsSecret(clientset client.In
 // createAPIServerCredentialsSecret helper to create secret object and return
 // the object.
 func createAPIServerCredentialsSecret(clientset client.Interface, namespace,
-	credentialsName string, credentials *credentials, dryRun bool) (*v1.Secret, error) {
+	credentialsName string, credentials *Credentials, dryRun bool) (*v1.Secret, error) {
 	// Build the secret object with API server credentials.
 	data := map[string][]byte{
 		"ca.crt":     certutil.EncodeCertPEM(credentials.certEntKeyPairs.ca.Cert),
@@ -521,6 +543,7 @@ func createAPIServerCredentialsSecret(clientset client.Interface, namespace,
 	return clientset.CoreV1().Secrets(namespace).Create(secret)
 }
 
+// CreatePVC creates a PersistentVolumeClaim for the cluster registry.
 func (o *SubcommandOptions) CreatePVC(cmdOut io.Writer,
 	clientset client.Interface, svcName string) (*v1.PersistentVolumeClaim, error) {
 
@@ -583,13 +606,14 @@ func createPVC(clientset client.Interface, namespace, svcName, etcdPVCapacity,
 	return clientset.CoreV1().PersistentVolumeClaims(namespace).Create(pvc)
 }
 
+// CreateAPIServer creates a Deployment for the clusterregistry and etcd.
 func (o *SubcommandOptions) CreateAPIServer(cmdOut io.Writer, clientset client.Interface,
 	apiServerEnableHTTPBasicAuth, apiServerEnableTokenAuth, aggregated bool, ips []string,
 	pvc *v1.PersistentVolumeClaim, serviceAccountName string) error {
 	// Since only one IP address can be specified as advertise address,
 	// we arbitrarily pick the first available IP address.
 	// Pick user provided apiserverAdvertiseAddress over other available IP addresses.
-	advertiseAddress := o.ApiServerAdvertiseAddress
+	advertiseAddress := o.APIServerAdvertiseAddress
 	if advertiseAddress == "" && len(ips) > 0 {
 		advertiseAddress = ips[0]
 	}
@@ -600,7 +624,7 @@ func (o *SubcommandOptions) CreateAPIServer(cmdOut io.Writer, clientset client.I
 	_, err := createAPIServer(clientset, o.ClusterRegistryNamespace,
 		serverName, o.ServerImage, o.EtcdImage, advertiseAddress, serverCredName,
 		serviceAccountName, apiServerEnableHTTPBasicAuth, apiServerEnableTokenAuth,
-		o.ApiServerOverrides, pvc, aggregated, o.DryRun)
+		o.APIServerOverrides, pvc, aggregated, o.DryRun)
 
 	if err != nil {
 		glog.V(4).Infof("Failed to create API server: %v", err)
@@ -757,7 +781,7 @@ func argMapsToArgStrings(argsMap, overrides map[string]string) []string {
 // while printing and logging progress.
 func (o *SubcommandOptions) UpdateKubeconfig(cmdOut io.Writer,
 	pathOptions *clientcmd.PathOptions, svc *v1.Service, ips, hostnames []string,
-	credentials *credentials) error {
+	credentials *Credentials) error {
 
 	fmt.Fprint(cmdOut, "Updating kubeconfig...")
 	glog.V(4).Info("Updating kubeconfig")
@@ -774,7 +798,7 @@ func (o *SubcommandOptions) UpdateKubeconfig(cmdOut io.Writer,
 
 	// If the service is nodeport, need to append the port to endpoint as it is
 	// non-standard port.
-	if o.ApiServerServiceType == v1.ServiceTypeNodePort {
+	if o.APIServerServiceType == v1.ServiceTypeNodePort {
 		endpoint = endpoint + ":" + strconv.Itoa(int(svc.Spec.Ports[0].NodePort))
 	}
 
@@ -794,7 +818,7 @@ func (o *SubcommandOptions) UpdateKubeconfig(cmdOut io.Writer,
 // updateKubeconfig helper to update the kubeconfig file based on input
 // parameters.
 func updateKubeconfig(pathOptions *clientcmd.PathOptions, name, endpoint,
-	kubeConfigPath string, credentials *credentials, dryRun bool) error {
+	kubeConfigPath string, credentials *Credentials, dryRun bool) error {
 
 	pathOptions.LoadingRules.ExplicitPath = kubeConfigPath
 	kubeconfig, err := pathOptions.GetStartingConfig()
@@ -853,6 +877,7 @@ func updateKubeconfig(pathOptions *clientcmd.PathOptions, name, endpoint,
 	return nil
 }
 
+// WaitForAPIServer blocks until the clusterregistry API server to be healthy.
 func (o *SubcommandOptions) WaitForAPIServer(cmdOut io.Writer,
 	clientset client.Interface, pathOptions *clientcmd.PathOptions,
 	ips, hostnames []string, svc *v1.Service) error {
@@ -906,7 +931,7 @@ func waitForPods(cmdOut io.Writer, clientset client.Interface, pods []string, na
 		for _, pod := range podList.Items {
 			for _, fedPod := range pods {
 				if strings.HasPrefix(pod.Name, fedPod) && pod.Status.Phase == "Running" {
-					podCheck -= 1
+					podCheck--
 				}
 			}
 			// ensure that all pods are in running state or keep waiting
@@ -948,6 +973,8 @@ func printSuccess(cmdOut io.Writer, ips, hostnames []string, svc *v1.Service) er
 	return err
 }
 
+// GetClientConfig gets a ClientConfig for the proivided context in kubeconfig
+// file referenced by kubeconfigPath.
 func GetClientConfig(pathOptions *clientcmd.PathOptions, context, kubeconfigPath string) clientcmd.ClientConfig {
 	loadingRules := *pathOptions.LoadingRules
 	loadingRules.Precedence = pathOptions.GetLoadingPrecedence()
@@ -967,7 +994,7 @@ func authFileContents(username, authSecret string) []byte {
 
 // GetCAKeyPair retrieves the CA key pair stored in the internal credentials
 // structure.
-func GetCAKeyPair(credentials *credentials) *triple.KeyPair {
+func GetCAKeyPair(credentials *Credentials) *triple.KeyPair {
 	if credentials == nil {
 		glog.V(4).Info("credentials argument is nil!")
 		return nil

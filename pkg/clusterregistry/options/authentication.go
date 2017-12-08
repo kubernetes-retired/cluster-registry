@@ -177,8 +177,8 @@ func (o *StandaloneAuthenticationOptions) ApplyTo(c *genericapiserver.Config) er
 	return nil
 }
 
-func (s *StandaloneAuthenticationOptions) toAuthenticationConfig() authenticator.AuthenticatorConfig {
-	ret := authenticator.AuthenticatorConfig{
+func (s *StandaloneAuthenticationOptions) toAuthenticationConfig() authenticator.Config {
+	ret := authenticator.Config{
 		TokenSuccessCacheTTL: s.TokenSuccessCacheTTL,
 		TokenFailureCacheTTL: s.TokenFailureCacheTTL,
 	}

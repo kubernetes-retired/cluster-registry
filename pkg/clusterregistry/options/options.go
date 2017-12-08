@@ -26,7 +26,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// Runtime options for the cluster registry.
+// ServerRunOptions contains runtime options for the cluster registry.
 type ServerRunOptions struct {
 	GenericServerRunOptions  *genericoptions.ServerRunOptions
 	Etcd                     *genericoptions.EtcdOptions

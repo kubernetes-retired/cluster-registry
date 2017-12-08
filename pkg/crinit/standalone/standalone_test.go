@@ -46,7 +46,7 @@ func TestValidateOptions(t *testing.T) {
 				apiServerServiceTypeString: string(v1.ServiceTypeLoadBalancer)},
 			finalOpts: &standaloneClusterRegistryOptions{
 				SubcommandOptions: util.SubcommandOptions{
-					ApiServerServiceType: v1.ServiceTypeLoadBalancer},
+					APIServerServiceType: v1.ServiceTypeLoadBalancer},
 				apiServerServiceTypeString: string(v1.ServiceTypeLoadBalancer)},
 			errExpected: false,
 		},
@@ -55,7 +55,7 @@ func TestValidateOptions(t *testing.T) {
 			initialOpts: &standaloneClusterRegistryOptions{apiServerServiceTypeString: string(v1.ServiceTypeNodePort)},
 			finalOpts: &standaloneClusterRegistryOptions{
 				SubcommandOptions: util.SubcommandOptions{
-					ApiServerServiceType: v1.ServiceTypeNodePort},
+					APIServerServiceType: v1.ServiceTypeNodePort},
 				apiServerServiceTypeString: string(v1.ServiceTypeNodePort)},
 			errExpected: false,
 		},
@@ -69,7 +69,7 @@ func TestValidateOptions(t *testing.T) {
 			initialOpts: &standaloneClusterRegistryOptions{
 				apiServerServiceTypeString: string(v1.ServiceTypeNodePort),
 				SubcommandOptions: util.SubcommandOptions{
-					ApiServerAdvertiseAddress: "10.0.0.1"}},
+					APIServerAdvertiseAddress: "10.0.0.1"}},
 			errExpected: false,
 		},
 		{
@@ -77,7 +77,7 @@ func TestValidateOptions(t *testing.T) {
 			initialOpts: &standaloneClusterRegistryOptions{
 				apiServerServiceTypeString: string(v1.ServiceTypeLoadBalancer),
 				SubcommandOptions: util.SubcommandOptions{
-					ApiServerAdvertiseAddress: "10.0.0.1"}},
+					APIServerAdvertiseAddress: "10.0.0.1"}},
 			errExpected: true,
 		},
 		{
@@ -85,7 +85,7 @@ func TestValidateOptions(t *testing.T) {
 			initialOpts: &standaloneClusterRegistryOptions{
 				apiServerServiceTypeString: string(v1.ServiceTypeNodePort),
 				SubcommandOptions: util.SubcommandOptions{
-					ApiServerAdvertiseAddress: "notAValidIP"}},
+					APIServerAdvertiseAddress: "notAValidIP"}},
 			errExpected: true,
 		},
 		{
@@ -93,13 +93,13 @@ func TestValidateOptions(t *testing.T) {
 			initialOpts: &standaloneClusterRegistryOptions{
 				apiServerServiceTypeString: string(v1.ServiceTypeNodePort),
 				SubcommandOptions: util.SubcommandOptions{
-					ApiServerNodePortPort: testNodePort}},
+					APIServerNodePortPort: testNodePort}},
 			finalOpts: &standaloneClusterRegistryOptions{
 				apiServerServiceTypeString: string(v1.ServiceTypeNodePort),
 				SubcommandOptions: util.SubcommandOptions{
-					ApiServerServiceType:     v1.ServiceTypeNodePort,
-					ApiServerNodePortPort:    testNodePort,
-					ApiServerNodePortPortPtr: &testNodePort}},
+					APIServerServiceType:     v1.ServiceTypeNodePort,
+					APIServerNodePortPort:    testNodePort,
+					APIServerNodePortPortPtr: &testNodePort}},
 			errExpected: false,
 		},
 		{
@@ -107,7 +107,7 @@ func TestValidateOptions(t *testing.T) {
 			initialOpts: &standaloneClusterRegistryOptions{
 				apiServerServiceTypeString: string(v1.ServiceTypeLoadBalancer),
 				SubcommandOptions: util.SubcommandOptions{
-					ApiServerNodePortPort: testNodePort}},
+					APIServerNodePortPort: testNodePort}},
 			errExpected: true,
 		},
 		{
@@ -115,7 +115,7 @@ func TestValidateOptions(t *testing.T) {
 			initialOpts: &standaloneClusterRegistryOptions{
 				apiServerServiceTypeString: string(v1.ServiceTypeNodePort),
 				SubcommandOptions: util.SubcommandOptions{
-					ApiServerNodePortPort: 100000}},
+					APIServerNodePortPort: 100000}},
 			errExpected: true,
 		},
 	}
@@ -188,10 +188,10 @@ func TestMarshalOptions(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			options := standaloneClusterRegistryOptions{
 				SubcommandOptions: util.SubcommandOptions{
-					ApiServerOverridesString: tc.overrideParams}}
+					APIServerOverridesString: tc.overrideParams}}
 			err := options.MarshalOptions()
 			if tc.expectedErr == "" {
-				got := options.ApiServerOverrides
+				got := options.APIServerOverrides
 				want := tc.expectedMap
 
 				if !reflect.DeepEqual(got, want) {

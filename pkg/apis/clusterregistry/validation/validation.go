@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package validation defines validation routines for the clusterregistry API.
 package validation
 
 import (
@@ -22,12 +23,14 @@ import (
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry"
 )
 
+// ValidateCluster ensures that a newly-created Cluster is valid.
 func ValidateCluster(cluster *clusterregistry.Cluster) field.ErrorList {
 	allErrs := validation.ValidateObjectMeta(&cluster.ObjectMeta, false, validation.ValidateClusterName, field.NewPath("metadata"))
 	allErrs = append(allErrs, validateClusterName(cluster)...)
 	return allErrs
 }
 
+// ValidateClusterUpdate ensures that an update to a Cluster is valid.
 func ValidateClusterUpdate(cluster, oldCluster *clusterregistry.Cluster) field.ErrorList {
 	allErrs := validation.ValidateObjectMetaUpdate(&cluster.ObjectMeta, &oldCluster.ObjectMeta, field.NewPath("metadata"))
 	if cluster.Name != oldCluster.Name {

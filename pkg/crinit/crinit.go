@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package crinit contains the meat of the implementation for the crinit tool,
+// which bootstraps a cluster registry into an existing Kubernetes cluster.
 package crinit
 
 import (

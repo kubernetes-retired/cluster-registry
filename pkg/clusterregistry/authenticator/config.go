@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package authenticator contains code for creating an authenticator for a
+// standalone cluster registry based on the configuration provided to the
+// clusteregistry binary.
 package authenticator
 
 import (
@@ -42,26 +45,55 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
-type AuthenticatorConfig struct {
-	Anonymous                   bool
-	BasicAuthFile               string
-	BootstrapToken              bool
-	ClientCAFile                string
-	TokenAuthFile               string
-	WebhookTokenAuthnConfigFile string
-	WebhookTokenAuthnCacheTTL   time.Duration
+// Config defines the configuration options for authentication methods to be
+// used with a standalone cluster registry. Refer to
+// https://kubernetes.io/docs/admin/authentication/ for more information about
+// each of the fields of this object.
+type Config struct {
 
+	// Anonymous determines whether anonymous authentication is enabled.
+	Anonymous bool
+
+	// BasicAuthFile is a path to a file that contains username/password pairs.
+	BasicAuthFile string
+
+	// BootstrapToken determines whether or not to enable authentication via
+	// BootstrapTokenAuthenticator.
+	BootstrapToken bool
+
+	// ClientCAFile is a path to a certificate that can be used to validate
+	// client certificates.
+	ClientCAFile string
+
+	// TokenAuthFile is a path to a file that contains bearer tokens.
+	TokenAuthFile string
+
+	// WebhookTokenAuthnConfigFile is a path to a file that contains configuration
+	// for webhook-based authentication.
+	WebhookTokenAuthnConfigFile string
+	// WebhookTokenAuthnCacheTTL is the TTL of the webhook token cache.
+	WebhookTokenAuthnCacheTTL time.Duration
+
+	// TokenSuccessCacheTTL determines how long a successful token authentication
+	// should be cached (that is, continue to succeed).
 	TokenSuccessCacheTTL time.Duration
+
+	// TokenFailureCacheTTL determines how long a failed token authentication
+	// should be cached (that is, continue to fail).
 	TokenFailureCacheTTL time.Duration
 
+	// RequestHeaderConfig contains information about authenticating via request
+	// headers.
 	RequestHeaderConfig *authenticatorfactory.RequestHeaderConfig
 
+	// BootstrapTokenAuthenticator is a token authenticator specifically for tokens
+	// used to bootstrap a cluster registry.
 	BootstrapTokenAuthenticator authenticator.Token
 }
 
 // New returns an authenticator.Request or an error that supports the standard
 // Kubernetes authentication mechanisms.
-func (config AuthenticatorConfig) New() (authenticator.Request, *spec.SecurityDefinitions, error) {
+func (config Config) New() (authenticator.Request, *spec.SecurityDefinitions, error) {
 	var authenticators []authenticator.Request
 	var tokenAuthenticators []authenticator.Token
 	securityDefinitions := spec.SecurityDefinitions{}
