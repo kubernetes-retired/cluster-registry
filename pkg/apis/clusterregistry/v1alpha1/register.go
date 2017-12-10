@@ -29,9 +29,14 @@ const GroupName = "clusterregistry.k8s.io"
 var SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: "v1alpha1"}
 
 var (
-	SchemeBuilder      runtime.SchemeBuilder
+	// SchemeBuilder builds runtime.Scheme objects for the Cluster API objects. See
+	// https://godoc.org/k8s.io/apimachinery/pkg/runtime#Scheme for more info.
+	SchemeBuilder runtime.SchemeBuilder
+
 	localSchemeBuilder = &SchemeBuilder
-	AddToScheme        = localSchemeBuilder.AddToScheme
+
+	// AddToScheme is a function that adds objects to the Cluster API scheme builder.
+	AddToScheme = localSchemeBuilder.AddToScheme
 )
 
 func init() {

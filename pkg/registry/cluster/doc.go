@@ -14,9 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package clusterregistry contains the Go definitions for the cluster registry
-// API, as well as some scaffolding code for using this API in Go code.
-//
-// +k8s:deepcopy-gen=package,register
-// +groupName=clusterregistry.k8s.io
-package clusterregistry // import "k8s.io/cluster-registry/pkg/apis/clusterregistry"
+// Package cluster contains the implementation of a registry for Cluster
+// objects.
+package cluster

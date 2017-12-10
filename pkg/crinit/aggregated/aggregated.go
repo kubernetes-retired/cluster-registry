@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package aggregated contains the implementation of the `aggregated` subcommand
+// of crinit, which deploys a cluster registry as an aggregated API server in a
+// Kubernetes cluster.
 package aggregated
 
 import (
@@ -39,13 +42,13 @@ import (
 )
 
 var (
-	aggregated_long = `
+	longCommandDescription = `
 	Aggregated initializes an aggregated cluster registry.
 
 	The aggregated cluster registry is hosted inside a Kubernetes
 	cluster and registers its API with the Kubernetes API aggregator.
 	The host cluster must be specified using the --host-cluster-context flag.`
-	aggregated_example = `
+	commandExample = `
 	# Initialize an aggregated cluster registry named foo
 	# in the host cluster whose local kubeconfig
 	# context is bar.
@@ -112,8 +115,8 @@ func NewCmdAggregated(cmdOut io.Writer, pathOptions *clientcmd.PathOptions, defa
 	cmd := &cobra.Command{
 		Use:     "aggregated CLUSTER_REGISTRY_NAME --host-cluster-context=HOST_CONTEXT",
 		Short:   "Initializes an aggregated cluster registry",
-		Long:    aggregated_long,
-		Example: aggregated_example,
+		Long:    longCommandDescription,
+		Example: commandExample,
 		Run: func(cmd *cobra.Command, args []string) {
 			err := opts.SetName(args)
 			if err != nil {
@@ -158,7 +161,7 @@ func NewCmdAggregated(cmdOut io.Writer, pathOptions *clientcmd.PathOptions, defa
 
 // validateOptions ensures that options are valid.
 func validateOptions(opts *aggregatedClusterRegistryOptions) error {
-	opts.ApiServerServiceType = v1.ServiceType(opts.apiServerServiceTypeString)
+	opts.APIServerServiceType = v1.ServiceType(opts.apiServerServiceTypeString)
 	return opts.ValidateCommonOptions()
 }
 

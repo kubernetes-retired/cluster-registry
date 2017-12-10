@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package standalone contains the implementation of the `standalone` subcommand
+// of `crinit`, which deploys a cluster registry as a standalone API server in
+// a host Kubernetes cluster.
 package standalone
 
 import (
@@ -30,14 +33,14 @@ import (
 )
 
 var (
-	standalone_long = `
+	longCommandDescription = `
 	Standalone initializes a standalone cluster registry.
 
 	The standalone cluster registry is hosted inside a Kubernetes
 	cluster but handles its own authentication and authorization.
 	The host cluster must be specified using the
         --host-cluster-context flag.`
-	standalone_example = `
+	commandExample = `
 	# Initialize a standalone cluster registry named foo
 	# in the host cluster whose local kubeconfig
 	# context is bar.
@@ -69,8 +72,8 @@ func NewCmdStandalone(cmdOut io.Writer, pathOptions *clientcmd.PathOptions, defa
 	cmd := &cobra.Command{
 		Use:     "standalone CLUSTER_REGISTRY_NAME --host-cluster-context=HOST_CONTEXT",
 		Short:   "Initialize a standalone cluster registry",
-		Long:    standalone_long,
-		Example: standalone_example,
+		Long:    longCommandDescription,
+		Example: commandExample,
 		Run: func(cmd *cobra.Command, args []string) {
 			err := opts.SetName(args)
 			if err != nil {
@@ -111,7 +114,7 @@ func NewCmdStandalone(cmdOut io.Writer, pathOptions *clientcmd.PathOptions, defa
 
 // validateOptions ensures that options are valid.
 func validateOptions(opts *standaloneClusterRegistryOptions) error {
-	opts.ApiServerServiceType = v1.ServiceType(opts.apiServerServiceTypeString)
+	opts.APIServerServiceType = v1.ServiceType(opts.apiServerServiceTypeString)
 	return opts.ValidateCommonOptions()
 }
 

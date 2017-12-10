@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package install registers the clusterregistry API group and adds its types to
+// a scheme.
 package install
 
 import (
@@ -28,16 +30,20 @@ import (
 )
 
 var (
-	Scheme   = runtime.NewScheme()
+	// Scheme is the scheme used for the clusterregistry API.
+	Scheme = runtime.NewScheme()
+	// Registry is the registry used for the clusterregistry API.
 	Registry = registered.NewOrDie("")
-	Codecs   = serializer.NewCodecFactory(Scheme)
+	// Codecs is the set of codecs for the clusterregistry API.
+	Codecs = serializer.NewCodecFactory(Scheme)
 )
 
 func init() {
 	Install(make(announced.APIGroupFactoryRegistry), Registry, Scheme)
 }
 
-// Install registers the API group and adds types to a scheme
+// Install registers the clusterregistry API group and adds its types to a
+// scheme.
 func Install(groupFactoryRegistry announced.APIGroupFactoryRegistry, registry *registered.APIRegistrationManager, scheme *runtime.Scheme) {
 	if err := announced.NewGroupMetaFactory(
 		&announced.GroupMetaFactoryArgs{

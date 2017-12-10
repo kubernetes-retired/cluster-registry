@@ -130,7 +130,7 @@ type CloudProvider struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// A list of Kubernetes clusters in the cluster registry.
+// ClusterList is a list of Kubernetes clusters in the cluster registry.
 type ClusterList struct {
 	metav1.TypeMeta `json:",inline"`
 	// Standard list metadata.

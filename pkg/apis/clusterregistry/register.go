@@ -38,8 +38,12 @@ func Resource(resource string) schema.GroupResource {
 }
 
 var (
+	// SchemeBuilder builds runtime.Scheme objects for the Cluster API objects. See
+	// https://godoc.org/k8s.io/apimachinery/pkg/runtime#Scheme for more info.
 	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
-	AddToScheme   = SchemeBuilder.AddToScheme
+
+	// AddToScheme is a function that adds objects to the Cluster API scheme builder.
+	AddToScheme = SchemeBuilder.AddToScheme
 )
 
 func addKnownTypes(scheme *runtime.Scheme) error {
