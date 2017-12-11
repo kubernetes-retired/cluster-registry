@@ -16,14 +16,14 @@ A lightweight tool for maintaining a list of clusters and associated metadata.
 The cluster registry helps you keep track of and perform operations on your
 clusters. This repository contains an implementation of the cluster API
 ([code](https://github.com/kubernetes/cluster-registry/tree/master/pkg/apis/clusterregistry),
-[design](https://github.com/kubernetes/cluster-registry/tree/master/docs/api_design.md))
+[design](docs/api_design.md))
 backed by a Kubernetes-style API server, which is the canonical implementation
 of the cluster registry.
 
 # Documentation
 
 Documentation is in the
-[`/docs`](https://github.com/kubernetes/cluster-registry/tree/master/docs/)
+[`docs`](docs)
 directory.
 
 Most directories containing Go code have package documentation, which you can
@@ -51,4 +51,4 @@ in [#sig-multicluster](https://kubernetes.slack.com/messages/sig-multicluster/).
 There is a [nightly build here](https://k8s-testgrid.appspot.com/sig-multicluster-cluster-registry)
 
 Basic instructions for working in the cluster-registry repo are
-[here](https://github.com/kubernetes/cluster-registry/tree/master/docs/development.md).
+[here](docs/development.md).
