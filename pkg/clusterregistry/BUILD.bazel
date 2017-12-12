@@ -4,6 +4,7 @@ go_library(
     name = "go_default_library",
     srcs = [
         "cluster.go",
+        "doc.go",
         "server.go",
     ],
     importpath = "k8s.io/cluster-registry/pkg/clusterregistry",
