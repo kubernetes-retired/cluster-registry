@@ -53,12 +53,6 @@ $
 
 ### Aggregated API server
 
-> The cluster registry does not currently support delegated authn/authz, so
-> aggregation will not work smoothly: the kubectl command against the aggregator
-> will fail because the cluster registry will not be able to verify the user.
-> This is currently being addressed in
-> [#120](https://github.com/kubernetes/cluster-registry/pull/120).
-
 You can deploy the cluster registry as an aggregated API server like so:
 
 ```sh
@@ -67,7 +61,7 @@ You can deploy the cluster registry as an aggregated API server like so:
 
 where `your_cluster_context` is a context entry in your kubeconfig file
 referencing a cluster into which the cluster registry will be deployed and to
-which the cluster registry API server will be added as an aggreagted API server.
+which the cluster registry API server will be added as an aggregated API server.
 When the command completes, you will have a cluster registry running as an
 aggregated API server with the cluster API server identified by
 `your_cluster_context`. You can interact with it using kubectl:
