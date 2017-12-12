@@ -24,7 +24,7 @@ import (
 	crclientset "k8s.io/cluster-registry/pkg/client/clientset_generated/clientset"
 )
 
-func TestCreateAndGet(t *testing.T) {
+func TestClusterCRUD(t *testing.T) {
 	config, tearDown := StartTestServerOrDie(t)
 	defer tearDown()
 
@@ -33,20 +33,94 @@ func TestCreateAndGet(t *testing.T) {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	_, err = clientset.ClusterregistryV1alpha1().Clusters().Create(&v1alpha1.Cluster{
+	clusterName := "cluster"
+
+	t.Run("Create", func(t *testing.T) {
+		testClusterCreate(t, clientset, clusterName)
+	})
+
+	t.Run("Get", func(t *testing.T) {
+		testClusterGet(t, clientset, clusterName)
+	})
+
+	t.Run("Update", func(t *testing.T) {
+		testClusterUpdate(t, clientset, clusterName)
+	})
+
+	t.Run("Delete", func(t *testing.T) {
+		testClusterDelete(t, clientset, clusterName)
+	})
+}
+
+func testClusterCreate(t *testing.T, clientset *crclientset.Clientset, clusterName string) {
+	cluster, err := clientset.ClusterregistryV1alpha1().Clusters().Create(&v1alpha1.Cluster{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "cluster",
+			Name: clusterName,
 		},
 	})
 
-	cluster, err := clientset.ClusterregistryV1alpha1().Clusters().Get("cluster", metav1.GetOptions{})
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	} else if cluster == nil {
+		t.Fatalf("Expected a cluster, got nil")
+	} else if cluster.Name != clusterName {
+		t.Fatalf("Expected a cluster named 'cluster', got a cluster named '%v'.", cluster.Name)
+	}
+}
+
+func testClusterGet(t *testing.T, clientset *crclientset.Clientset, clusterName string) {
+	cluster, err := clientset.ClusterregistryV1alpha1().Clusters().Get(clusterName,
+		metav1.GetOptions{})
+
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	} else if cluster == nil {
+		t.Fatalf("Expected a cluster, got nil")
+	} else if cluster.Name != clusterName {
+		t.Fatalf("Expected a cluster named 'cluster', got a cluster named '%v'.", cluster.Name)
+	}
+}
+
+func testClusterUpdate(t *testing.T, clientset *crclientset.Clientset, clusterName string) {
+	cloudProviderName := "clusterCloudProvider"
+
+	cluster := &v1alpha1.Cluster{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: clusterName,
+		},
+		Spec: v1alpha1.ClusterSpec{
+			CloudProvider: &v1alpha1.CloudProvider{
+				Name: cloudProviderName,
+			},
+		},
+	}
+
+	cluster, err := clientset.ClusterregistryV1alpha1().Clusters().Update(cluster)
+
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	} else if cluster == nil {
+		t.Fatalf("Expected a cluster, got nil")
+	} else if cluster.Name != clusterName {
+		t.Fatalf("Expected a cluster named 'cluster', got a cluster named '%v'.", cluster.Name)
+	} else if cluster.Spec.CloudProvider.Name != cloudProviderName {
+		t.Fatalf("Expected a cluster cloud provider named '%v', got cluster cloud provider '%v'",
+			cloudProviderName, cluster.Spec.CloudProvider.Name)
+	}
+}
+
+func testClusterDelete(t *testing.T, clientset *crclientset.Clientset, clusterName string) {
+	err := clientset.ClusterregistryV1alpha1().Clusters().Delete(clusterName,
+		&metav1.DeleteOptions{})
+
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
-	if cluster == nil {
-		t.Fatalf("Expected a cluster, got nil")
-	}
-	if cluster.Name != "cluster" {
-		t.Fatalf("Expected a cluster named 'cluster', got a cluster named '%v.", cluster.Name)
+
+	// We do not expect to find the cluster we just deleted
+	_, err = clientset.ClusterregistryV1alpha1().Clusters().Get(clusterName, metav1.GetOptions{})
+
+	if err == nil {
+		t.Fatalf("Unexpected error: %v", err)
 	}
 }
