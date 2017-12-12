@@ -74,7 +74,7 @@ To build it, from the root of the repository:
 ## Run all tests
 
 You can run all the unit tests by running
-`bazel test -- //cmd/... //pkg/...  -//cmd/clusterregistry:push-clusterregistry-image -//pkg/client/...`
+`bazel test -- //... -//vendor/... -//cmd/clusterregistry:push-clusterregistry-image -//pkg/client/...`
 from the repository root. (This may take a while the first time you run it.)
 
 ## Updating Bazel files
