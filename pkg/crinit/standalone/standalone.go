@@ -33,18 +33,18 @@ import (
 )
 
 var (
-	longCommandDescription = `
-	Standalone initializes a standalone cluster registry.
+	longInitCommandDescription = `
+	Init initializes a standalone cluster registry.
 
 	The standalone cluster registry is hosted inside a Kubernetes
 	cluster but handles its own authentication and authorization.
 	The host cluster must be specified using the
         --host-cluster-context flag.`
-	commandExample = `
+	initCommandExample = `
 	# Initialize a standalone cluster registry named foo
 	# in the host cluster whose local kubeconfig
 	# context is bar.
-	crinit standalone foo --host-cluster-context=bar`
+	crinit standalone init foo --host-cluster-context=bar`
 )
 
 type standaloneClusterRegistryOptions struct {
@@ -70,10 +70,16 @@ func NewCmdStandalone(cmdOut io.Writer, pathOptions *clientcmd.PathOptions, defa
 	opts := &standaloneClusterRegistryOptions{}
 
 	cmd := &cobra.Command{
-		Use:     "standalone CLUSTER_REGISTRY_NAME --host-cluster-context=HOST_CONTEXT",
+		Use:   "standalone",
+		Short: "Subcommands to manage a standalone cluster registry",
+		Long:  "Commands used to manage a standalone cluster registry. That is, a cluster registry that is not aggregated with another Kubernetes API server.",
+	}
+
+	initCmd := &cobra.Command{
+		Use:     "init CLUSTER_REGISTRY_NAME --host-cluster-context=HOST_CONTEXT",
 		Short:   "Initialize a standalone cluster registry",
-		Long:    longCommandDescription,
-		Example: commandExample,
+		Long:    longInitCommandDescription,
+		Example: initCommandExample,
 		Run: func(cmd *cobra.Command, args []string) {
 			err := opts.SetName(args)
 			if err != nil {
@@ -105,10 +111,11 @@ func NewCmdStandalone(cmdOut io.Writer, pathOptions *clientcmd.PathOptions, defa
 		},
 	}
 
-	flags := cmd.Flags()
+	flags := initCmd.Flags()
 	opts.BindCommon(flags, defaultServerImage, defaultEtcdImage)
 	opts.Bind(flags)
 
+	cmd.AddCommand(initCmd)
 	return cmd
 }
 

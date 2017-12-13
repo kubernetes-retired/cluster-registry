@@ -50,13 +50,19 @@ func NewClusterregistryCommand(out io.Writer, defaultServerImage, defaultEtcdIma
 	// Warn for other flags that contain underscores.
 	rootCmd.SetGlobalNormalizationFunc(apiserverflag.WarnWordSepNormalizeFunc)
 
+	var shortVersion bool
 	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "Prints the version",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("%#v", version.Get())
+			if shortVersion {
+				fmt.Printf("%s\n", version.Get().GitVersion)
+			} else {
+				fmt.Printf("%#v\n", version.Get())
+			}
 		},
 	}
+	versionCmd.Flags().BoolVar(&shortVersion, "short", false, "Print just the version number.")
 
 	rootCmd.AddCommand(standalone.NewCmdStandalone(out, clientcmd.NewDefaultPathOptions(), defaultServerImage, defaultEtcdImage))
 	rootCmd.AddCommand(aggregated.NewCmdAggregated(out, clientcmd.NewDefaultPathOptions(), defaultServerImage, defaultEtcdImage))

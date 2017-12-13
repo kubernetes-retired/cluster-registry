@@ -42,17 +42,17 @@ import (
 )
 
 var (
-	longCommandDescription = `
-	Aggregated initializes an aggregated cluster registry.
+	longInitCommandDescription = `
+	Init initializes an aggregated cluster registry.
 
 	The aggregated cluster registry is hosted inside a Kubernetes
 	cluster and registers its API with the Kubernetes API aggregator.
 	The host cluster must be specified using the --host-cluster-context flag.`
-	commandExample = `
+	initCommandExample = `
 	# Initialize an aggregated cluster registry named foo
 	# in the host cluster whose local kubeconfig
 	# context is bar.
-	crinit aggregated foo --host-cluster-context=bar`
+	crinit aggregated init foo --host-cluster-context=bar`
 
 	// Set priorities for our API in the APIService object.
 	apiServiceGroupPriorityMinimum int32 = 10000
@@ -113,10 +113,16 @@ func NewCmdAggregated(cmdOut io.Writer, pathOptions *clientcmd.PathOptions, defa
 	opts := &aggregatedClusterRegistryOptions{}
 
 	cmd := &cobra.Command{
-		Use:     "aggregated CLUSTER_REGISTRY_NAME --host-cluster-context=HOST_CONTEXT",
-		Short:   "Initializes an aggregated cluster registry",
-		Long:    longCommandDescription,
-		Example: commandExample,
+		Use:   "aggregated",
+		Short: "Subcommands to manage an aggregated cluster registry",
+		Long:  "Commands used to manage an aggregated cluster registry. That is, a cluster registry that is aggregated with another Kubernetes API server.",
+	}
+
+	initCmd := &cobra.Command{
+		Use:     "init CLUSTER_REGISTRY_NAME --host-cluster-context=HOST_CONTEXT",
+		Short:   "Initialize an aggregated cluster registry.",
+		Long:    longInitCommandDescription,
+		Example: initCommandExample,
 		Run: func(cmd *cobra.Command, args []string) {
 			err := opts.SetName(args)
 			if err != nil {
@@ -152,9 +158,11 @@ func NewCmdAggregated(cmdOut io.Writer, pathOptions *clientcmd.PathOptions, defa
 		},
 	}
 
-	flags := cmd.Flags()
+	flags := initCmd.Flags()
 	opts.BindCommon(flags, defaultServerImage, defaultEtcdImage)
 	opts.Bind(flags)
+
+	cmd.AddCommand(initCmd)
 
 	return cmd
 }
