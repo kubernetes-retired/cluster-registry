@@ -32,7 +32,7 @@ tar xzf clusterregistry-$PACKAGE.tar.gz
 You can deploy the cluster registry as a standalone API server like so:
 
 ```sh
-./crinit standalone <cluster_registry_instance_name> --host-cluster-context=<your_cluster_context>
+./crinit standalone init <cluster_registry_instance_name> --host-cluster-context=<your_cluster_context>
 ```
 
 where `cluster_registry_instance_name` is the name you want to give this cluster
@@ -56,7 +56,7 @@ $
 You can deploy the cluster registry as an aggregated API server like so:
 
 ```sh
-./crinit aggregated <cluster_registry_context> --host-cluster-context=<your_cluster_context>
+./crinit aggregated init <cluster_registry_context> --host-cluster-context=<your_cluster_context>
 ```
 
 where `your_cluster_context` is a context entry in your kubeconfig file
