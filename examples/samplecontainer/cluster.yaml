@@ -5,6 +5,8 @@ metadata:
   labels:
     foo: bar
 spec:
+  cloudProvider:
+    name: MyCloudProvider
   kubernetesApiEndpoints:
     serverEndpoints:
       - clientCidr: "0.0.0.0"
