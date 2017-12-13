@@ -116,6 +116,14 @@ generated clients and other generated files.
 1.  Add the generated files to your PR, preferably in a separate, generated-only
     commit so that they are easier to review.
 
+## Interacting with the k8s-bot
+
+The cluster-registry repo is monitored by the k8s-ci-robot. You can find a list
+of the commands it accepts
+[here](https://github.com/kubernetes/test-infra/blob/master/commands.md). Note
+that some of the commands are not relevant for the cluster registry, namely as
+`/approve`, `/area`, `/hold`, `/release-note` and `/status`.
+
 ## Release and build versioning
 
 [`pkg/version`](/pkg/version) contains infrastructure for generating version
@@ -124,7 +132,7 @@ go_binary build rules in the `x_refs` parameter by
 [`pkg/version/def.bzl`](/pkg/version/def.bzl). The information is derived from
 the Git repository state and build state by
 [`hack/print-workspace-status.sh`](/hack/print-workspace-status.sh). This script
-is run on each `bazel build` invocation by way of a [`.bazelrc`](\.bazelrc) file
+is run on each `bazel build` invocation by way of a [`.bazelrc`](/.bazelrc) file
 in the repository's root directory. There is some more info about bazel build
 stamping
 [here](https://www.kchodorow.com/blog/2017/03/27/stamping-your-builds/). Builds
