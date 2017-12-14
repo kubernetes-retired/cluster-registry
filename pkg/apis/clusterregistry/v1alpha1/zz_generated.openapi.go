@@ -1757,7 +1757,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1.ClusterList": {
 			Schema: spec.Schema{
 				SchemaProps: spec.SchemaProps{
-					Description: "A list of Kubernetes clusters in the cluster registry.",
+					Description: "ClusterList is a list of Kubernetes clusters in the cluster registry.",
 					Properties: map[string]spec.Schema{
 						"kind": {
 							SchemaProps: spec.SchemaProps{
