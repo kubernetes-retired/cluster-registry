@@ -1520,7 +1520,7 @@
     ]
    },
    "io.k8s.cluster-registry.pkg.apis.clusterregistry.v1alpha1.ClusterList": {
-    "description": "A list of Kubernetes clusters in the cluster registry.",
+    "description": "ClusterList is a list of Kubernetes clusters in the cluster registry.",
     "required": [
      "items"
     ],
