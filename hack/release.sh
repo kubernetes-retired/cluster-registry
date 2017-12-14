@@ -15,7 +15,12 @@
 
 set -euo pipefail
 
-ROOT_RELEASE_DIR="${ROOT_RELEASE_DIR:-nightly}"
+RELEASE_TAG=${1:-}
+BUILD_DATE="$(TZ=Etc/UTC date +%Y%m%d)"
+RELEASE_VERSION="${RELEASE_TAG:-$BUILD_DATE}"
+GCP_PROJECT=${GCP_PROJECT:-crreleases}
+GCS_BUCKET=${GCS_BUCKET:-crreleases}
+GCR_REPO_PATH="${GCP_PROJECT}/clusterregistry"
 SCRIPT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TMPDIR="$(mktemp -d /tmp/crrelXXXXXXXX)"
 
@@ -26,51 +31,79 @@ function clean_up() {
 }
 trap clean_up EXIT
 
-BUILD_DATE="$(TZ=Etc/UTC date +%Y%m%d)"
-RELEASE_DIR="${TMPDIR}/${BUILD_DATE}"
+RELEASE_TMPDIR="${TMPDIR}/${RELEASE_VERSION}"
 
 # Check for and install necessary dependencies.
 command -v bazel >/dev/null 2>&1 || { echo >&2 "Please install bazel before running this script."; exit 1; }
 command -v gcloud >/dev/null 2>&1 || { echo >&2 "Please install gcloud before running this script."; exit 1; }
 gcloud components install gsutil docker-credential-gcr
-docker-credential-gcr configure-docker
+docker-credential-gcr configure-docker 1>&2
 
 cd "${SCRIPT_ROOT}/.."
 
-# Build the tools.
-bazel build //cmd/crinit //cmd/clusterregistry
+# Build the tarballs of the tools.
+bazel build \
+  //cmd/crinit:clusterregistry-client \
+  //cmd/clusterregistry:clusterregistry-server
 
-# Create the archives.
-mkdir -p "${RELEASE_DIR}"
-tar czf "${RELEASE_DIR}/clusterregistry-client.tar.gz" -C bazel-bin/cmd/crinit crinit
-tar czf "${RELEASE_DIR}/clusterregistry-server.tar.gz" -C bazel-bin/cmd/clusterregistry clusterregistry
+# Copy the archives.
+mkdir -p "${RELEASE_TMPDIR}"
+cp \
+  bazel-bin/cmd/crinit/clusterregistry-client.tar.gz \
+  bazel-bin/cmd/clusterregistry/clusterregistry-server.tar.gz \
+  "${RELEASE_TMPDIR}"
 
-# Create the `latest` file
-echo "${BUILD_DATE}" > "${TMPDIR}/latest"
+# Create the `latest` file.
+echo "${RELEASE_VERSION}" > "${TMPDIR}/latest"
 
-pushd "${RELEASE_DIR}"
+pushd "${RELEASE_TMPDIR}" 1>&2
 
 # Create the SHAs.
 sha256sum clusterregistry-client.tar.gz > clusterregistry-client.tar.gz.sha
 sha256sum clusterregistry-server.tar.gz > clusterregistry-server.tar.gz.sha
 
-popd
+popd 1>&2
+
+SUBDIR=""
+LATEST_TAG="latest"
+if [[ -z "${RELEASE_TAG}" ]]; then
+  SUBDIR="nightly/"
+  LATEST_TAG="latest_nightly"
+fi
 
 # Upload the files to GCS.
-gsutil cp -r "${TMPDIR}"/* "gs://crreleases/${ROOT_RELEASE_DIR}"
+gsutil -m cp -r "${TMPDIR}"/* "gs://${GCS_BUCKET}/${SUBDIR}"
 
 # Push the server container image.
-bazel run //cmd/clusterregistry:push-clusterregistry-image --define repository=crreleases/nightly/clusterregistry
+bazel run //cmd/clusterregistry:push-clusterregistry-image --define repository="${GCR_REPO_PATH}" 1>&2
 
 # Adjust the tags on the image. The `push-clusterregistry-image` rule tags the
 # pushed image with the `dev` tag by default. This consistent tag allows the
 # tool to easily add other tags to the image. The tool then removes the `dev`
 # tag since this is not a development image.
 gcloud container images add-tag --quiet \
-  gcr.io/crreleases/nightly/clusterregistry:dev \
-  gcr.io/crreleases/nightly/clusterregistry:${BUILD_DATE}
+  "gcr.io/${GCR_REPO_PATH}:dev" \
+  "gcr.io/${GCR_REPO_PATH}:${RELEASE_VERSION}"
 gcloud container images add-tag --quiet \
-  gcr.io/crreleases/nightly/clusterregistry:dev \
-  gcr.io/crreleases/nightly/clusterregistry:latest_nightly
+  "gcr.io/${GCR_REPO_PATH}:dev" \
+  "gcr.io/${GCR_REPO_PATH}:${LATEST_TAG}"
 gcloud container images untag --quiet \
-  gcr.io/crreleases/nightly/clusterregistry:dev
+  "gcr.io/${GCR_REPO_PATH}:dev"
+
+# Echo a release note to stdout for later use.
+ROOT_GCS_PATH="https://storage.googleapis.com/${GCS_BUCKET}/${SUBDIR}${RELEASE_VERSION}"
+cat <<END
+# ${RELEASE_TAG}
+
+clusterregistry Docker image: \`gcr.io/${GCR_REPO_PATH}:${RELEASE_VERSION}\`
+
+# Download links
+
+## Client (crinit)
+[client](${ROOT_GCS_PATH}/clusterregistry-client.tar.gz)
+[client SHA](${ROOT_GCS_PATH}/clusterregistry-client.tar.gz.sha)
+
+## Server (clusterregistry)
+[server](${ROOT_GCS_PATH}/clusterregistry-server.tar.gz)
+[server SHA](${ROOT_GCS_PATH}/clusterregistry-server.tar.gz.sha)
+END

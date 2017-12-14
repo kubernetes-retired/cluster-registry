@@ -154,12 +154,31 @@ The cluster registry has a script, [`hack/release.sh`](../hack/release.sh), that
 is used to build releases and push them for public consumption. This script is
 run nightly by Prow.
 
+## Versioned releases
+
+[`hack/release.sh`](../hack/release.sh) can be called with one argument, a
+version name, to build a versioned release. e.g.,
+
+```sh
+./hack/release.sh v0.0.2-rc0
+```
+
+This will push a container image with the `latest` and `v0.0.2-rc0` tags and
+binaries into a `v0.0.2-rc0` subdirectory in the GCS bucket. *You must add a
+corresponding Git tag and release to the cluster-registry repo.*
+
+> Currently, there is no verification that the binaries pushed by
+> `hack/release.sh` match the tag that is provided as an argument to the script.
+> This will be fixed as the release process evolves.
+
 ### Binaries
 
 Binaries are stored in Google Cloud Storage, in the `crreleases` bucket.
-Currently there are only binaries releases for 64-bit Linux.
+Currently there are only binary releases for 64-bit Linux.
 
-To get the latest client library (i.e., `crinit`), run:
+#### Nightlies
+
+To get the latest nightly client library (i.e., `crinit`), run:
 
 ```sh
 PACKAGE=client
@@ -173,23 +192,50 @@ To verify, run:
 curl http://storage.googleapis.com/crreleases/nightly/$LATEST/clusterregistry-$PACKAGE.tar.gz.sha | sha256sum -c -
 ```
 
-To get the latest server binaries, run the commands above but replace
-`PACKAGE=client` with `PACKAGE=server`.
+To get the latest nightly server binaries, run the commands above but replace
+`PACKAGE=client` with `PACKAGE=server`. To get a nightly build from a specific
+day, replace `LATEST=...` with `LATEST=YYYYMMDD`, where `YYYYMMDD` is a date,
+e.g., 20171201.
+
+#### Released
+
+To get the latest released version, run the commands above, but remove
+`nightly/` from all URL paths, e.g.,
+
+```sh
+PACKAGE=client
+LATEST=$(curl https://storage.googleapis.com/crreleases/latest)
+curl -O http://storage.googleapis.com/crreleases/$LATEST/clusterregistry-$PACKAGE.tar.gz
+```
 
 ### Images
 
 A Docker image for the [`clusterregistry`](../cmd/clusterregistry) binary is
-pushed to GCR.
+pushed to GCR nightly and for each release.
 
-To pull the latest image, run:
-
-```sh
-docker pull gcr.io/crreleases/nightly/clusterregistry:latest_nightly
-```
-
-To pull an image from a specific date, replace `latest` with the date in
-`YYYYMMDD` format. For example,
+To pull the latest nightly image, run:
 
 ```sh
-docker pull gcr.io/crreleases/nightly/clusterregistry:20171201
+docker pull gcr.io/crreleases/clusterregistry:latest_nightly
 ```
+
+To pull a nightly image from a specific date, replace `latest_nightly` with the
+date in `YYYYMMDD` format. For example,
+
+```sh
+docker pull gcr.io/crreleases/clusterregistry:20171201
+```
+
+To pull the latest released image, run:
+```sh
+docker pull gcr.io/crreleases/clusterregistry:latest
+```
+
+To pull a specific version, replace `latest` with a version tag, e.g.,
+
+```sh
+docker pull gcr.io/crreleases/clusterregistry:v0.0.1
+```
+
+The tags will map to tags in the cluster-registry repository, which you can
+find [here](https://github.com/kubernetes/cluster-registry/tags).
