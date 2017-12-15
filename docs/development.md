@@ -126,6 +126,8 @@ that some of the commands are not relevant for the cluster registry, namely as
 
 ## Release and build versioning
 
+Refer to [release.md](release.md) for information about doing a release.
+
 [`pkg/version`](/pkg/version) contains infrastructure for generating version
 information for builds of the cluster registry. Version info is provided to the
 go_binary build rules in the `x_refs` parameter by
