@@ -30,6 +30,9 @@ limit the amount of special privilege necessary to do a release.
    working on automating this step so that it does not require anything to be
    done on a local machine.
 1. Paste the contents of the `relnotes` file into the body of the release.
+1. Run `hack/update-openapi-spec.sh` and check in the updated OpenAPI spec. This
+   means that the checked-in OpenAPI spec at the release tag will be a version
+   behind, but for now this is an acceptable wart.
 1. Send an announcement to
    [kubernetes-sig-multicluster](https://groups.google.com/forum/#!forum/kubernetes-sig-multicluster).
 
