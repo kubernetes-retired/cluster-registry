@@ -24,7 +24,6 @@ import (
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
-	"k8s.io/apimachinery/pkg/version"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	serverstorage "k8s.io/apiserver/pkg/server/storage"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/install"
@@ -32,6 +31,7 @@ import (
 	clientset "k8s.io/cluster-registry/pkg/client/clientset_generated/internalclientset"
 	informers "k8s.io/cluster-registry/pkg/client/informers_generated/internalversion"
 	"k8s.io/cluster-registry/pkg/clusterregistry/options"
+	"k8s.io/cluster-registry/pkg/version"
 )
 
 // Run runs the cluster registry API server. It only returns if stopCh is closed
@@ -72,14 +72,11 @@ func CreateServer(s *options.ServerRunOptions) (*genericapiserver.GenericAPIServ
 	}
 
 	genericConfig := genericapiserver.NewConfig(install.Codecs)
-	genericConfig.Version = &version.Info{
-		Major: "0",
-		Minor: "1",
-	}
+	version := version.Get()
+	genericConfig.Version = &version
 
 	genericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(clusterregistryv1alpha1.GetOpenAPIDefinitions, install.Scheme)
 	genericConfig.OpenAPIConfig.Info.Title = "Cluster Registry"
-	genericConfig.OpenAPIConfig.Info.Version = fmt.Sprintf("v%s.%s", genericConfig.Version.Major, genericConfig.Version.Minor)
 
 	if err := s.GenericServerRunOptions.ApplyTo(genericConfig); err != nil {
 		return nil, err
