@@ -20,7 +20,11 @@ docker_push(
 
 pkg_tar(
     name = "clusterregistry-server",
-    srcs = [":clusterregistry"],
+    srcs = [
+        ":clusterregistry",
+        "//:LICENSES",
+        "//:SOURCES.md",
+    ],
     extension = "tar.gz",
 )
 
