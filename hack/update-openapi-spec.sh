@@ -47,6 +47,22 @@ bazel build //cmd/clusterregistry
 bazel run //cmd/clusterregistry -- --etcd-servers http://invalid --secure-port 8844 --use-delegated-auth=false &
 CLUSTERREGISTRY_PID=$!
 sleep 5
+
+# Install curl if not available.
+if ! command -v curl; then
+    echo "curl is missing. Will attempt to install now."
+    DISTRO=$(awk -F= '/^ID=/ {print $2}' /etc/os-release)
+
+    # Only support Ubuntu for now as that's what the k8s prow job uses.
+    if [[ ${DISTRO} == "ubuntu" ]]; then
+        apt-get install -y curl
+    else
+        echo "ERROR: Unsupported distro: ${DISTRO}."
+        echo "Please install curl before running this script."
+        exit 1
+    fi
+fi
+
 curl -ko ${TMPDIR}/swagger.json https://localhost:8844/swagger.json
 
 # In verify mode, take a diff and exit with failure if the diff is not empty.

@@ -134,6 +134,8 @@ fi
 
 # Perform the code generation.
 export GOPATH="${TMP_GOPATH}"
+export GOROOT="$(bazel info output_base)/external/go_sdk"
+
 generate_group clusterregistry v1alpha1 "${OUTPUT_BASE}" "${@-}"
 
 # In generate mode, copy the generated files back into the tree.
