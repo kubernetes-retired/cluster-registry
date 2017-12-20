@@ -1,5 +1,5 @@
 /*
-Copyright 2016 The Kubernetes Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,59 +20,62 @@ package options
 import (
 	"time"
 
+	"k8s.io/apiserver/pkg/server"
 	genericoptions "k8s.io/apiserver/pkg/server/options"
 	"k8s.io/apiserver/pkg/storage/storagebackend"
 
 	"github.com/spf13/pflag"
 )
 
+type OptionsGetter interface {
+	GenericServerRunOptions() *genericoptions.ServerRunOptions
+	SecureServing() *genericoptions.SecureServingOptions
+	Validate() []error
+	Audit() *genericoptions.AuditOptions
+	Features() *genericoptions.FeatureOptions
+	ApplyAuthentication(*server.Config) error
+	ApplyAuthorization(c *server.Config) error
+	Etcd() *genericoptions.EtcdOptions
+}
+
 // ServerRunOptions contains runtime options for the cluster registry.
 type ServerRunOptions struct {
-	GenericServerRunOptions  *genericoptions.ServerRunOptions
-	Etcd                     *genericoptions.EtcdOptions
-	SecureServing            *genericoptions.SecureServingOptions
-	Audit                    *genericoptions.AuditOptions
-	Features                 *genericoptions.FeatureOptions
-	StandaloneAuthentication *StandaloneAuthenticationOptions
-	StandaloneAuthorization  *StandaloneAuthorizationOptions
-	DelegatingAuthentication *genericoptions.DelegatingAuthenticationOptions
-	DelegatingAuthorization  *genericoptions.DelegatingAuthorizationOptions
+	genericServerRunOptions *genericoptions.ServerRunOptions
+	etcd                    *genericoptions.EtcdOptions
+	secureServing           *genericoptions.SecureServingOptions
+	audit                   *genericoptions.AuditOptions
+	features                *genericoptions.FeatureOptions
+	//StandaloneAuthentication *StandaloneAuthenticationOptions
+	//StandaloneAuthorization  *StandaloneAuthorizationOptions
 
-	EventTTL         time.Duration
-	UseDelegatedAuth bool
+	EventTTL time.Duration
 }
 
 // NewServerRunOptions creates a new ServerRunOptions object with default values.
 func NewServerRunOptions() *ServerRunOptions {
 	o := &ServerRunOptions{
-		GenericServerRunOptions: genericoptions.NewServerRunOptions(),
-		Etcd:                     genericoptions.NewEtcdOptions(storagebackend.NewDefaultConfig("/registry/clusterregistry.kubernetes.io", nil)),
-		SecureServing:            genericoptions.NewSecureServingOptions(),
-		Audit:                    genericoptions.NewAuditOptions(),
-		Features:                 genericoptions.NewFeatureOptions(),
-		StandaloneAuthentication: NewStandaloneAuthenticationOptions().WithAll(),
-		StandaloneAuthorization:  NewStandaloneAuthorizationOptions(),
-		DelegatingAuthentication: genericoptions.NewDelegatingAuthenticationOptions(),
-		DelegatingAuthorization:  genericoptions.NewDelegatingAuthorizationOptions(),
+		genericServerRunOptions: genericoptions.NewServerRunOptions(),
+		etcd:          genericoptions.NewEtcdOptions(storagebackend.NewDefaultConfig("/registry/clusterregistry.kubernetes.io", nil)),
+		secureServing: genericoptions.NewSecureServingOptions(),
+		audit:         genericoptions.NewAuditOptions(),
+		features:      genericoptions.NewFeatureOptions(),
+		//StandaloneAuthentication: NewStandaloneAuthenticationOptions().WithAll(),
+		//StandaloneAuthorization:  NewStandaloneAuthorizationOptions(),
 
-		EventTTL:         1 * time.Hour,
-		UseDelegatedAuth: true,
+		EventTTL: 1 * time.Hour,
 	}
 	return o
 }
 
 // AddFlags adds flags for ServerRunOptions fields to be specified via FlagSet.
 func (s *ServerRunOptions) AddFlags(fs *pflag.FlagSet) {
-	s.GenericServerRunOptions.AddUniversalFlags(fs)
-	s.Etcd.AddFlags(fs)
-	s.SecureServing.AddFlags(fs)
-	s.Audit.AddFlags(fs)
-	s.Features.AddFlags(fs)
-	s.StandaloneAuthentication.AddFlags(fs)
-	s.StandaloneAuthorization.AddFlags(fs)
-	s.DelegatingAuthentication.AddFlags(fs)
-	s.DelegatingAuthorization.AddFlags(fs)
+	s.genericServerRunOptions.AddUniversalFlags(fs)
+	s.etcd.AddFlags(fs)
+	s.secureServing.AddFlags(fs)
+	s.audit.AddFlags(fs)
+	s.features.AddFlags(fs)
+	//s.StandaloneAuthentication.AddFlags(fs)
+	//s.StandaloneAuthorization.AddFlags(fs)
 
 	fs.DurationVar(&s.EventTTL, "event-ttl", s.EventTTL, "Amount of time to retain events.")
-	fs.BoolVar(&s.UseDelegatedAuth, "use-delegated-auth", s.UseDelegatedAuth, "Whether to delegate authentication/authorization to another API server.")
 }

@@ -31,11 +31,6 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//pkg/clusterregistry:go_default_library",
-        "//pkg/clusterregistry/options:go_default_library",
-        "//pkg/version:go_default_library",
-        "//vendor/github.com/spf13/pflag:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
-        "//vendor/k8s.io/apiserver/pkg/util/flag:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/util/logs:go_default_library",
     ],
 )

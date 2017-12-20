@@ -1,5 +1,5 @@
 /*
-Copyright 2014 The Kubernetes Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,15 +17,21 @@ limitations under the License.
 package clusterregistry
 
 import (
+	"flag"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/golang/glog"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	serverstorage "k8s.io/apiserver/pkg/server/storage"
+	apiserverflag "k8s.io/apiserver/pkg/util/flag"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/install"
 	clusterregistryv1alpha1 "k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
 	clientset "k8s.io/cluster-registry/pkg/client/clientset_generated/internalclientset"
@@ -34,9 +40,46 @@ import (
 	"k8s.io/cluster-registry/pkg/version"
 )
 
+// NewClusterRegistryCommand creates the 'clusterregistry' command.
+func NewClusterRegistryCommand(out io.Writer) *cobra.Command {
+	rootCmd := &cobra.Command{
+		Use:   "clusterregistry",
+		Short: "clusterregistry runs the apiserver",
+		Long:  "clusterregistry is the executable that runs the cluster registry apiserver",
+	}
+
+	// Add the command line flags from other dependencies (e.g., glog), but do not
+	// warn if they contain underscores.
+	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
+	pflag.CommandLine.SetNormalizeFunc(apiserverflag.WordSepNormalizeFunc)
+	rootCmd.PersistentFlags().AddFlagSet(pflag.CommandLine)
+
+	// Warn for other flags that contain underscores.
+	rootCmd.SetGlobalNormalizationFunc(apiserverflag.WarnWordSepNormalizeFunc)
+
+	var shortVersion bool
+	versionCmd := &cobra.Command{
+		Use:   "version",
+		Short: "Prints the version information and exits",
+		Run: func(cmd *cobra.Command, args []string) {
+			if shortVersion {
+				fmt.Printf("%s\n", version.Get().GitVersion)
+			} else {
+				fmt.Printf("%#v\n", version.Get())
+			}
+		},
+	}
+	versionCmd.Flags().BoolVar(&shortVersion, "short", false, "Print just the version number.")
+
+	rootCmd.AddCommand(NewCmdAggregated(out, clientcmd.NewDefaultPathOptions()))
+	rootCmd.AddCommand(versionCmd)
+
+	return rootCmd
+}
+
 // Run runs the cluster registry API server. It only returns if stopCh is closed
 // or one of the ports cannot be listened on initially.
-func Run(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
+func Run(s options.OptionsGetter, stopCh <-chan struct{}) error {
 	err := NonBlockingRun(s, stopCh)
 	if err != nil {
 		return err
@@ -47,7 +90,7 @@ func Run(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 
 // NonBlockingRun runs the cluster registry API server and configures it to
 // stop with the given channel.
-func NonBlockingRun(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
+func NonBlockingRun(s options.OptionsGetter, stopCh <-chan struct{}) error {
 	server, err := CreateServer(s)
 	if err != nil {
 		return err
@@ -57,13 +100,13 @@ func NonBlockingRun(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 }
 
 // CreateServer creates a cluster registry API server.
-func CreateServer(s *options.ServerRunOptions) (*genericapiserver.GenericAPIServer, error) {
+func CreateServer(s options.OptionsGetter) (*genericapiserver.GenericAPIServer, error) {
 	// set defaults
-	if err := s.GenericServerRunOptions.DefaultAdvertiseAddress(s.SecureServing); err != nil {
+	if err := s.GenericServerRunOptions().DefaultAdvertiseAddress(s.SecureServing()); err != nil {
 		return nil, err
 	}
 
-	if err := s.SecureServing.MaybeDefaultWithSelfSignedCerts(s.GenericServerRunOptions.AdvertiseAddress.String(), nil, nil); err != nil {
+	if err := s.SecureServing().MaybeDefaultWithSelfSignedCerts(s.GenericServerRunOptions().AdvertiseAddress.String(), nil, nil); err != nil {
 		return nil, fmt.Errorf("error creating self-signed certificates: %v", err)
 	}
 
@@ -78,48 +121,39 @@ func CreateServer(s *options.ServerRunOptions) (*genericapiserver.GenericAPIServ
 	genericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(clusterregistryv1alpha1.GetOpenAPIDefinitions, install.Scheme)
 	genericConfig.OpenAPIConfig.Info.Title = "Cluster Registry"
 
-	if err := s.GenericServerRunOptions.ApplyTo(genericConfig); err != nil {
+	if err := s.GenericServerRunOptions().ApplyTo(genericConfig); err != nil {
 		return nil, err
 	}
-	if err := s.SecureServing.ApplyTo(genericConfig); err != nil {
+	if err := s.SecureServing().ApplyTo(genericConfig); err != nil {
 		return nil, err
 	}
-	if s.UseDelegatedAuth {
-		if err := s.DelegatingAuthentication.ApplyTo(genericConfig); err != nil {
-			return nil, err
-		}
-		if err := s.DelegatingAuthorization.ApplyTo(genericConfig); err != nil {
-			return nil, err
-		}
-	} else {
-		if err := s.StandaloneAuthentication.ApplyTo(genericConfig); err != nil {
-			return nil, err
-		}
-		if err := s.StandaloneAuthorization.ApplyTo(genericConfig); err != nil {
-			return nil, err
-		}
-	}
-	if err := s.Audit.ApplyTo(genericConfig); err != nil {
+	if err := s.ApplyAuthentication(genericConfig); err != nil {
 		return nil, err
 	}
-	if err := s.Features.ApplyTo(genericConfig); err != nil {
+	if err := s.ApplyAuthorization(genericConfig); err != nil {
+		return nil, err
+	}
+	if err := s.Audit().ApplyTo(genericConfig); err != nil {
+		return nil, err
+	}
+	if err := s.Features().ApplyTo(genericConfig); err != nil {
 		return nil, err
 	}
 
 	resourceConfig := defaultResourceConfig()
 
-	if s.Etcd.StorageConfig.DeserializationCacheSize == 0 {
+	if s.Etcd().StorageConfig.DeserializationCacheSize == 0 {
 		// When size of cache is not explicitly set, set it to 50000
-		s.Etcd.StorageConfig.DeserializationCacheSize = 50000
+		s.Etcd().StorageConfig.DeserializationCacheSize = 50000
 	}
 
 	storageFactory := serverstorage.NewDefaultStorageFactory(
-		s.Etcd.StorageConfig, s.Etcd.DefaultStorageMediaType, install.Codecs,
+		s.Etcd().StorageConfig, s.Etcd().DefaultStorageMediaType, install.Codecs,
 		serverstorage.NewDefaultResourceEncodingConfig(install.Registry),
 		resourceConfig, nil,
 	)
 
-	for _, override := range s.Etcd.EtcdServersOverrides {
+	for _, override := range s.Etcd().EtcdServersOverrides {
 		tokens := strings.Split(override, "#")
 		if len(tokens) != 2 {
 			glog.Errorf("invalid value of etcd server overrides: %s", override)
@@ -138,7 +172,7 @@ func CreateServer(s *options.ServerRunOptions) (*genericapiserver.GenericAPIServ
 		servers := strings.Split(tokens[1], ";")
 		storageFactory.SetEtcdLocation(groupResource, servers)
 	}
-	if err := s.Etcd.ApplyWithStorageFactoryTo(storageFactory, genericConfig); err != nil {
+	if err := s.Etcd().ApplyWithStorageFactoryTo(storageFactory, genericConfig); err != nil {
 		return nil, err
 	}
 

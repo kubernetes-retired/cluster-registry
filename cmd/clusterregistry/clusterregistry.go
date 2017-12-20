@@ -1,5 +1,5 @@
 /*
-Copyright 2014 The Kubernetes Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,14 +23,8 @@ import (
 	"os"
 	"time"
 
-	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/apiserver/pkg/util/flag"
 	"k8s.io/apiserver/pkg/util/logs"
 	"k8s.io/cluster-registry/pkg/clusterregistry"
-	"k8s.io/cluster-registry/pkg/clusterregistry/options"
-	"k8s.io/cluster-registry/pkg/version"
-
-	"github.com/spf13/pflag"
 )
 
 func main() {
@@ -39,19 +33,9 @@ func main() {
 
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	s := options.NewServerRunOptions()
+	err := clusterregistry.NewClusterRegistryCommand(os.Stdout).Execute()
 
-	s.AddFlags(pflag.CommandLine)
-	versionFlag := pflag.CommandLine.Bool("version", false, "Prints out version information and exits.")
-
-	flag.InitFlags()
-
-	if *versionFlag {
-		fmt.Printf("%#v\n", version.Get())
-		return
-	}
-
-	if err := clusterregistry.Run(s, wait.NeverStop); err != nil {
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}

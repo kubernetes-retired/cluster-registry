@@ -665,10 +665,10 @@ func createAPIServer(clientset client.Interface, namespace, name, serverImage,
 	}
 
 	args := argMapsToArgStrings(argsMap, argOverrides)
-	command = append(command, args...)
 	if aggregated {
-		command = append(command, "--use-delegated-auth")
+		command = append(command, "aggregated")
 	}
+	command = append(command, args...)
 
 	replicas := int32(1)
 	dep := &appsv1beta1.Deployment{

@@ -21,19 +21,19 @@ import "fmt"
 // Validate validates the options in the receiver.
 func (options *ServerRunOptions) Validate() []error {
 	var errors []error
-	if errs := options.GenericServerRunOptions.Validate(); len(errs) > 0 {
+	if errs := options.genericServerRunOptions.Validate(); len(errs) > 0 {
 		errors = append(errors, errs...)
 	}
-	if errs := options.Etcd.Validate(); len(errs) > 0 {
+	if errs := options.etcd.Validate(); len(errs) > 0 {
 		errors = append(errors, errs...)
 	}
-	if errs := options.SecureServing.Validate(); len(errs) > 0 {
+	if errs := options.secureServing.Validate(); len(errs) > 0 {
 		errors = append(errors, errs...)
 	}
-	if errs := options.Audit.Validate(); len(errs) > 0 {
+	if errs := options.audit.Validate(); len(errs) > 0 {
 		errors = append(errors, errs...)
 	}
-	if errs := options.Features.Validate(); len(errs) > 0 {
+	if errs := options.features.Validate(); len(errs) > 0 {
 		errors = append(errors, errs...)
 	}
 	if options.EventTTL <= 0 {
