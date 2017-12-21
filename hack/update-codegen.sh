@@ -123,8 +123,10 @@ function generate_group() {
 # Set up the temporary GOPATH with necessary dependencies.
 mkdir -p "${TMP_GOPATH}/src/k8s.io/cluster-registry"
 mkdir -p "${TMP_GOPATH}/src/k8s.io/apimachinery"
+mkdir -p "${TMP_GOPATH}/src/k8s.io/kube-openapi"
 cp -r "${SCRIPT_ROOT}/../"* "${TMP_GOPATH}/src/k8s.io/cluster-registry"
 cp -r "${SCRIPT_ROOT}/../vendor/k8s.io/apimachinery/"* "${TMP_GOPATH}/src/k8s.io/apimachinery"
+cp -r "${SCRIPT_ROOT}/../vendor/k8s.io/kube-openapi/"* "${TMP_GOPATH}/src/k8s.io/kube-openapi"
 
 # In verify mode, generate into the temporary GOPATH.
 OUTPUT_BASE="${GEN_TMPDIR}"
