@@ -22,6 +22,7 @@ package v1alpha1
 
 import (
 	spec "github.com/go-openapi/spec"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	common "k8s.io/kube-openapi/pkg/common"
 )
 
@@ -941,23 +942,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 			},
 			Dependencies: []string{},
 		},
-		"k8s.io/apimachinery/pkg/apis/meta/v1.MicroTime": {
-			Schema: spec.Schema{
-				SchemaProps: spec.SchemaProps{
-					Description: "MicroTime is version of Time with microsecond level precision.",
-					Properties: map[string]spec.Schema{
-						"Time": {
-							SchemaProps: spec.SchemaProps{
-								Type:   []string{"string"},
-								Format: "date-time",
-							},
-						},
-					},
-					Required: []string{"Time"},
-				},
-			},
-			Dependencies: []string{},
-		},
+		"k8s.io/apimachinery/pkg/apis/meta/v1.MicroTime": v1.MicroTime{}.OpenAPIDefinition(),
 		"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta": {
 			Schema: spec.Schema{
 				SchemaProps: spec.SchemaProps{
@@ -1400,23 +1385,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 			Dependencies: []string{
 				"k8s.io/apimachinery/pkg/apis/meta/v1.StatusCause"},
 		},
-		"k8s.io/apimachinery/pkg/apis/meta/v1.Time": {
-			Schema: spec.Schema{
-				SchemaProps: spec.SchemaProps{
-					Description: "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
-					Properties: map[string]spec.Schema{
-						"Time": {
-							SchemaProps: spec.SchemaProps{
-								Type:   []string{"string"},
-								Format: "date-time",
-							},
-						},
-					},
-					Required: []string{"Time"},
-				},
-			},
-			Dependencies: []string{},
-		},
+		"k8s.io/apimachinery/pkg/apis/meta/v1.Time": v1.Time{}.OpenAPIDefinition(),
 		"k8s.io/apimachinery/pkg/apis/meta/v1.Timestamp": {
 			Schema: spec.Schema{
 				SchemaProps: spec.SchemaProps{
