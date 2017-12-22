@@ -28,7 +28,7 @@ import (
 
 const (
 	clusterregistryImageName = "clusterregistry:dev"
-	defaultEtcdImage         = "gcr.io/google_containers/etcd:3.0.17"
+	defaultEtcdImage         = "k8s.gcr.io/etcd:3.0.17"
 )
 
 func main() {
