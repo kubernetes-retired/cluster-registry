@@ -44,8 +44,8 @@ import (
 func NewClusterRegistryCommand(out io.Writer) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "clusterregistry",
-		Short: "clusterregistry runs the apiserver",
-		Long:  "clusterregistry is the executable that runs the cluster registry apiserver",
+		Short: "clusterregistry runs the cluster registry API server",
+		Long:  "clusterregistry is the executable that runs the cluster registry apiserver.",
 	}
 
 	// Add the command line flags from other dependencies (e.g., glog), but do not
@@ -72,6 +72,7 @@ func NewClusterRegistryCommand(out io.Writer) *cobra.Command {
 	versionCmd.Flags().BoolVar(&shortVersion, "short", false, "Print just the version number.")
 
 	rootCmd.AddCommand(NewCmdAggregated(out, clientcmd.NewDefaultPathOptions()))
+	rootCmd.AddCommand(NewCmdStandalone(out, clientcmd.NewDefaultPathOptions()))
 	rootCmd.AddCommand(versionCmd)
 
 	return rootCmd
@@ -79,7 +80,7 @@ func NewClusterRegistryCommand(out io.Writer) *cobra.Command {
 
 // Run runs the cluster registry API server. It only returns if stopCh is closed
 // or one of the ports cannot be listened on initially.
-func Run(s options.OptionsGetter, stopCh <-chan struct{}) error {
+func Run(s options.Options, stopCh <-chan struct{}) error {
 	err := NonBlockingRun(s, stopCh)
 	if err != nil {
 		return err
@@ -90,7 +91,7 @@ func Run(s options.OptionsGetter, stopCh <-chan struct{}) error {
 
 // NonBlockingRun runs the cluster registry API server and configures it to
 // stop with the given channel.
-func NonBlockingRun(s options.OptionsGetter, stopCh <-chan struct{}) error {
+func NonBlockingRun(s options.Options, stopCh <-chan struct{}) error {
 	server, err := CreateServer(s)
 	if err != nil {
 		return err
@@ -100,7 +101,7 @@ func NonBlockingRun(s options.OptionsGetter, stopCh <-chan struct{}) error {
 }
 
 // CreateServer creates a cluster registry API server.
-func CreateServer(s options.OptionsGetter) (*genericapiserver.GenericAPIServer, error) {
+func CreateServer(s options.Options) (*genericapiserver.GenericAPIServer, error) {
 	// set defaults
 	if err := s.GenericServerRunOptions().DefaultAdvertiseAddress(s.SecureServing()); err != nil {
 		return nil, err

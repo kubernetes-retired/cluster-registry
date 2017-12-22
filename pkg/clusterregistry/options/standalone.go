@@ -22,70 +22,70 @@ import (
 	"k8s.io/apiserver/pkg/server/options"
 )
 
-// AggregatedServerRunOptions contains runtime options for the cluster registry
-// deployed as a Kubernetes aggregated API server.
-type AggregatedServerRunOptions struct {
+// StandaloneServerRunOptions contains runtime options for the cluster registry
+// deployed as a standalone Kubernetes API server.
+type StandaloneServerRunOptions struct {
 	*serverRunOptions
-	authentication *options.DelegatingAuthenticationOptions
-	authorization  *options.DelegatingAuthorizationOptions
+	authentication *StandaloneAuthenticationOptions
+	authorization  *StandaloneAuthorizationOptions
 }
 
-// NewAggregatedServerRunOptions creates a new AggregatedServerRunOptions
+// NewStandaloneServerRunOptions creates a new StandaloneServerRunOptions
 // object with default values.
-func NewAggregatedServerRunOptions() *AggregatedServerRunOptions {
-	return &AggregatedServerRunOptions{
+func NewStandaloneServerRunOptions() *StandaloneServerRunOptions {
+	return &StandaloneServerRunOptions{
 		serverRunOptions: NewServerRunOptions(),
-		authentication:   options.NewDelegatingAuthenticationOptions(),
-		authorization:    options.NewDelegatingAuthorizationOptions(),
+		authentication:   NewStandaloneAuthenticationOptions().WithAll(),
+		authorization:    NewStandaloneAuthorizationOptions(),
 	}
 }
 
-// AddFlags adds flags to the FlagSet for specific AggregatedServerRunOptions
-// fields before calling the embedded AddFlags method to add the rest of the
-// common options.
-func (s *AggregatedServerRunOptions) AddFlags(fs *pflag.FlagSet) {
+// AddFlags adds flags to the FlagSet for specific StandaloneServerRunOptions
+// fields before calling the embedded AddFlags method to add the rest of
+// the common options.
+func (s *StandaloneServerRunOptions) AddFlags(fs *pflag.FlagSet) {
 	s.authentication.AddFlags(fs)
 	s.authorization.AddFlags(fs)
 	s.serverRunOptions.AddFlags(fs)
 }
 
 // GenericServerRunOptions gets the embedded genericServerRunOptions field.
-func (s *AggregatedServerRunOptions) GenericServerRunOptions() *options.ServerRunOptions {
+func (s *StandaloneServerRunOptions) GenericServerRunOptions() *options.ServerRunOptions {
 	return s.genericServerRunOptions
 }
 
 // Etcd gets the embedded etcd field.
-func (s *AggregatedServerRunOptions) Etcd() *options.EtcdOptions {
+func (s *StandaloneServerRunOptions) Etcd() *options.EtcdOptions {
 	return s.etcd
 }
 
 // SecureServing gets the embedded secureServing field.
-func (s *AggregatedServerRunOptions) SecureServing() *options.SecureServingOptions {
+func (s *StandaloneServerRunOptions) SecureServing() *options.SecureServingOptions {
 	return s.secureServing
 }
 
 // Audit gets the embedded audit field.
-func (s *AggregatedServerRunOptions) Audit() *options.AuditOptions {
+func (s *StandaloneServerRunOptions) Audit() *options.AuditOptions {
 	return s.audit
 }
 
 // Features gets the embedded features field.
-func (s *AggregatedServerRunOptions) Features() *options.FeatureOptions {
+func (s *StandaloneServerRunOptions) Features() *options.FeatureOptions {
 	return s.features
 }
 
-// Validate checks any specific AggregatedServerRunOptions before calling the
+// Validate checks any specific StandaloneServerRunOptions before calling the
 // embedded Validate method for the common options.
-func (s *AggregatedServerRunOptions) Validate() []error {
+func (s *StandaloneServerRunOptions) Validate() []error {
 	return s.serverRunOptions.Validate()
 }
 
 // ApplyAuthentication applies the delegated authentication to the config.
-func (s *AggregatedServerRunOptions) ApplyAuthentication(c *server.Config) error {
+func (s *StandaloneServerRunOptions) ApplyAuthentication(c *server.Config) error {
 	return s.authentication.ApplyTo(c)
 }
 
 // ApplyAuthorization applies the delegated authorization to the config.
-func (s *AggregatedServerRunOptions) ApplyAuthorization(c *server.Config) error {
+func (s *StandaloneServerRunOptions) ApplyAuthorization(c *server.Config) error {
 	return s.authorization.ApplyTo(c)
 }

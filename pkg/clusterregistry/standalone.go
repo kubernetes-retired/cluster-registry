@@ -25,15 +25,15 @@ import (
 	"k8s.io/cluster-registry/pkg/clusterregistry/options"
 )
 
-// NewCmdAggregated defines the 'aggregated' subcommand that runs the cluster
-// registry as a Kubernetes aggregated API server.
-func NewCmdAggregated(cmdOut io.Writer, pathOptions *clientcmd.PathOptions) *cobra.Command {
-	opts := options.NewAggregatedServerRunOptions()
+// NewCmdStandalone defines the 'standalone' subcommand that runs the cluster
+// registry using the Kubernetes aggregator.
+func NewCmdStandalone(cmdOut io.Writer, pathOptions *clientcmd.PathOptions) *cobra.Command {
+	opts := options.NewStandaloneServerRunOptions()
 
 	cmd := &cobra.Command{
-		Use:   "aggregated",
-		Short: "Subcommand to run an aggregated cluster registry",
-		Long:  "Subcommand to run the cluster registry as a Kubernetes aggregated API server using delegated auth.",
+		Use:   "standalone",
+		Short: "Subcommand to run a standalone cluster registry",
+		Long:  "Subcommand to run the cluster registry as a standalone Kubernetes API server.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return Run(opts, wait.NeverStop)
 		},

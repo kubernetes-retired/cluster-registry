@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package options contains flags and options for initializing the cluster registry API server.
 package options
 
 import (
@@ -27,55 +26,52 @@ import (
 	"github.com/spf13/pflag"
 )
 
-type OptionsGetter interface {
+// Options interface contains required methods to be implemented by the cluster
+// registry API server subcommand modes: standalone and
+// aggregated.
+type Options interface {
 	GenericServerRunOptions() *genericoptions.ServerRunOptions
+	Etcd() *genericoptions.EtcdOptions
 	SecureServing() *genericoptions.SecureServingOptions
-	Validate() []error
 	Audit() *genericoptions.AuditOptions
 	Features() *genericoptions.FeatureOptions
+	Validate() []error
 	ApplyAuthentication(*server.Config) error
 	ApplyAuthorization(c *server.Config) error
-	Etcd() *genericoptions.EtcdOptions
 }
 
 // ServerRunOptions contains runtime options for the cluster registry.
-type ServerRunOptions struct {
+type serverRunOptions struct {
 	genericServerRunOptions *genericoptions.ServerRunOptions
 	etcd                    *genericoptions.EtcdOptions
 	secureServing           *genericoptions.SecureServingOptions
 	audit                   *genericoptions.AuditOptions
 	features                *genericoptions.FeatureOptions
-	//StandaloneAuthentication *StandaloneAuthenticationOptions
-	//StandaloneAuthorization  *StandaloneAuthorizationOptions
 
-	EventTTL time.Duration
+	eventTTL time.Duration
 }
 
 // NewServerRunOptions creates a new ServerRunOptions object with default values.
-func NewServerRunOptions() *ServerRunOptions {
-	o := &ServerRunOptions{
+func NewServerRunOptions() *serverRunOptions {
+	o := &serverRunOptions{
 		genericServerRunOptions: genericoptions.NewServerRunOptions(),
 		etcd:          genericoptions.NewEtcdOptions(storagebackend.NewDefaultConfig("/registry/clusterregistry.kubernetes.io", nil)),
 		secureServing: genericoptions.NewSecureServingOptions(),
 		audit:         genericoptions.NewAuditOptions(),
 		features:      genericoptions.NewFeatureOptions(),
-		//StandaloneAuthentication: NewStandaloneAuthenticationOptions().WithAll(),
-		//StandaloneAuthorization:  NewStandaloneAuthorizationOptions(),
 
-		EventTTL: 1 * time.Hour,
+		eventTTL: 1 * time.Hour,
 	}
 	return o
 }
 
-// AddFlags adds flags for ServerRunOptions fields to be specified via FlagSet.
-func (s *ServerRunOptions) AddFlags(fs *pflag.FlagSet) {
+// AddFlags adds flags for serverRunOptions fields to be specified via FlagSet.
+func (s *serverRunOptions) AddFlags(fs *pflag.FlagSet) {
 	s.genericServerRunOptions.AddUniversalFlags(fs)
 	s.etcd.AddFlags(fs)
 	s.secureServing.AddFlags(fs)
 	s.audit.AddFlags(fs)
 	s.features.AddFlags(fs)
-	//s.StandaloneAuthentication.AddFlags(fs)
-	//s.StandaloneAuthorization.AddFlags(fs)
 
-	fs.DurationVar(&s.EventTTL, "event-ttl", s.EventTTL, "Amount of time to retain events.")
+	fs.DurationVar(&s.eventTTL, "event-ttl", s.eventTTL, "Amount of time to retain events.")
 }

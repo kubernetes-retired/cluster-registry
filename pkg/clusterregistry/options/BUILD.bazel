@@ -8,6 +8,7 @@ go_library(
         "authorization.go",
         "doc.go",
         "options.go",
+        "standalone.go",
         "validation.go",
     ],
     importpath = "k8s.io/cluster-registry/pkg/clusterregistry/options",

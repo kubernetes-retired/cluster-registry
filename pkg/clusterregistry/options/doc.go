@@ -14,15 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package options contains flags and options for interacting with the cluster
-// registry API server.
+// Package options contains flags, common options, and aggregated and
+// standalone options for initializing the cluster registry API server.
 //
 // The cluster registry can be run in two different modes: standalone and
-// aggregated. The cluster registry implementation is mostly agnositic to the
-// mode in which it is run, except as concerns authentication and authorization.
-// In aggregated mode, the cluster registry delgates its authn/z to another API
-// server; in standalone mode, the cluster registry provides a suite of authn/z
-// methods such as basic auth, token auth and client certs. Unfortunately, since
-// flags must be added to the command before it is known whether the cluster
-// registry is being run as a standalone or as an aggregated API server.
+// aggregated. The cluster registry implementation is mostly agnostic to the
+// mode in which it is run, except where authentication and authorization is
+// concerned. In aggregated mode, the cluster registry delgates its authn/z to
+// another API server; in standalone mode, the cluster registry provides a
+// suite of authn/z methods such as basic auth, token auth and client certs.
 package options
