@@ -97,12 +97,11 @@ func startTestServer(t *testing.T) (result *restclient.Config, tearDownForCaller
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to find a free port: %v", err)
 	}
-	s := options.NewServerRunOptions()
-	s.SecureServing.BindPort = port
-	s.SecureServing.ServerCert.CertDirectory = tmpDir
-	s.Etcd.StorageConfig = *storageConfig
-	s.Etcd.DefaultStorageMediaType = "application/json"
-	s.UseDelegatedAuth = false
+	s := options.NewStandaloneServerRunOptions()
+	s.SecureServing().BindPort = port
+	s.SecureServing().ServerCert.CertDirectory = tmpDir
+	s.Etcd().StorageConfig = *storageConfig
+	s.Etcd().DefaultStorageMediaType = "application/json"
 
 	t.Logf("Starting cluster registry...")
 	server, err := clusterregistry.CreateServer(s)
