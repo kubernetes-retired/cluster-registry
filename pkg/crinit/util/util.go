@@ -664,11 +664,14 @@ func createAPIServer(clientset client.Interface, namespace, name, serverImage,
 		argsMap["--token-auth-file"] = "/etc/clusterregistry/apiserver/token.csv"
 	}
 
+	if aggregated {
+		command = append(command, "aggregated")
+	} else {
+		command = append(command, "standalone")
+	}
+
 	args := argMapsToArgStrings(argsMap, argOverrides)
 	command = append(command, args...)
-	if aggregated {
-		command = append(command, "--use-delegated-auth")
-	}
 
 	replicas := int32(1)
 	dep := &appsv1beta1.Deployment{

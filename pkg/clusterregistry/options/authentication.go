@@ -1,5 +1,5 @@
 /*
-Copyright 2016 The Kubernetes Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -133,13 +133,9 @@ func (s *StandaloneAuthenticationOptions) AddFlags(fs *pflag.FlagSet) {
 			"namespace to be used for TLS bootstrapping authentication.")
 	}
 
-	// genericoptions.DelegatingAuthenticationOptions adds flags for its own copy
-	// of the ClientCert and WebHook authentication options.
-	//
-	// TODO: Determine if there is a better way to split the personalities of the
-	// delegated and standalone modes. The wart here is that these flags must be
-	// added before the flag that tells the cluster registry to use delegated
-	// auth is parsed.
+	if s.ClientCert != nil {
+		s.ClientCert.AddFlags(fs)
+	}
 
 	if s.PasswordFile != nil {
 		fs.StringVar(&s.PasswordFile.BasicAuthFile, "basic-auth-file", s.PasswordFile.BasicAuthFile, ""+
@@ -153,6 +149,14 @@ func (s *StandaloneAuthenticationOptions) AddFlags(fs *pflag.FlagSet) {
 			"via token authentication.")
 	}
 
+	if s.WebHook != nil {
+		fs.StringVar(&s.WebHook.ConfigFile, "authentication-token-webhook-config-file", s.WebHook.ConfigFile, ""+
+			"File with webhook configuration for token authentication in kubeconfig format. "+
+			"The API server will query the remote service to determine authentication for bearer tokens.")
+
+		fs.DurationVar(&s.WebHook.CacheTTL, "authentication-token-webhook-cache-ttl", s.WebHook.CacheTTL,
+			"The duration to cache responses from the webhook token authenticator.")
+	}
 }
 
 func (o *StandaloneAuthenticationOptions) ApplyTo(c *genericapiserver.Config) error {

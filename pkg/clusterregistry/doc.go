@@ -15,5 +15,6 @@ limitations under the License.
 */
 
 // Package clusterregistry contains the meat of the implementation for
-// k8s.io/cluster-registry/cmd/clusterregistry.
+// k8s.io/cluster-registry/cmd/clusterregistry consisting of functions to
+// support the cluster registry subcommands and to launch the API server.
 package clusterregistry

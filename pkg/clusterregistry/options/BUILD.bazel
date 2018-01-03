@@ -3,10 +3,12 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = [
+        "aggregated.go",
         "authentication.go",
         "authorization.go",
         "doc.go",
         "options.go",
+        "standalone.go",
         "validation.go",
     ],
     importpath = "k8s.io/cluster-registry/pkg/clusterregistry/options",

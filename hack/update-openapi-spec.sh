@@ -44,7 +44,7 @@ trap clean_up EXIT
 bazel build //cmd/clusterregistry
 
 # The API server can serve the OpenAPI spec without a valid etcd endpoint.
-bazel run //cmd/clusterregistry -- --etcd-servers http://invalid --secure-port 8844 --use-delegated-auth=false &
+bazel run //cmd/clusterregistry -- standalone --etcd-servers http://invalid --secure-port 8844 &
 CLUSTERREGISTRY_PID=$!
 sleep 5
 

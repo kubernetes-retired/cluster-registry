@@ -1,5 +1,5 @@
 /*
-Copyright 2016 The Kubernetes Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,24 +19,24 @@ package options
 import "fmt"
 
 // Validate validates the options in the receiver.
-func (options *ServerRunOptions) Validate() []error {
+func (options *serverRunOptions) Validate() []error {
 	var errors []error
-	if errs := options.GenericServerRunOptions.Validate(); len(errs) > 0 {
+	if errs := options.genericServerRunOptions.Validate(); len(errs) > 0 {
 		errors = append(errors, errs...)
 	}
-	if errs := options.Etcd.Validate(); len(errs) > 0 {
+	if errs := options.etcd.Validate(); len(errs) > 0 {
 		errors = append(errors, errs...)
 	}
-	if errs := options.SecureServing.Validate(); len(errs) > 0 {
+	if errs := options.secureServing.Validate(); len(errs) > 0 {
 		errors = append(errors, errs...)
 	}
-	if errs := options.Audit.Validate(); len(errs) > 0 {
+	if errs := options.audit.Validate(); len(errs) > 0 {
 		errors = append(errors, errs...)
 	}
-	if errs := options.Features.Validate(); len(errs) > 0 {
+	if errs := options.features.Validate(); len(errs) > 0 {
 		errors = append(errors, errs...)
 	}
-	if options.EventTTL <= 0 {
+	if options.eventTTL <= 0 {
 		errors = append(errors, fmt.Errorf("--event-ttl must be greater than 0"))
 	}
 	return errors
