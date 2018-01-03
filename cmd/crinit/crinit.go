@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	clusterregistryImageName = "clusterregistry:dev"
+	clusterregistryImageName = "gcr.io/crreleases/clusterregistry:latest"
 	defaultEtcdImage         = "k8s.gcr.io/etcd:3.0.17"
 )
 
