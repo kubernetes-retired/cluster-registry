@@ -115,14 +115,12 @@ func (s *StandaloneAuthorizationOptions) AddFlags(fs *pflag.FlagSet) {
 		"File with webhook configuration in kubeconfig format, used with --authorization-webhook=true. "+
 			"The API server will query the remote service to determine access on the API server's secure port.")
 
-	// TODO: Uncomment these when https://github.com/kubernetes/cluster-registry/issues/69
-	// is fixed, and there is a unique standalone personality for the clusterregistry.
-	//fs.DurationVar(&s.WebhookCacheAuthorizedTTL, "authorization-webhook-cache-authorized-ttl",
-	//	s.WebhookCacheAuthorizedTTL,
-	//	"The duration to cache 'authorized' responses from the webhook authorizer.")
-	//fs.DurationVar(&s.WebhookCacheUnauthorizedTTL,
-	//	"authorization-webhook-cache-unauthorized-ttl", s.WebhookCacheUnauthorizedTTL,
-	//	"The duration to cache 'unauthorized' responses from the webhook authorizer.")
+	fs.DurationVar(&s.WebhookCacheAuthorizedTTL, "authorization-webhook-cache-authorized-ttl",
+		s.WebhookCacheAuthorizedTTL,
+		"The duration to cache 'authorized' responses from the webhook authorizer.")
+	fs.DurationVar(&s.WebhookCacheUnauthorizedTTL,
+		"authorization-webhook-cache-unauthorized-ttl", s.WebhookCacheUnauthorizedTTL,
+		"The duration to cache 'unauthorized' responses from the webhook authorizer.")
 }
 
 // ApplyTo applies the configured options in the receiver to an apiserver
