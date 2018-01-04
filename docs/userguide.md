@@ -148,3 +148,19 @@ and use the client library directly from your Go code.
 
 There is an OpenAPI spec file provided [here](/api/swagger.json). You can use
 it to generate client libraries in a language of your choice.
+
+## Troubleshooting
+
+### Multi-Attach error
+
+If you are updating the cluster registry deployment by hand, you may run into
+errors like the following:
+
+```
+Multi-Attach error for volume "vol" Volume is already exclusively attached to one node and can't be attached to another
+```
+
+This is because the new `clusterregistry` `Pod` will not be able to claim the
+persistent volume if it is started on a different node than the existing `Pod`.
+A simple fix is to change the `deployement.spec.strategy.type` to `Recreate`.
+There are more details in https://github.com/kubernetes/kubernetes/issues/48968.
