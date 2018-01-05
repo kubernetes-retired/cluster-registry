@@ -58,17 +58,12 @@ kubectl apply -f ./authz.yaml -n clusterregistry
         ... existing volumeMounts ...
         - name: bitesize
           mountPath: /etc/bitesize
-        - name: ca-certificates
-          mountPath: /etc/ssl/certs
 ...
       volumes:
       ... existing volumes ...
       - name: bitesize
         secret:
           secretName: bitesize
-      - name: ca-certificates
-        hostPath:
-          path: /etc/ssl/certs
 ...
 ```
 
@@ -101,10 +96,7 @@ Error from server (Forbidden): clusters.clusterregistry.k8s.io is forbidden: Use
 
 or create/update them as `testuser`:
 
-```
-sh
+```sh
 $ kubectl apply -f ../samplecontainer/cluster.yaml --context <your_cluster_registry_context> --as testuser
-Error from server (Forbidden): error when applying patch:
-...
-... clusters.clusterregistry.k8s.io "my-cluster" is forbidden: User "testuser" cannot patch clusters.clusterregistry.k8s.io at the cluster scope: Not allowed
+Error from server (Forbidden): error when creating "../samplecontainer/cluster.yaml": clusters.clusterregistry.k8s.io is forbidden: User "testuser" cannot create clusters.clusterregistry.k8s.io at the cluster scope: Not allowed
 ```
