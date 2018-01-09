@@ -48,7 +48,10 @@ in [#sig-multicluster](https://kubernetes.slack.com/messages/sig-multicluster/).
 
 # Development
 
-There is a [nightly build here](https://k8s-testgrid.appspot.com/sig-multicluster-cluster-registry)
+There is a nightly build
+[here](https://k8s-testgrid.appspot.com/sig-multicluster-cluster-registry). You
+can view the uploaded artifacts
+[here](http://gcsweb.k8s.io/gcs/crreleases/nightly).
 
 Basic instructions for working in the cluster-registry repo are
 [here](docs/development.md).
