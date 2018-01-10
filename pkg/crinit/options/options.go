@@ -226,7 +226,7 @@ func (o *SubcommandOptions) CreateService(cmdOut io.Writer,
 // GenerateCredentials creates the credentials for apiserver secret.
 func (o *SubcommandOptions) GenerateCredentials(cmdOut io.Writer, svcName string,
 	ips, hostnames []string, apiServerEnableHTTPBasicAuth,
-	apiServerEnableTokenAuth bool) (*common.Credentials, error) {
+	apiServerEnableTokenAuth bool) (*util.Credentials, error) {
 
 	fmt.Fprint(cmdOut,
 		"Creating cluster registry objects (credentials, persistent volume claim)...")
@@ -246,7 +246,7 @@ func (o *SubcommandOptions) GenerateCredentials(cmdOut io.Writer, svcName string
 // CreateAPIServerCredentialsSecret creates the secret containing the
 // apiserver credentials passed in.
 func (o *SubcommandOptions) CreateAPIServerCredentialsSecret(clientset client.Interface,
-	credentials *common.Credentials) error {
+	credentials *util.Credentials) error {
 
 	_, err := common.CreateAPIServerCredentialsSecret(clientset,
 		o.ClusterRegistryNamespace, serverCredName, credentials, o.DryRun)
@@ -315,7 +315,7 @@ func (o *SubcommandOptions) CreateAPIServer(cmdOut io.Writer, clientset client.I
 // while printing and logging progress.
 func (o *SubcommandOptions) UpdateKubeconfig(cmdOut io.Writer,
 	pathOptions *clientcmd.PathOptions, svc *v1.Service, ips, hostnames []string,
-	credentials *common.Credentials) error {
+	credentials *util.Credentials) error {
 
 	fmt.Fprint(cmdOut, "Updating kubeconfig...")
 	glog.V(4).Info("Updating kubeconfig")

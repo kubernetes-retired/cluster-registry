@@ -30,7 +30,6 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	certutil "k8s.io/client-go/util/cert"
 	"k8s.io/client-go/util/cert/triple"
-	"k8s.io/cluster-registry/pkg/crinit/common"
 	"github.com/golang/glog"
 )
 
@@ -39,11 +38,24 @@ const (
 	AdminCN     = "admin"
 )
 
+type EntityKeyPairs struct {
+	CA     *triple.KeyPair
+	Server *triple.KeyPair
+	Admin  *triple.KeyPair
+}
+
+type Credentials struct {
+	Username        string
+	Password        string
+	Token           string
+	CertEntKeyPairs *EntityKeyPairs
+}
+
 // generateCredentials helper to create the certs for the apiserver.
 func GenerateCredentials(svcNamespace, name, svcName, localDNSZoneName string,
-	ips, hostnames []string, enableHTTPBasicAuth, enableTokenAuth bool) (*common.Credentials, error) {
+	ips, hostnames []string, enableHTTPBasicAuth, enableTokenAuth bool) (*Credentials, error) {
 
-	credentials := common.Credentials{
+	credentials := Credentials{
 		Username: AdminCN,
 	}
 	if enableHTTPBasicAuth {
@@ -62,7 +74,7 @@ func GenerateCredentials(svcNamespace, name, svcName, localDNSZoneName string,
 }
 
 func GenCerts(svcNamespace, name, svcName, localDNSZoneName string,
-	ips, hostnames []string) (*common.EntityKeyPairs, error) {
+	ips, hostnames []string) (*EntityKeyPairs, error) {
 	ca, err := triple.NewCA(name)
 
 	if err != nil {
@@ -76,7 +88,7 @@ func GenCerts(svcNamespace, name, svcName, localDNSZoneName string,
 	if err != nil {
 		return nil, fmt.Errorf("failed to create client key and certificate for an admin: %v", err)
 	}
-	return &common.EntityKeyPairs{
+	return &EntityKeyPairs{
 		CA:     ca,
 		Server: server,
 		Admin:  admin,
@@ -99,7 +111,7 @@ func ArgMapsToArgStrings(argsMap, overrides map[string]string) []string {
 // UpdateKubeconfig helper to update the kubeconfig file based on input
 // parameters.
 func UpdateKubeconfig(pathOptions *clientcmd.PathOptions, name, endpoint,
-kubeConfigPath string, credentials *common.Credentials, dryRun bool) error {
+kubeConfigPath string, credentials *Credentials, dryRun bool) error {
 
 	pathOptions.LoadingRules.ExplicitPath = kubeConfigPath
 	kubeconfig, err := pathOptions.GetStartingConfig()
@@ -193,7 +205,7 @@ func AuthFileContents(username, authSecret string) []byte {
 
 // GetCAKeyPair retrieves the CA key pair stored in the internal credentials
 // structure.
-func GetCAKeyPair(credentials *common.Credentials) *triple.KeyPair {
+func GetCAKeyPair(credentials *Credentials) *triple.KeyPair {
 	if credentials == nil {
 		glog.V(4).Info("credentials argument is nil!")
 		return nil

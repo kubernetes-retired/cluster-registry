@@ -33,7 +33,6 @@ import (
 
 	certutil "k8s.io/client-go/util/cert"
 	"k8s.io/cluster-registry/pkg/crinit/util"
-	"k8s.io/client-go/util/cert/triple"
 )
 
 const (
@@ -63,18 +62,7 @@ var (
 	}
 )
 
-type EntityKeyPairs struct {
-	CA     *triple.KeyPair
-	Server *triple.KeyPair
-	Admin  *triple.KeyPair
-}
 
-type Credentials struct {
-	Username        string
-	Password        string
-	Token           string
-	CertEntKeyPairs *EntityKeyPairs
-}
 
 // CreateNamespace helper to create the cluster registry namespace object and return
 // the object.
@@ -183,7 +171,7 @@ func GetClusterNodeIPs(clientset client.Interface) ([]string, error) {
 // CreateAPIServerCredentialsSecret helper to create secret object and return
 // the object.
 func CreateAPIServerCredentialsSecret(clientset client.Interface, namespace,
-credentialsName string, credentials *Credentials, dryRun bool) (*v1.Secret, error) {
+credentialsName string, credentials *util.Credentials, dryRun bool) (*v1.Secret, error) {
 	// Build the secret object with API server credentials.
 	data := map[string][]byte{
 		"ca.crt":     certutil.EncodeCertPEM(credentials.CertEntKeyPairs.CA.Cert),
