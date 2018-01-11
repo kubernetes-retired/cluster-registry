@@ -26,6 +26,7 @@ import (
 	client "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/cluster-registry/pkg/crinit/util"
+	"k8s.io/cluster-registry/pkg/crinit/options"
 
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
@@ -48,14 +49,14 @@ var (
 )
 
 type standaloneClusterRegistryOptions struct {
-	util.SubcommandOptions
+	options.SubcommandOptions
 	apiServerServiceTypeString   string
 	apiServerEnableHTTPBasicAuth bool
 	apiServerEnableTokenAuth     bool
 }
 
 func (o *standaloneClusterRegistryOptions) Bind(flags *pflag.FlagSet) {
-	flags.StringVar(&o.apiServerServiceTypeString, util.APIServerServiceTypeFlag,
+	flags.StringVar(&o.apiServerServiceTypeString, options.APIServerServiceTypeFlag,
 		string(v1.ServiceTypeLoadBalancer),
 		"The type of service to create for the cluster registry. Options: 'LoadBalancer', 'NodePort'.")
 	flags.BoolVar(&o.apiServerEnableHTTPBasicAuth, "apiserver-enable-basic-auth", false,

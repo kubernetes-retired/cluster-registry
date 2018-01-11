@@ -33,6 +33,8 @@ import (
 	"k8s.io/client-go/util/cert"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
 	"k8s.io/cluster-registry/pkg/crinit/util"
+	"k8s.io/cluster-registry/pkg/crinit/options"
+	"k8s.io/cluster-registry/pkg/crinit/common"
 	apiregv1beta1 "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1"
 	apiregclient "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
 
@@ -97,12 +99,12 @@ var (
 )
 
 type aggregatedClusterRegistryOptions struct {
-	util.SubcommandOptions
+	options.SubcommandOptions
 	apiServerServiceTypeString string
 }
 
 func (o *aggregatedClusterRegistryOptions) Bind(flags *pflag.FlagSet) {
-	flags.StringVar(&o.apiServerServiceTypeString, util.APIServerServiceTypeFlag,
+	flags.StringVar(&o.apiServerServiceTypeString, options.APIServerServiceTypeFlag,
 		string(v1.ServiceTypeNodePort),
 		"The type of service to create for the cluster registry. Options: 'LoadBalancer', 'NodePort'.")
 }
@@ -299,7 +301,7 @@ func createServiceAccount(clientset client.Interface,
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceAccountName,
 			Namespace: namespace,
-			Labels:    util.ComponentLabel,
+			Labels:    common.ComponentLabel,
 		},
 	}
 
@@ -324,7 +326,7 @@ func createClusterRole(clientset client.Interface,
 	cr := &rbacv1.ClusterRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   clusterRoleName,
-			Labels: util.ComponentLabel,
+			Labels: common.ComponentLabel,
 		},
 		Rules: []rbacv1.PolicyRule{rule},
 	}
@@ -345,7 +347,7 @@ func createClusterRoleBindings(clientset client.Interface,
 	// cluster role.
 	crb, err := createClusterRoleBindingObject(clientset, apiServerCRBName,
 		rbacv1.ServiceAccountKind, serviceAccountName, namespace, rbacv1.GroupName,
-		"ClusterRole", clusterRoleName, util.ComponentLabel, dryRun)
+		"ClusterRole", clusterRoleName, common.ComponentLabel, dryRun)
 
 	if err != nil {
 		glog.V(4).Infof("Failed to create cluster role binding %v: %v", crb, err)
@@ -355,7 +357,7 @@ func createClusterRoleBindings(clientset client.Interface,
 	// Create cluster role binding for the system:auth-delegator cluster role.
 	crb, err = createClusterRoleBindingObject(clientset, authDelegatorCRBName,
 		rbacv1.ServiceAccountKind, serviceAccountName, namespace, rbacv1.GroupName,
-		"ClusterRole", "system:auth-delegator", util.ComponentLabel, dryRun)
+		"ClusterRole", "system:auth-delegator", common.ComponentLabel, dryRun)
 
 	if err != nil {
 		glog.V(4).Infof("Failed to create cluster role binding %v: %v", crb, err)
@@ -404,7 +406,7 @@ func createExtensionAPIServerAuthenticationRoleBinding(clientset client.Interfac
 	rb := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   name,
-			Labels: util.ComponentLabel,
+			Labels: common.ComponentLabel,
 		},
 		Subjects: []rbacv1.Subject{
 			{
@@ -462,7 +464,7 @@ func createAPIServiceObject(clientset apiregclient.Interface,
 	apiSvc := &apiregv1beta1.APIService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   apiServiceName,
-			Labels: util.ComponentLabel,
+			Labels: common.ComponentLabel,
 		},
 		Spec: apiregv1beta1.APIServiceSpec{
 			Service: &apiregv1beta1.ServiceReference{

@@ -28,7 +28,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 	clientgotesting "k8s.io/client-go/testing"
-	"k8s.io/cluster-registry/pkg/crinit/util"
+	"k8s.io/cluster-registry/pkg/crinit/options"
+	"k8s.io/cluster-registry/pkg/crinit/common"
 )
 
 func TestValidateOptions(t *testing.T) {
@@ -45,7 +46,7 @@ func TestValidateOptions(t *testing.T) {
 			initialOpts: &standaloneClusterRegistryOptions{
 				apiServerServiceTypeString: string(v1.ServiceTypeLoadBalancer)},
 			finalOpts: &standaloneClusterRegistryOptions{
-				SubcommandOptions: util.SubcommandOptions{
+				SubcommandOptions: options.SubcommandOptions{
 					APIServerServiceType: v1.ServiceTypeLoadBalancer},
 				apiServerServiceTypeString: string(v1.ServiceTypeLoadBalancer)},
 			errExpected: false,
@@ -54,7 +55,7 @@ func TestValidateOptions(t *testing.T) {
 			desc:        "NodePort service type supported",
 			initialOpts: &standaloneClusterRegistryOptions{apiServerServiceTypeString: string(v1.ServiceTypeNodePort)},
 			finalOpts: &standaloneClusterRegistryOptions{
-				SubcommandOptions: util.SubcommandOptions{
+				SubcommandOptions: options.SubcommandOptions{
 					APIServerServiceType: v1.ServiceTypeNodePort},
 				apiServerServiceTypeString: string(v1.ServiceTypeNodePort)},
 			errExpected: false,
@@ -68,7 +69,7 @@ func TestValidateOptions(t *testing.T) {
 			desc: "advertise address supported with NodePort service type",
 			initialOpts: &standaloneClusterRegistryOptions{
 				apiServerServiceTypeString: string(v1.ServiceTypeNodePort),
-				SubcommandOptions: util.SubcommandOptions{
+		SubcommandOptions: options.SubcommandOptions{
 					APIServerAdvertiseAddress: "10.0.0.1"}},
 			errExpected: false,
 		},
@@ -76,7 +77,7 @@ func TestValidateOptions(t *testing.T) {
 			desc: "advertise address not supported with non-NodePort service type",
 			initialOpts: &standaloneClusterRegistryOptions{
 				apiServerServiceTypeString: string(v1.ServiceTypeLoadBalancer),
-				SubcommandOptions: util.SubcommandOptions{
+				SubcommandOptions: options.SubcommandOptions{
 					APIServerAdvertiseAddress: "10.0.0.1"}},
 			errExpected: true,
 		},
@@ -84,7 +85,7 @@ func TestValidateOptions(t *testing.T) {
 			desc: "advertise address validated",
 			initialOpts: &standaloneClusterRegistryOptions{
 				apiServerServiceTypeString: string(v1.ServiceTypeNodePort),
-				SubcommandOptions: util.SubcommandOptions{
+				SubcommandOptions: options.SubcommandOptions{
 					APIServerAdvertiseAddress: "notAValidIP"}},
 			errExpected: true,
 		},
@@ -92,11 +93,11 @@ func TestValidateOptions(t *testing.T) {
 			desc: "advertise port supported with NodePort service type",
 			initialOpts: &standaloneClusterRegistryOptions{
 				apiServerServiceTypeString: string(v1.ServiceTypeNodePort),
-				SubcommandOptions: util.SubcommandOptions{
+				SubcommandOptions: options.SubcommandOptions{
 					APIServerNodePortPort: testNodePort}},
 			finalOpts: &standaloneClusterRegistryOptions{
 				apiServerServiceTypeString: string(v1.ServiceTypeNodePort),
-				SubcommandOptions: util.SubcommandOptions{
+				SubcommandOptions: options.SubcommandOptions{
 					APIServerServiceType:     v1.ServiceTypeNodePort,
 					APIServerNodePortPort:    testNodePort,
 					APIServerNodePortPortPtr: &testNodePort}},
@@ -106,7 +107,7 @@ func TestValidateOptions(t *testing.T) {
 			desc: "advertise port rejected with non-NodePort service type",
 			initialOpts: &standaloneClusterRegistryOptions{
 				apiServerServiceTypeString: string(v1.ServiceTypeLoadBalancer),
-				SubcommandOptions: util.SubcommandOptions{
+				SubcommandOptions: options.SubcommandOptions{
 					APIServerNodePortPort: testNodePort}},
 			errExpected: true,
 		},
@@ -114,7 +115,7 @@ func TestValidateOptions(t *testing.T) {
 			desc: "advertise port rejected if out of range",
 			initialOpts: &standaloneClusterRegistryOptions{
 				apiServerServiceTypeString: string(v1.ServiceTypeNodePort),
-				SubcommandOptions: util.SubcommandOptions{
+				SubcommandOptions: options.SubcommandOptions{
 					APIServerNodePortPort: 100000}},
 			errExpected: true,
 		},
@@ -187,7 +188,7 @@ func TestMarshalOptions(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			options := standaloneClusterRegistryOptions{
-				SubcommandOptions: util.SubcommandOptions{
+				SubcommandOptions: options.SubcommandOptions{
 					APIServerOverridesString: tc.overrideParams}}
 			err := options.MarshalOptions()
 			if tc.expectedErr == "" {
@@ -210,7 +211,7 @@ func TestCreateNamespace(t *testing.T) {
 	t.Run("simple namespace creation", func(t *testing.T) {
 		name := "test"
 		client := fake.NewSimpleClientset()
-		ns, err := util.CreateNamespace(client, name, false)
+		ns, err := common.CreateNamespace(client, name, false)
 		if ns == nil {
 			t.Error("namespace not created")
 		}
@@ -228,7 +229,7 @@ func TestCreateNamespace(t *testing.T) {
 	t.Run("dry run should not create namespace on server", func(t *testing.T) {
 		name := "test2"
 		client := fake.NewSimpleClientset()
-		ns, _ := util.CreateNamespace(client, name, true)
+		ns, _ := common.CreateNamespace(client, name, true)
 		if ns == nil {
 			t.Error("namespace not returned")
 		}
@@ -246,7 +247,7 @@ func TestCreateNamespace(t *testing.T) {
 		client.AddReactor("create", "namespaces", func(action clientgotesting.Action) (bool, runtime.Object, error) {
 			return true, nil, errors.New("error")
 		})
-		ns, err := util.CreateNamespace(client, name, false)
+		ns, err := common.CreateNamespace(client, name, false)
 		if err == nil {
 			t.Error("expected error, got none")
 		}
@@ -261,7 +262,7 @@ func TestCreateService(t *testing.T) {
 		name := "test"
 		client := fake.NewSimpleClientset()
 		buffer := &bytes.Buffer{}
-		util.CreateService(buffer, client, "ns", name, "", nil, v1.ServiceTypeClusterIP, false)
+		common.CreateService(buffer, client, "ns", name, "", nil, v1.ServiceTypeClusterIP, false)
 		if serverSvc, _ := client.CoreV1().Services("ns").Get(name, metav1.GetOptions{}); serverSvc == nil {
 			t.Error("should create service")
 		}
@@ -271,7 +272,7 @@ func TestCreateService(t *testing.T) {
 		name := "test"
 		client := fake.NewSimpleClientset()
 		buffer := &bytes.Buffer{}
-		svc, ips, hostnames, err := util.CreateService(buffer, client, "ns", name, "", nil, v1.ServiceTypeClusterIP, true)
+		svc, ips, hostnames, err := common.CreateService(buffer, client, "ns", name, "", nil, v1.ServiceTypeClusterIP, true)
 		if svc == nil {
 			t.Error("service not returned")
 		}
@@ -360,7 +361,7 @@ func TestCreateService(t *testing.T) {
 			})
 
 			buffer := &bytes.Buffer{}
-			svc, ips, hostnames, _ := util.CreateService(buffer, client, tc.namespace, tc.name, tc.advertiseAddress, &tc.advertisePort, tc.serviceType, false)
+			svc, ips, hostnames, _ := common.CreateService(buffer, client, tc.namespace, tc.name, tc.advertiseAddress, &tc.advertisePort, tc.serviceType, false)
 
 			if svc == nil {
 				t.Error("service not returned")
@@ -410,7 +411,7 @@ func TestCreateService(t *testing.T) {
 				return true, nil, errors.New("error")
 			})
 			buffer := &bytes.Buffer{}
-			svc, ips, hostnames, err := util.CreateService(buffer, client, "ns", "test", "", nil, tc.serviceType, false)
+			svc, ips, hostnames, err := common.CreateService(buffer, client, "ns", "test", "", nil, tc.serviceType, false)
 			if err == nil {
 				t.Error("Expected error, got none")
 			}
@@ -503,7 +504,7 @@ func TestGetClusterNodeIPs(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			client := fake.NewSimpleClientset(tc.nodes...)
-			got, _ := util.GetClusterNodeIPs(client)
+			got, _ := common.GetClusterNodeIPs(client)
 			want := tc.wantedIPs
 			sort.Strings(got)
 			sort.Strings(want)
