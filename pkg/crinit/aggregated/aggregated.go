@@ -377,7 +377,7 @@ func createClusterRoleBindingObject(clientset client.Interface, name, subjectKin
 			Labels: labels,
 		},
 		Subjects: []rbacv1.Subject{
-			rbacv1.Subject{
+			{
 				Kind:      subjectKind,
 				Name:      subjectName,
 				Namespace: subjectNamespace,
@@ -407,7 +407,7 @@ func createExtensionAPIServerAuthenticationRoleBinding(clientset client.Interfac
 			Labels: util.ComponentLabel,
 		},
 		Subjects: []rbacv1.Subject{
-			rbacv1.Subject{
+			{
 				Kind:      rbacv1.ServiceAccountKind,
 				Name:      serviceAccountName,
 				Namespace: namespace,

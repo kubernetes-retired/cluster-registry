@@ -298,7 +298,7 @@ func TestCreateService(t *testing.T) {
 		},
 		Status: v1.NodeStatus{
 			Addresses: []v1.NodeAddress{
-				v1.NodeAddress{
+				{
 					Type:    v1.NodeExternalIP,
 					Address: "200.0.0.1",
 				},
@@ -353,7 +353,7 @@ func TestCreateService(t *testing.T) {
 				createAction := action.(clientgotesting.CreateAction)
 				svc := createAction.GetObject().(*v1.Service)
 				if svc.Spec.Type == v1.ServiceTypeLoadBalancer {
-					svc.Status.LoadBalancer.Ingress = []v1.LoadBalancerIngress{v1.LoadBalancerIngress{IP: loadBalancerAddress, Hostname: loadBalancerHostname}}
+					svc.Status.LoadBalancer.Ingress = []v1.LoadBalancerIngress{{IP: loadBalancerAddress, Hostname: loadBalancerHostname}}
 					return false, svc, nil
 				}
 				return false, nil, nil
@@ -434,7 +434,7 @@ func TestGetClusterNodeIPs(t *testing.T) {
 		},
 		Status: v1.NodeStatus{
 			Addresses: []v1.NodeAddress{
-				v1.NodeAddress{
+				{
 					Type:    v1.NodeExternalIP,
 					Address: "200.0.0.1",
 				},
@@ -448,7 +448,7 @@ func TestGetClusterNodeIPs(t *testing.T) {
 		},
 		Status: v1.NodeStatus{
 			Addresses: []v1.NodeAddress{
-				v1.NodeAddress{
+				{
 					Type:    v1.NodeInternalIP,
 					Address: "10.0.0.1",
 				},
@@ -462,11 +462,11 @@ func TestGetClusterNodeIPs(t *testing.T) {
 		},
 		Status: v1.NodeStatus{
 			Addresses: []v1.NodeAddress{
-				v1.NodeAddress{
+				{
 					Type:    v1.NodeExternalIP,
 					Address: "200.0.0.2",
 				},
-				v1.NodeAddress{
+				{
 					Type:    v1.NodeInternalIP,
 					Address: "10.0.0.2",
 				},

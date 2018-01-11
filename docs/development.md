@@ -116,6 +116,21 @@ generated clients and other generated files.
 1.  Add the generated files to your PR, preferably in a separate, generated-only
     commit so that they are easier to review.
 
+## Verify Go source files
+
+To verify and fix your Go source files:
+
+1. Run from the root of this repository `./hack/verify-go-src.sh -v --rootdir $(pwd)`
+
+This runs all the Go source verification scripts in
+[`./hack/go-tools/`](/hack/go-tools/).
+
+You can also run any of the scripts individually. For example:
+
+1. Run `./hack/go-tools/verify-govet.sh`
+
+The return code of the script indicates success or failure.
+
 ## Interacting with the k8s-bot
 
 The cluster-registry repo is monitored by the k8s-ci-robot. You can find a list
