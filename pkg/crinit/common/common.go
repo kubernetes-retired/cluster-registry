@@ -62,8 +62,6 @@ var (
 	}
 )
 
-
-
 // CreateNamespace helper to create the cluster registry namespace object and return
 // the object.
 func CreateNamespace(clientset client.Interface, namespace string,
@@ -85,7 +83,7 @@ func CreateNamespace(clientset client.Interface, namespace string,
 // and return the object. If service type is load balancer, will wait for load
 // balancer IP and return it and hostnames.
 func CreateService(cmdOut io.Writer, clientset client.Interface, namespace,
-svcName, apiserverAdvertiseAddress string, apiserverPort *int32,
+	svcName, apiserverAdvertiseAddress string, apiserverPort *int32,
 	apiserverServiceType v1.ServiceType,
 	dryRun bool) (*v1.Service, []string, []string, error) {
 
@@ -171,7 +169,7 @@ func GetClusterNodeIPs(clientset client.Interface) ([]string, error) {
 // CreateAPIServerCredentialsSecret helper to create secret object and return
 // the object.
 func CreateAPIServerCredentialsSecret(clientset client.Interface, namespace,
-credentialsName string, credentials *util.Credentials, dryRun bool) (*v1.Secret, error) {
+	credentialsName string, credentials *util.Credentials, dryRun bool) (*v1.Secret, error) {
 	// Build the secret object with API server credentials.
 	data := map[string][]byte{
 		"ca.crt":     certutil.EncodeCertPEM(credentials.CertEntKeyPairs.CA.Cert),
@@ -203,7 +201,7 @@ credentialsName string, credentials *util.Credentials, dryRun bool) (*v1.Secret,
 // CreatePVC helper to create the persistent volume claim object and
 // return the object.
 func CreatePVC(clientset client.Interface, namespace, svcName, etcdPVCapacity,
-etcdPVStorageClass string, dryRun bool) (*v1.PersistentVolumeClaim, error) {
+	etcdPVStorageClass string, dryRun bool) (*v1.PersistentVolumeClaim, error) {
 	capacity, err := resource.ParseQuantity(etcdPVCapacity)
 	if err != nil {
 		return nil, err
@@ -243,8 +241,8 @@ etcdPVStorageClass string, dryRun bool) (*v1.PersistentVolumeClaim, error) {
 // CreateAPIServer helper to create the apiserver deployment object and
 // return the object.
 func CreateAPIServer(clientset client.Interface, namespace, name, serverImage,
-etcdImage, advertiseAddress, credentialsName, serviceAccountName string, hasHTTPBasicAuthFile,
-hasTokenAuthFile bool, argOverrides map[string]string,
+	etcdImage, advertiseAddress, credentialsName, serviceAccountName string, hasHTTPBasicAuthFile,
+	hasTokenAuthFile bool, argOverrides map[string]string,
 	pvc *v1.PersistentVolumeClaim, aggregated, dryRun bool) (*appsv1beta1.Deployment, error) {
 
 	command := []string{"./clusterregistry"}

@@ -32,9 +32,9 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/cert"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
-	"k8s.io/cluster-registry/pkg/crinit/util"
-	"k8s.io/cluster-registry/pkg/crinit/options"
 	"k8s.io/cluster-registry/pkg/crinit/common"
+	"k8s.io/cluster-registry/pkg/crinit/options"
+	"k8s.io/cluster-registry/pkg/crinit/util"
 	apiregv1beta1 "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1"
 	apiregclient "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
 
