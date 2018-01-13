@@ -13,82 +13,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This script runs all of the Go source verification scripts inside of the
+# ./hack/go-tools directory. The success or failure of each script is outputted
+# in green or red colored text, respectively. If any script fails, an error is
+# returned, otherwise returns 0.
+
 set -euo pipefail
 
-# This script is intended to be used via subtree in a top-level directory:
-# <repo>/
-#  repo-infra/
-#    verify/
-# Or via vendoring and passing root directory as vendor/repo-infra/verify-*.sh --rootdir **full path to your repo dir**
-# <repo>/
-#   vendor/
-#      repo-infra/
-#         ...
-# 
+SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_ROOT}/.." && pwd)"
+TMP_GOPATH="$(mktemp -d /tmp/gopathXXXXXXXX)"
+TMP_REPO_ROOT="${TMP_GOPATH}/src/k8s.io/cluster-registry"
+TMP_GO_TOOLS_DIR="${TMP_GOPATH}/src/k8s.io/cluster-registry/hack/go-tools"
 
-
-SILENT=true
-REPO_ROOT=$(dirname "${BASH_SOURCE[0]}")/../..
-
-# Convert long opts to short ones to read through getopts
-for arg in "$@"; do
-  shift
-  case "$arg" in
-    "--rootdir") set -- "$@" "-r";;
-    *)
-      set -- "$@" "$arg"
-      ;;
-  esac
-done
-
-OPTIND=1
-while getopts "vr:" opt; do
-  case ${opt} in
-    v)
-      SILENT=false
-      ;;
-    r)
-      REPO_ROOT=${OPTARG}
-      ;;
-    \?)
-      echo "Invalid flag: -${OPTARG}" >&2
-      exit 1
-      ;;
-  esac
-done
-
-shift "$(($OPTIND-1))"
-
-echo "Working directory: ${REPO_ROOT}"
-
-GO_TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/go-tools"
-
-function run-cmd {
-  if ${SILENT}; then
-    "$@" &> /dev/null
-  else
-    "$@"
+# Called on EXIT after the temporary directories are created.
+function clean_up() {
+  if [[ "${TMP_GOPATH}" == "/tmp/gopath"* ]]; then
+    rm -rf "${TMP_GOPATH}"
   fi
 }
-
-# Some useful colors.
-if [[ -z "${color_start-}" ]]; then
-  declare -r color_start="\033["
-  declare -r color_red="${color_start}0;31m"
-  declare -r color_yellow="${color_start}0;33m"
-  declare -r color_green="${color_start}0;32m"
-  declare -r color_norm="${color_start}0m"
-fi
+trap clean_up EXIT
 
 function run-checks {
   local -r pattern=$1
-  local -r runner=$2
 
   for t in $(ls ${pattern})
   do
     echo -e "Verifying ${t}"
     local start=$(date +%s)
-    cd $REPO_ROOT && run-cmd "${runner}" "${t}" && tr=$? || tr=$?
+    cd ${TMP_REPO_ROOT} && "${t}" && tr=$? || tr=$?
     local elapsed=$(($(date +%s) - ${start}))
     if [[ ${tr} -eq 0 ]]; then
       echo -e "${color_green}SUCCESS${color_norm}  ${t}\t${elapsed}s"
@@ -99,10 +52,29 @@ function run-checks {
   done
 }
 
-if ${SILENT} ; then
-  echo "Running in silent mode, run with -v if you want to see script logs."
+# Set up the temporary GOPATH. This helps to run this script in a vanilla
+# environment, e.g. Prow, because the verify-govet.sh script called by this one
+# runs 'go list' which will print the import path for each package (e.g.
+# k8s.io/cluster-registry/...) to pass into 'go vet'. This results in go not
+# finding the package correctly if either GOPATH doesn't exist (in the case of
+# the current bazelbuild image), or the package exists but in a different path.
+# So this temporary GOPATH is set up to replicate the same import path
+# location.
+mkdir -p "${TMP_REPO_ROOT}"
+cp -r "${REPO_ROOT}/"* "${TMP_REPO_ROOT}"
+export GOPATH="${TMP_GOPATH}"
+
+echo "Working directory: ${TMP_REPO_ROOT}"
+
+# Some useful colors.
+if [[ -z "${color_start-}" ]]; then
+  declare -r color_start="\033["
+  declare -r color_red="${color_start}0;31m"
+  declare -r color_yellow="${color_start}0;33m"
+  declare -r color_green="${color_start}0;32m"
+  declare -r color_norm="${color_start}0m"
 fi
 
 ret=0
-run-checks "${GO_TOOLS_DIR}/*.sh" bash
+run-checks "${TMP_GO_TOOLS_DIR}/*.sh"
 exit ${ret}
