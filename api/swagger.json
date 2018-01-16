@@ -1467,6 +1467,19 @@
      "name": {
       "description": "Name is the name of this configuration.",
       "type": "string"
+     },
+     "type": {
+      "description": "Type contains type information about this auth provider. Clients of the cluster registry should use this field to differentiate between different kinds of authentication providers.",
+      "$ref": "#/definitions/io.k8s.cluster-registry.pkg.apis.clusterregistry.v1alpha1.AuthProviderType"
+     }
+    }
+   },
+   "io.k8s.cluster-registry.pkg.apis.clusterregistry.v1alpha1.AuthProviderType": {
+    "description": "AuthProviderType contains metadata about the auth provider. It should be used by clients to differentiate between different kinds of auth providers, and to select a relevant provider for the client's configuration. For example, a controller would look for a provider type that denotes a service account that it should use to access the cluster, whereas a user would look for a provider type that denotes an authentication system from which they should request a token.",
+    "properties": {
+     "name": {
+      "description": "Name is the name of the auth provider.",
+      "type": "string"
      }
     }
    },
