@@ -53,7 +53,13 @@ $
 
 ### Aggregated API server
 
-You can deploy the cluster registry as an aggregated API server like so:
+Before deploying the cluster registry as an aggregated API server, take a look at
+https://kubernetes.io/docs/tasks/access-kubernetes-api/configure-aggregation-layer/#enable-apiserver-flags
+which talks about what `kube-apiserver` flags need to be enabled in order to
+enable the aggregation layer.
+
+Once the `kube-apiserver` aggregation layer is enabled, you can deploy the
+cluster registry as an aggregated API server like so:
 
 ```sh
 ./crinit aggregated init <cluster_registry_context> --host-cluster-context=<your_cluster_context>
