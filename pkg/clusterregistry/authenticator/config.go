@@ -57,10 +57,6 @@ type Config struct {
 	// BasicAuthFile is a path to a file that contains username/password pairs.
 	BasicAuthFile string
 
-	// BootstrapToken determines whether or not to enable authentication via
-	// BootstrapTokenAuthenticator.
-	BootstrapToken bool
-
 	// ClientCAFile is a path to a certificate that can be used to validate
 	// client certificates.
 	ClientCAFile string
@@ -85,10 +81,6 @@ type Config struct {
 	// RequestHeaderConfig contains information about authenticating via request
 	// headers.
 	RequestHeaderConfig *authenticatorfactory.RequestHeaderConfig
-
-	// BootstrapTokenAuthenticator is a token authenticator specifically for tokens
-	// used to bootstrap a cluster registry.
-	BootstrapTokenAuthenticator authenticator.Token
 }
 
 // New returns an authenticator.Request or an error that supports the standard
@@ -140,13 +132,6 @@ func (config Config) New() (authenticator.Request, *spec.SecurityDefinitions, er
 			return nil, nil, err
 		}
 		tokenAuthenticators = append(tokenAuthenticators, tokenAuth)
-	}
-
-	if config.BootstrapToken {
-		if config.BootstrapTokenAuthenticator != nil {
-			// TODO: This can sometimes be nil because of
-			tokenAuthenticators = append(tokenAuthenticators, config.BootstrapTokenAuthenticator)
-		}
 	}
 
 	if len(config.WebhookTokenAuthnConfigFile) > 0 {
