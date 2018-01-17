@@ -62,6 +62,7 @@ func NewServerRunOptions() *serverRunOptions {
 
 		eventTTL: 1 * time.Hour,
 	}
+	o.etcd.DefaultStorageMediaType = "application/vnd.kubernetes.protobuf"
 	return o
 }
 

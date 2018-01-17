@@ -22,6 +22,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/go-openapi/spec"
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -121,6 +122,11 @@ func CreateServer(s options.Options) (*genericapiserver.GenericAPIServer, error)
 
 	genericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(clusterregistryv1alpha1.GetOpenAPIDefinitions, install.Scheme)
 	genericConfig.OpenAPIConfig.Info.Title = "Cluster Registry"
+	genericConfig.OpenAPIConfig.Info.Version = strings.Split(genericConfig.Version.String(), "-")[0]
+	genericConfig.OpenAPIConfig.Info.License = &spec.License{
+		Name: "Apache License, Version 2.0",
+		URL:  fmt.Sprintf("https://github.com/kubernetes/cluster-registry/blob/%s/LICENSE", genericConfig.OpenAPIConfig.Info.Version),
+	}
 
 	if err := s.GenericServerRunOptions().ApplyTo(genericConfig); err != nil {
 		return nil, err
@@ -176,6 +182,8 @@ func CreateServer(s options.Options) (*genericapiserver.GenericAPIServer, error)
 	if err := s.Etcd().ApplyWithStorageFactoryTo(storageFactory, genericConfig); err != nil {
 		return nil, err
 	}
+
+	genericConfig.LoopbackClientConfig.ContentConfig.ContentType = "application/vnd.kubernetes.protobuf"
 
 	client, err := clientset.NewForConfig(genericConfig.LoopbackClientConfig)
 	if err != nil {

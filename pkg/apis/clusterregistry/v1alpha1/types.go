@@ -123,7 +123,7 @@ type AuthProviderConfig struct {
 	// Config is a map of values that contains the information necessary for a
 	// client to determine how to authenticate to a Kubernetes API server.
 	// +optional
-	Config map[string]string `json:"config,omitempty" protobuf:"bytes,2,rep,name=config"`
+	Config map[string]string `json:"config,omitempty" protobuf:"bytes,3,rep,name=config"`
 }
 
 // AuthProviderType contains metadata about the auth provider. It should be used

@@ -18,6 +18,9 @@ set -euo pipefail
 SCRIPT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ret=0
 
+# The go-to-protobuf tool requires goimports to be in the PATH.
+command -v goimports >/dev/null 2>&1 || go get golang.org/x/tools/cmd/goimports
+
 echo -e "\n########## Verifying Code Generation ##########\n"
 
 if ! ${SCRIPT_ROOT}/update-codegen.sh --verify-only; then
