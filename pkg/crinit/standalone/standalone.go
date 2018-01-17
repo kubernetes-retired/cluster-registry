@@ -25,8 +25,8 @@ import (
 	"k8s.io/api/core/v1"
 	client "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/cluster-registry/pkg/crinit/util"
 	"k8s.io/cluster-registry/pkg/crinit/options"
+	"k8s.io/cluster-registry/pkg/crinit/util"
 
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"

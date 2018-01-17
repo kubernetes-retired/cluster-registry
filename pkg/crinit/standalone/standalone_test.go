@@ -28,8 +28,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 	clientgotesting "k8s.io/client-go/testing"
-	"k8s.io/cluster-registry/pkg/crinit/options"
 	"k8s.io/cluster-registry/pkg/crinit/common"
+	"k8s.io/cluster-registry/pkg/crinit/options"
 )
 
 func TestValidateOptions(t *testing.T) {
@@ -69,7 +69,7 @@ func TestValidateOptions(t *testing.T) {
 			desc: "advertise address supported with NodePort service type",
 			initialOpts: &standaloneClusterRegistryOptions{
 				apiServerServiceTypeString: string(v1.ServiceTypeNodePort),
-		SubcommandOptions: options.SubcommandOptions{
+				SubcommandOptions: options.SubcommandOptions{
 					APIServerAdvertiseAddress: "10.0.0.1"}},
 			errExpected: false,
 		},

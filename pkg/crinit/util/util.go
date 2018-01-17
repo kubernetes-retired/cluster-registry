@@ -24,13 +24,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/golang/glog"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	certutil "k8s.io/client-go/util/cert"
 	"k8s.io/client-go/util/cert/triple"
-	"github.com/golang/glog"
 )
 
 const (
@@ -111,7 +111,7 @@ func ArgMapsToArgStrings(argsMap, overrides map[string]string) []string {
 // UpdateKubeconfig helper to update the kubeconfig file based on input
 // parameters.
 func UpdateKubeconfig(pathOptions *clientcmd.PathOptions, name, endpoint,
-kubeConfigPath string, credentials *Credentials, dryRun bool) error {
+	kubeConfigPath string, credentials *Credentials, dryRun bool) error {
 
 	pathOptions.LoadingRules.ExplicitPath = kubeConfigPath
 	kubeconfig, err := pathOptions.GetStartingConfig()

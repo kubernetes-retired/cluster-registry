@@ -118,9 +118,10 @@ generated clients and other generated files.
 
 ## Verify Go source files
 
-To verify and fix your Go source files:
+You can run the Go source file verification script to verify and fix your Go source
+files:
 
-1. Run from the root of this repository `./hack/verify-go-src.sh -v --rootdir $(pwd)`
+1. Run `./hack/verify-go-src.sh`
 
 This runs all the Go source verification scripts in
 [`./hack/go-tools/`](/hack/go-tools/).

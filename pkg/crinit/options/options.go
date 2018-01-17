@@ -18,20 +18,19 @@ limitations under the License.
 package options
 
 import (
-	"net"
-	"io"
-	"strings"
 	"fmt"
 	"github.com/golang/glog"
 	"github.com/spf13/pflag"
-	"strconv"
+	"io"
 	"k8s.io/api/core/v1"
+	"net"
+	"strconv"
+	"strings"
 
 	client "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/cluster-registry/pkg/crinit/common"
 	"k8s.io/cluster-registry/pkg/crinit/util"
-
 )
 
 const (
@@ -39,9 +38,9 @@ const (
 	// cluster registry components are hosted.
 	DefaultClusterRegistryNamespace = "clusterregistry"
 
-	HostClusterLocalDNSZoneName     = "cluster.local."
-	APIServerNameSuffix             = "apiserver"
-	CredentialSuffix                = "credentials"
+	HostClusterLocalDNSZoneName = "cluster.local."
+	APIServerNameSuffix         = "apiserver"
+	CredentialSuffix            = "credentials"
 
 	APIServerAdvertiseAddressFlag = "api-server-advertise-address"
 	APIServerServiceTypeFlag      = "api-server-service-type"
@@ -199,7 +198,6 @@ func (o *SubcommandOptions) CreateNamespace(cmdOut io.Writer,
 	fmt.Fprintln(cmdOut, " done")
 	return err
 }
-
 
 // CreateService creates the cluster registry apiserver service.
 func (o *SubcommandOptions) CreateService(cmdOut io.Writer,

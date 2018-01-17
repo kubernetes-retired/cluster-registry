@@ -15,6 +15,10 @@
 
 set -euo pipefail
 
+SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_ROOT}/../.." && pwd)"
+pushd ${REPO_ROOT} > /dev/null
+
 find_files() {
   find . -not \( \
       \( \
@@ -25,6 +29,8 @@ find_files() {
 
 GOFMT="gofmt -s"
 bad_files=$(find_files | xargs $GOFMT -l)
+popd > /dev/null
+
 if [[ -n "${bad_files}" ]]; then
   echo "!!! '$GOFMT' needs to be run on the following files: "
   echo "${bad_files}"
