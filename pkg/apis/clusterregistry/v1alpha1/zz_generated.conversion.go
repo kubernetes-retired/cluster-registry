@@ -21,10 +21,11 @@ limitations under the License.
 package v1alpha1
 
 import (
+	unsafe "unsafe"
+
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	clusterregistry "k8s.io/cluster-registry/pkg/apis/clusterregistry"
-	unsafe "unsafe"
 )
 
 func init() {

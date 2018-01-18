@@ -2,6 +2,10 @@
   "swagger": "2.0",
   "info": {
    "title": "Cluster Registry",
+   "license": {
+    "name": "Apache License, Version 2.0",
+    "url": "https://github.com/kubernetes/cluster-registry/blob/v0.0.2/LICENSE"
+   },
    "version": "v0.0.2"
   },
   "paths": {

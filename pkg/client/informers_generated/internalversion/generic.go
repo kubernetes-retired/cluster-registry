@@ -20,6 +20,7 @@ package internalversion
 
 import (
 	"fmt"
+
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
 	clusterregistry "k8s.io/cluster-registry/pkg/apis/clusterregistry"
@@ -51,7 +52,7 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=Clusterregistry, Version=InternalVersion
+	// Group=clusterregistry.k8s.io, Version=internalVersion
 	case clusterregistry.SchemeGroupVersion.WithResource("clusters"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Clusterregistry().InternalVersion().Clusters().Informer()}, nil
 

@@ -19,6 +19,8 @@ limitations under the License.
 package v1alpha1
 
 import (
+	time "time"
+
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	watch "k8s.io/apimachinery/pkg/watch"
@@ -27,7 +29,6 @@ import (
 	clientset "k8s.io/cluster-registry/pkg/client/clientset_generated/clientset"
 	internalinterfaces "k8s.io/cluster-registry/pkg/client/informers_generated/externalversions/internalinterfaces"
 	v1alpha1 "k8s.io/cluster-registry/pkg/client/listers_generated/clusterregistry/v1alpha1"
-	time "time"
 )
 
 // ClusterInformer provides access to a shared informer and lister for
@@ -38,19 +39,33 @@ type ClusterInformer interface {
 }
 
 type clusterInformer struct {
-	factory internalinterfaces.SharedInformerFactory
+	factory          internalinterfaces.SharedInformerFactory
+	tweakListOptions internalinterfaces.TweakListOptionsFunc
 }
 
 // NewClusterInformer constructs a new informer for Cluster type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
 func NewClusterInformer(client clientset.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredClusterInformer(client, resyncPeriod, indexers, nil)
+}
+
+// NewFilteredClusterInformer constructs a new informer for Cluster type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewFilteredClusterInformer(client clientset.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&options)
+				}
 				return client.ClusterregistryV1alpha1().Clusters().List(options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&options)
+				}
 				return client.ClusterregistryV1alpha1().Clusters().Watch(options)
 			},
 		},
@@ -60,12 +75,12 @@ func NewClusterInformer(client clientset.Interface, resyncPeriod time.Duration, 
 	)
 }
 
-func defaultClusterInformer(client clientset.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewClusterInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc})
+func (f *clusterInformer) defaultInformer(client clientset.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+	return NewFilteredClusterInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
 func (f *clusterInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&clusterregistry_v1alpha1.Cluster{}, defaultClusterInformer)
+	return f.factory.InformerFor(&clusterregistry_v1alpha1.Cluster{}, f.defaultInformer)
 }
 
 func (f *clusterInformer) Lister() v1alpha1.ClusterLister {
