@@ -1644,6 +1644,12 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 								Format:      "",
 							},
 						},
+						"type": {
+							SchemaProps: spec.SchemaProps{
+								Description: "Type contains type information about this auth provider. Clients of the cluster registry should use this field to differentiate between different kinds of authentication providers.",
+								Ref:         ref("k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1.AuthProviderType"),
+							},
+						},
 						"config": {
 							SchemaProps: spec.SchemaProps{
 								Description: "Config is a map of values that contains the information necessary for a client to determine how to authenticate to a Kubernetes API server.",
@@ -1656,6 +1662,24 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 										},
 									},
 								},
+							},
+						},
+					},
+				},
+			},
+			Dependencies: []string{
+				"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1.AuthProviderType"},
+		},
+		"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1.AuthProviderType": {
+			Schema: spec.Schema{
+				SchemaProps: spec.SchemaProps{
+					Description: "AuthProviderType contains metadata about the auth provider. It should be used by clients to differentiate between different kinds of auth providers, and to select a relevant provider for the client's configuration. For example, a controller would look for a provider type that denotes a service account that it should use to access the cluster, whereas a user would look for a provider type that denotes an authentication system from which they should request a token.",
+					Properties: map[string]spec.Schema{
+						"name": {
+							SchemaProps: spec.SchemaProps{
+								Description: "Name is the name of the auth provider.",
+								Type:        []string{"string"},
+								Format:      "",
 							},
 						},
 					},
