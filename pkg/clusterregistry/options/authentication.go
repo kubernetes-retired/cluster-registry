@@ -29,12 +29,11 @@ import (
 )
 
 type StandaloneAuthenticationOptions struct {
-	Anonymous      *AnonymousAuthenticationOptions
-	BootstrapToken *BootstrapTokenAuthenticationOptions
-	ClientCert     *genericoptions.ClientCertAuthenticationOptions
-	PasswordFile   *PasswordFileAuthenticationOptions
-	TokenFile      *TokenFileAuthenticationOptions
-	WebHook        *WebHookAuthenticationOptions
+	Anonymous    *AnonymousAuthenticationOptions
+	ClientCert   *genericoptions.ClientCertAuthenticationOptions
+	PasswordFile *PasswordFileAuthenticationOptions
+	TokenFile    *TokenFileAuthenticationOptions
+	WebHook      *WebHookAuthenticationOptions
 
 	TokenSuccessCacheTTL time.Duration
 	TokenFailureCacheTTL time.Duration
@@ -42,10 +41,6 @@ type StandaloneAuthenticationOptions struct {
 
 type AnonymousAuthenticationOptions struct {
 	Allow bool
-}
-
-type BootstrapTokenAuthenticationOptions struct {
-	Enable bool
 }
 
 type PasswordFileAuthenticationOptions struct {
@@ -71,7 +66,6 @@ func NewStandaloneAuthenticationOptions() *StandaloneAuthenticationOptions {
 func (s *StandaloneAuthenticationOptions) WithAll() *StandaloneAuthenticationOptions {
 	return s.
 		WithAnonymous().
-		WithBootstrapToken().
 		WithClientCert().
 		WithPasswordFile().
 		WithTokenFile().
@@ -80,11 +74,6 @@ func (s *StandaloneAuthenticationOptions) WithAll() *StandaloneAuthenticationOpt
 
 func (s *StandaloneAuthenticationOptions) WithAnonymous() *StandaloneAuthenticationOptions {
 	s.Anonymous = &AnonymousAuthenticationOptions{Allow: true}
-	return s
-}
-
-func (s *StandaloneAuthenticationOptions) WithBootstrapToken() *StandaloneAuthenticationOptions {
-	s.BootstrapToken = &BootstrapTokenAuthenticationOptions{}
 	return s
 }
 
@@ -121,16 +110,6 @@ func (s *StandaloneAuthenticationOptions) AddFlags(fs *pflag.FlagSet) {
 			"Enables anonymous requests to the secure port of the API server. "+
 			"Requests that are not rejected by another authentication method are treated as anonymous requests. "+
 			"Anonymous requests have a username of system:anonymous, and a group name of system:unauthenticated.")
-	}
-
-	if s.BootstrapToken != nil {
-		fs.BoolVar(&s.BootstrapToken.Enable, "experimental-bootstrap-token-auth", s.BootstrapToken.Enable, ""+
-			"Deprecated (use --enable-bootstrap-token-auth).")
-		fs.MarkDeprecated("experimental-bootstrap-token-auth", "use --enable-bootstrap-token-auth instead.")
-
-		fs.BoolVar(&s.BootstrapToken.Enable, "enable-bootstrap-token-auth", s.BootstrapToken.Enable, ""+
-			"Enable to allow secrets of type 'bootstrap.kubernetes.io/token' in the 'kube-system' "+
-			"namespace to be used for TLS bootstrapping authentication.")
 	}
 
 	if s.ClientCert != nil {
@@ -189,10 +168,6 @@ func (s *StandaloneAuthenticationOptions) toAuthenticationConfig() authenticator
 
 	if s.Anonymous != nil {
 		ret.Anonymous = s.Anonymous.Allow
-	}
-
-	if s.BootstrapToken != nil {
-		ret.BootstrapToken = s.BootstrapToken.Enable
 	}
 
 	if s.ClientCert != nil {
