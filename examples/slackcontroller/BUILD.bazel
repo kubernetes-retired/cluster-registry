@@ -33,6 +33,5 @@ go_binary(
     name = "slackcontroller",
     embed = [":go_default_library"],
     importpath = "k8s.io/cluster-registry/examples/slackcontroller",
-    library = ":go_default_library",
     visibility = ["//visibility:public"],
 )
