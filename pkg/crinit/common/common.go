@@ -265,10 +265,13 @@ func CreateAPIServer(clientset client.Interface, namespace, name, serverImage,
 		argsMap["--token-auth-file"] = "/etc/clusterregistry/apiserver/token.csv"
 	}
 
-	args := util.ArgMapsToArgStrings(argsMap, argOverrides)
 	if aggregated {
 		command = append(command, "aggregated")
+	} else {
+		command = append(command, "standalone")
 	}
+
+	args := util.ArgMapsToArgStrings(argsMap, argOverrides)
 	command = append(command, args...)
 
 	replicas := int32(1)
