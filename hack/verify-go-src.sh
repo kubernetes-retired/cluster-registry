@@ -22,18 +22,10 @@ set -euo pipefail
 
 SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_ROOT}/.." && pwd)"
-TMP_GOPATH="$(mktemp -d /tmp/gopathXXXXXXXX)"
-TMP_REPO_ROOT="${TMP_GOPATH}/src/k8s.io/cluster-registry"
-TMP_GO_TOOLS_DIR="${TMP_GOPATH}/src/k8s.io/cluster-registry/hack/go-tools"
+GO_TOOLS_DIR="${SCRIPT_ROOT}/go-tools"
 
-# Called on EXIT after the temporary directories are created.
-function clean_up() {
-  if [[ "${TMP_GOPATH}" == "/tmp/gopath"* ]]; then
-    rm -rf "${TMP_GOPATH}"
-  fi
-}
-trap clean_up EXIT
-
+# run-checks runs each of the scripts described by pattern and outputs their
+# success or failure and the time it took to run it.
 function run-checks {
   local -r pattern=$1
 
@@ -41,7 +33,7 @@ function run-checks {
   do
     echo -e "Verifying ${t}"
     local start=$(date +%s)
-    cd ${TMP_REPO_ROOT} && "${t}" && tr=$? || tr=$?
+    cd ${REPO_ROOT} && "${t}" && tr=$? || tr=$?
     local elapsed=$(($(date +%s) - ${start}))
     if [[ ${tr} -eq 0 ]]; then
       echo -e "${color_green}SUCCESS${color_norm}  ${t}\t${elapsed}s"
@@ -52,19 +44,7 @@ function run-checks {
   done
 }
 
-# Set up the temporary GOPATH. This helps to run this script in a vanilla
-# environment, e.g. Prow, because the verify-govet.sh script called by this one
-# runs 'go list' which will print the import path for each package (e.g.
-# k8s.io/cluster-registry/...) to pass into 'go vet'. This results in go not
-# finding the package correctly if either GOPATH doesn't exist (in the case of
-# the current bazelbuild image), or the package exists but in a different path.
-# So this temporary GOPATH is set up to replicate the same import path
-# location.
-mkdir -p "${TMP_REPO_ROOT}"
-cp -r "${REPO_ROOT}/"* "${TMP_REPO_ROOT}"
-export GOPATH="${TMP_GOPATH}"
-
-echo "Working directory: ${TMP_REPO_ROOT}"
+echo "Working directory: ${REPO_ROOT}"
 
 # Some useful colors.
 if [[ -z "${color_start-}" ]]; then
@@ -76,5 +56,5 @@ if [[ -z "${color_start-}" ]]; then
 fi
 
 ret=0
-run-checks "${TMP_GO_TOOLS_DIR}/*.sh"
+run-checks "${GO_TOOLS_DIR}/*.sh"
 exit ${ret}
