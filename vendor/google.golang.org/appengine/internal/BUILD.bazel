@@ -34,8 +34,8 @@ go_test(
         "internal_vm_test.go",
         "net_test.go",
     ],
+    embed = [":go_default_library"],
     importpath = "google.golang.org/appengine/internal",
-    library = ":go_default_library",
     deps = [
         "//vendor/github.com/golang/protobuf/proto:go_default_library",
         "//vendor/golang.org/x/net/context:go_default_library",

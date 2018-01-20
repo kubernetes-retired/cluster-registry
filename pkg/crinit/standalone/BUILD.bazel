@@ -20,8 +20,8 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = ["standalone_test.go"],
+    embed = [":go_default_library"],
     importpath = "k8s.io/cluster-registry/pkg/crinit/standalone",
-    library = ":go_default_library",
     deps = [
         "//pkg/crinit/common:go_default_library",
         "//pkg/crinit/options:go_default_library",

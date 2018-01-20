@@ -33,8 +33,8 @@ go_test(
         "util_test.go",
         "yaml_test.go",
     ],
+    embed = [":go_default_library"],
     importpath = "github.com/go-openapi/swag",
-    library = ":go_default_library",
     deps = [
         "//vendor/github.com/stretchr/testify/assert:go_default_library",
         "//vendor/gopkg.in/yaml.v2:go_default_library",
