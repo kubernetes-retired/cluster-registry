@@ -19,6 +19,7 @@ package aggregated
 import (
 	"io"
 	"strings"
+	"time"
 
 	"k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
@@ -72,15 +73,28 @@ var (
 	extensionAPIServerRBName = v1alpha1.GroupName + ":extension-apiserver-authentication-reader"
 )
 
+const (
+	serviceAccountSecretTimeout = 30 * time.Second
+	canonicalNameFlag           = "canonical-name"
+)
+
 type aggregatedClusterRegistryOptions struct {
 	options.SubcommandOptions
 	apiServerServiceTypeString string
+	AggContext                 string
+	CanonicalName              string
 }
 
 func (o *aggregatedClusterRegistryOptions) Bind(flags *pflag.FlagSet) {
 	flags.StringVar(&o.apiServerServiceTypeString, options.APIServerServiceTypeFlag,
 		string(v1.ServiceTypeNodePort),
 		"The type of service to create for the cluster registry. Options: 'LoadBalancer', 'NodePort'.")
+	flags.StringVar(&o.AggContext, "agg-context",
+		"",
+		"Context of the aggregator. Defaults to same as "+options.HostClusterContextFlag+".")
+	flags.StringVar(&o.CanonicalName, canonicalNameFlag,
+		"",
+		"Canonical name of service running cluster registry (used when running outside of aggregator.")
 }
 
 // NewCmdAggregated defines the `aggregated` command with `init` and `delete`
