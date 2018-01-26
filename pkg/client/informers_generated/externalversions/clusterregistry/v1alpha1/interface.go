@@ -29,15 +29,17 @@ type Interface interface {
 }
 
 type version struct {
-	internalinterfaces.SharedInformerFactory
+	factory          internalinterfaces.SharedInformerFactory
+	namespace        string
+	tweakListOptions internalinterfaces.TweakListOptionsFunc
 }
 
 // New returns a new Interface.
-func New(f internalinterfaces.SharedInformerFactory) Interface {
-	return &version{f}
+func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakListOptions internalinterfaces.TweakListOptionsFunc) Interface {
+	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
 }
 
 // Clusters returns a ClusterInformer.
 func (v *version) Clusters() ClusterInformer {
-	return &clusterInformer{factory: v.SharedInformerFactory}
+	return &clusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

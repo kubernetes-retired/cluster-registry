@@ -17,6 +17,7 @@
 set -euo pipefail
 
 SCRIPT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+REPO_ROOT=$(cd ${SCRIPT_ROOT}/..; pwd)
 SCRIPT_BASE=$(cd ${SCRIPT_ROOT}/../..; pwd)
 REPO_DIRNAME=$(basename $(dirname "${SCRIPT_ROOT}"))
 TMP_GOPATH="$(mktemp -d /tmp/gopathXXXXXXXX)"
@@ -109,6 +110,24 @@ function generate_group() {
     --output-file-base zz_generated.conversion \
     "$4"
 
+  echo "generating protocol buffers for group ${GROUP_NAME} and version ${VERSION} at ${SCRIPT_BASE}/${CLIENT_PKG}"
+
+  # The generated go_binaries are not guaranteed to be in exactly the
+  # corresponding package in bazel-bin; there may be another
+  # architecture-specific subdirectory.
+  # The call to xargs trims leading whitespace.
+  PROTOC_GEN_GOGO_PATH="$(dirname "$(bazel build //vendor/k8s.io/code-generator/cmd/go-to-protobuf/protoc-gen-gogo:protoc-gen-gogo 2>&1 | grep bazel-bin | xargs)")"
+  PROTOC_PATH="$(dirname "$(bazel build @com_google_protobuf//:protoc 2>&1 | grep bazel-bin | xargs)")"
+
+  # The protocol buffer compiler expects that the tools that it runs are in the
+  # PATH.
+  PATH="$(bazel info workspace)/${PROTOC_PATH}:$(bazel info workspace)/${PROTOC_GEN_GOGO_PATH}:${PATH}" \
+    bazel run //vendor/k8s.io/code-generator/cmd/go-to-protobuf -- \
+      --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
+      --proto-import "$(bazel info output_base)/external/com_google_protobuf/src" \
+      --proto-import "$(bazel info workspace)/vendor" \
+      --packages "${APIS_PKG}/${GROUP_NAME}/${VERSION}"
+
   echo "generating openapi"
   mkdir -p "${OUTPUT_BASE}/${OPENAPI_PKG}"
   bazel run //vendor/k8s.io/code-generator/cmd/openapi-gen -- \
@@ -124,9 +143,11 @@ function generate_group() {
 mkdir -p "${TMP_GOPATH}/src/k8s.io/cluster-registry"
 mkdir -p "${TMP_GOPATH}/src/k8s.io/apimachinery"
 mkdir -p "${TMP_GOPATH}/src/k8s.io/kube-openapi"
+mkdir -p "${TMP_GOPATH}/src/github.com/gogo"
 cp -r "${SCRIPT_ROOT}/../"* "${TMP_GOPATH}/src/k8s.io/cluster-registry"
 cp -r "${SCRIPT_ROOT}/../vendor/k8s.io/apimachinery/"* "${TMP_GOPATH}/src/k8s.io/apimachinery"
 cp -r "${SCRIPT_ROOT}/../vendor/k8s.io/kube-openapi/"* "${TMP_GOPATH}/src/k8s.io/kube-openapi"
+cp -r "${SCRIPT_ROOT}/../vendor/github.com/gogo/"* "${TMP_GOPATH}/src/github.com/gogo"
 
 # In verify mode, generate into the temporary GOPATH.
 OUTPUT_BASE="${GEN_TMPDIR}"
