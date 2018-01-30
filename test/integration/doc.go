@@ -14,6 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package testing contains an integration test harness and an integration test
+// Package integration contains an integration test harness and an integration test
 // for the cluster registry API server.
-package testing
+package integration
