@@ -38,6 +38,7 @@ import (
 const (
 	lbAddrRetryInterval = 5 * time.Second
 	podWaitInterval     = 2 * time.Second
+	podWaitTimeout      = 3 * time.Minute
 
 	apiServerSecurePortName = "https"
 	// Set the secure port to 8443 to avoid requiring root privileges
@@ -407,7 +408,7 @@ func WaitForLoadBalancerAddress(cmdOut io.Writer, clientset client.Interface, sv
 }
 
 func WaitForPods(cmdOut io.Writer, clientset client.Interface, pods []string, namespace string) error {
-	err := wait.PollInfinite(podWaitInterval, func() (bool, error) {
+	err := wait.PollImmediate(podWaitInterval, podWaitTimeout, func() (bool, error) {
 		fmt.Fprint(cmdOut, ".")
 		podCheck := len(pods)
 		podList, err := clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{})
@@ -432,10 +433,11 @@ func WaitForPods(cmdOut io.Writer, clientset client.Interface, pods []string, na
 
 func WaitSrvHealthy(cmdOut io.Writer, crClientset client.Interface) error {
 	discoveryClient := crClientset.Discovery()
-	return wait.PollInfinite(podWaitInterval, func() (bool, error) {
+	var innerErr error
+	err := wait.PollImmediate(podWaitInterval, podWaitTimeout, func() (bool, error) {
 		fmt.Fprint(cmdOut, ".")
-		body, err := discoveryClient.RESTClient().Get().AbsPath("/healthz").Do().Raw()
-		if err != nil {
+		body, innerErr := discoveryClient.RESTClient().Get().AbsPath("/healthz").Do().Raw()
+		if innerErr != nil {
 			return false, nil
 		}
 		if strings.EqualFold(string(body), "ok") {
@@ -443,4 +445,9 @@ func WaitSrvHealthy(cmdOut io.Writer, crClientset client.Interface) error {
 		}
 		return false, nil
 	})
+
+	if err != nil && innerErr != nil {
+		return innerErr
+	}
+	return err
 }

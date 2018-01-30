@@ -24,14 +24,17 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 	client "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/cert"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
+	crclient "k8s.io/cluster-registry/pkg/client/clientset_generated/clientset"
 	"k8s.io/cluster-registry/pkg/crinit/common"
 	"k8s.io/cluster-registry/pkg/crinit/options"
 	"k8s.io/cluster-registry/pkg/crinit/util"
@@ -227,8 +230,13 @@ func Run(opts *aggregatedClusterRegistryOptions, cmdOut io.Writer,
 		return err
 	}
 
-	return opts.WaitForAPIServer(cmdOut, hostClientset, pathOptions, ips,
+	err = opts.WaitForAPIServer(cmdOut, hostClientset, pathOptions, ips,
 		hostnames, svc)
+	if err != nil {
+		return err
+	}
+
+	return waitForAggregator(cmdOut, opts.Host, opts.Kubeconfig, pathOptions)
 }
 
 // createRBACObjects handles the creation of all the RBAC objects necessary
@@ -484,4 +492,44 @@ func createAPIServiceObject(clientset apiregclient.Interface,
 	}
 
 	return clientset.ApiregistrationV1beta1().APIServices().Create(apiSvc)
+}
+
+// waitForAggregator waits for the aggregated API server that is aggregating the
+// cluster registry to be successfully serving clusters. Returns an error if the
+// aggregator is not serving clusters after some time.
+func waitForAggregator(cmdOut io.Writer, host, kubeconfig string,
+	pathOptions *clientcmd.PathOptions) error {
+	fmt.Fprint(cmdOut, "Waiting for the cluster registry API to be available via the aggregator...")
+	glog.V(4).Info("Waiting for the cluster registry API to be available from the aggregator")
+
+	hostConfig, err := util.GetClientConfig(pathOptions, host, kubeconfig).ClientConfig()
+	if err != nil {
+		return err
+	}
+
+	crClientset, err := crclient.NewForConfig(hostConfig)
+	if err != nil {
+		return err
+	}
+
+	var listErr error
+	err = wait.PollImmediate(2*time.Second, 1*time.Minute, func() (bool, error) {
+		fmt.Fprint(cmdOut, ".")
+		_, listErr = crClientset.ClusterregistryV1alpha1().Clusters().List(metav1.ListOptions{})
+		if listErr != nil {
+			return false, nil
+		}
+		return true, nil
+	})
+
+	// The last list error received is more relevant to the caller than the fact
+	// that the timeout was hit.
+	if err != nil {
+		return listErr
+	}
+
+	fmt.Fprintln(cmdOut, " done")
+	glog.V(4).Info("Successfully listed clusters from the aggregated API server.")
+
+	return nil
 }

@@ -367,21 +367,30 @@ func (o *SubcommandOptions) WaitForAPIServer(cmdOut io.Writer,
 		return err
 	}
 
-	crConfig, err := util.GetClientConfig(pathOptions, o.Name, o.Kubeconfig).ClientConfig()
+	switch o.APIServerServiceType {
+	case v1.ServiceTypeLoadBalancer:
+		crConfig, err := util.GetClientConfig(pathOptions, o.Name, o.Kubeconfig).ClientConfig()
+		if err != nil {
+			return err
+		}
 
-	if err != nil {
-		return err
-	}
-	crClientset, err := client.NewForConfig(crConfig)
+		crClientset, err := client.NewForConfig(crConfig)
+		if err != nil {
+			return err
+		}
 
-	if err != nil {
-		return err
-	}
-
-	err = common.WaitSrvHealthy(cmdOut, crClientset)
-
-	if err != nil {
-		return err
+		err = common.WaitSrvHealthy(cmdOut, crClientset)
+		if err != nil {
+			return err
+		}
+	case v1.ServiceTypeNodePort:
+		fmt.Fprintf(cmdOut, "\nThe cluster registry API pods are running, but "+
+			"they are exposed by a NodePort service, so this tool cannot reliably "+
+			"verify that they are accessible. You will need to ensure that your "+
+			"nodes are routable from this machine in order for kubectl to work "+
+			"as-is with the '%v' context.\n", o.Name)
+	default:
+		return fmt.Errorf("Unexpected service type: %v", o.APIServerServiceType)
 	}
 
 	glog.V(4).Info("Cluster registry running")
