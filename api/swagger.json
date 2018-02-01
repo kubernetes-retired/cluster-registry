@@ -1487,15 +1487,6 @@
      }
     }
    },
-   "io.k8s.cluster-registry.pkg.apis.clusterregistry.v1alpha1.CloudProvider": {
-    "description": "CloudProvider contains information about the cloud provider this cluster is running on.",
-    "properties": {
-     "name": {
-      "description": "Name is the name of the cloud provider for this cluster.",
-      "type": "string"
-     }
-    }
-   },
    "io.k8s.cluster-registry.pkg.apis.clusterregistry.v1alpha1.Cluster": {
     "description": "Cluster contains information about a cluster in a cluster registry.",
     "properties": {
@@ -1568,10 +1559,6 @@
      "authInfo": {
       "description": "AuthInfo contains public information that can be used to authenticate to and authorize with this cluster. It is not meant to store private information (e.g., tokens or client certificates) and cluster registry implementations are not expected to provide hardened storage for secrets.",
       "$ref": "#/definitions/io.k8s.cluster-registry.pkg.apis.clusterregistry.v1alpha1.AuthInfo"
-     },
-     "cloudProvider": {
-      "description": "CloudProvider contains information about the cloud provider this cluster is running on.",
-      "$ref": "#/definitions/io.k8s.cluster-registry.pkg.apis.clusterregistry.v1alpha1.CloudProvider"
      },
      "kubernetesApiEndpoints": {
       "description": "KubernetesAPIEndpoints represents the endpoints of the API server for this cluster.",

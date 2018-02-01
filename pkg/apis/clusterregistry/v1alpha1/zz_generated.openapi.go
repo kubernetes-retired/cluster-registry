@@ -1687,23 +1687,6 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 			},
 			Dependencies: []string{},
 		},
-		"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1.CloudProvider": {
-			Schema: spec.Schema{
-				SchemaProps: spec.SchemaProps{
-					Description: "CloudProvider contains information about the cloud provider this cluster is running on.",
-					Properties: map[string]spec.Schema{
-						"name": {
-							SchemaProps: spec.SchemaProps{
-								Description: "Name is the name of the cloud provider for this cluster.",
-								Type:        []string{"string"},
-								Format:      "",
-							},
-						},
-					},
-				},
-			},
-			Dependencies: []string{},
-		},
 		"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1.Cluster": {
 			Schema: spec.Schema{
 				SchemaProps: spec.SchemaProps{
@@ -1809,17 +1792,11 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 								Ref:         ref("k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1.AuthInfo"),
 							},
 						},
-						"cloudProvider": {
-							SchemaProps: spec.SchemaProps{
-								Description: "CloudProvider contains information about the cloud provider this cluster is running on.",
-								Ref:         ref("k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1.CloudProvider"),
-							},
-						},
 					},
 				},
 			},
 			Dependencies: []string{
-				"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1.AuthInfo", "k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1.CloudProvider", "k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1.KubernetesAPIEndpoints"},
+				"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1.AuthInfo", "k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1.KubernetesAPIEndpoints"},
 		},
 		"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1.ClusterStatus": {
 			Schema: spec.Schema{

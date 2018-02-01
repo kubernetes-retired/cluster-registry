@@ -73,14 +73,6 @@ message AuthProviderType {
   optional string name = 1;
 }
 
-// CloudProvider contains information about the cloud provider this cluster is
-// running on.
-message CloudProvider {
-  // Name is the name of the cloud provider for this cluster.
-  // +optional
-  optional string name = 1;
-}
-
 // Cluster contains information about a cluster in a cluster registry.
 message Cluster {
   // Standard object's metadata.
@@ -124,11 +116,6 @@ message ClusterSpec {
   // secrets.
   // +optional
   optional AuthInfo authInfo = 2;
-
-  // CloudProvider contains information about the cloud provider this cluster
-  // is running on.
-  // +optional
-  optional CloudProvider cloudProvider = 3;
 }
 
 // ClusterStatus contains the status of a cluster.
