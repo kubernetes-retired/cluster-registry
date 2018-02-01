@@ -82,15 +82,17 @@ func testClusterGet(t *testing.T, clientset *crclientset.Clientset, clusterName 
 }
 
 func testClusterUpdate(t *testing.T, clientset *crclientset.Clientset, clusterName string) {
-	cloudProviderName := "clusterCloudProvider"
+	authProviderName := "authProviderName"
 
 	cluster := &v1alpha1.Cluster{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: clusterName,
 		},
 		Spec: v1alpha1.ClusterSpec{
-			CloudProvider: &v1alpha1.CloudProvider{
-				Name: cloudProviderName,
+			AuthInfo: v1alpha1.AuthInfo{
+				Providers: []v1alpha1.AuthProviderConfig{
+					{Name: authProviderName},
+				},
 			},
 		},
 	}
@@ -103,9 +105,9 @@ func testClusterUpdate(t *testing.T, clientset *crclientset.Clientset, clusterNa
 		t.Fatalf("Expected a cluster, got nil")
 	} else if cluster.Name != clusterName {
 		t.Fatalf("Expected a cluster named 'cluster', got a cluster named '%v'.", cluster.Name)
-	} else if cluster.Spec.CloudProvider.Name != cloudProviderName {
-		t.Fatalf("Expected a cluster cloud provider named '%v', got cluster cloud provider '%v'",
-			cloudProviderName, cluster.Spec.CloudProvider.Name)
+	} else if len(cluster.Spec.AuthInfo.Providers) != 1 || cluster.Spec.AuthInfo.Providers[0].Name != authProviderName {
+		t.Fatalf("Expected a cluster auth provider named '%v', got cluster auth provider '%v'",
+			authProviderName, cluster.Spec.AuthInfo.Providers[0].Name)
 	}
 }
 

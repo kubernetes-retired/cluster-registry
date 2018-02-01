@@ -57,11 +57,6 @@ type ClusterSpec struct {
 	// secrets.
 	// +optional
 	AuthInfo AuthInfo `json:"authInfo,omitempty" protobuf:"bytes,2,opt,name=authInfo"`
-
-	// CloudProvider contains information about the cloud provider this cluster
-	// is running on.
-	// +optional
-	CloudProvider *CloudProvider `json:"cloudProvider" protobuf:"bytes,3,opt,name=cloudProvider"`
 }
 
 // ClusterStatus contains the status of a cluster.
@@ -135,14 +130,6 @@ type AuthProviderConfig struct {
 // request a token.
 type AuthProviderType struct {
 	// Name is the name of the auth provider.
-	// +optional
-	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
-}
-
-// CloudProvider contains information about the cloud provider this cluster is
-// running on.
-type CloudProvider struct {
-	// Name is the name of the cloud provider for this cluster.
 	// +optional
 	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
 }
