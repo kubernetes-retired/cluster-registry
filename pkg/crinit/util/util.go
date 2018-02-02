@@ -170,6 +170,54 @@ func UpdateKubeconfig(pathOptions *clientcmd.PathOptions, name, endpoint,
 	return nil
 }
 
+// DeleteKubeconfigEntry helper to delete the kubeconfig file entry based on input
+// parameters.
+func DeleteKubeconfigEntry(out io.Writer, pathOptions *clientcmd.PathOptions, name,
+	kubeConfigPath string, dryRun bool) error {
+
+	pathOptions.LoadingRules.ExplicitPath = kubeConfigPath
+	kubeconfig, err := pathOptions.GetStartingConfig()
+	if err != nil {
+		return err
+	}
+
+	kubeconfigFile := pathOptions.GetDefaultFilename()
+	if pathOptions.IsExplicitFile() {
+		kubeconfigFile = pathOptions.GetExplicitFile()
+	}
+
+	if dryRun {
+		return nil
+	}
+
+	_, ok := kubeconfig.Contexts[name]
+	if !ok {
+		return fmt.Errorf("cannot delete context %s, not in %s", name, kubeconfigFile)
+	}
+
+	_, ok = kubeconfig.Clusters[name]
+	if !ok {
+		return fmt.Errorf("cannot delete cluster %s, not in %s", name, kubeconfigFile)
+	}
+
+	delete(kubeconfig.Contexts, name)
+	delete(kubeconfig.Clusters, name)
+
+	// Write the updated kubeconfig.
+	if err := clientcmd.ModifyConfig(pathOptions, *kubeconfig, true); err != nil {
+		return err
+	}
+
+	glog.V(4).Infof("deleted context and cluster %s from %s\n", name, kubeconfigFile)
+
+	if kubeconfig.CurrentContext == name {
+		fmt.Fprint(out,
+			"warning: this removed your active context, use \"kubectl config use-context\" to select a different one\n")
+	}
+
+	return nil
+}
+
 func PrintSuccess(cmdOut io.Writer, ips, hostnames []string, svc *v1.Service) error {
 	svcEndpoints := append(ips, hostnames...)
 	endpoints := strings.Join(svcEndpoints, ", ")

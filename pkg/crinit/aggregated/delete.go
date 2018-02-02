@@ -17,12 +17,15 @@ limitations under the License.
 package aggregated
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	client "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/cluster-registry/pkg/crinit/common"
 	"k8s.io/cluster-registry/pkg/crinit/util"
 	apiregclient "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
 )
@@ -41,7 +44,7 @@ var (
 	crinit aggregated delete foo --host-cluster-context=bar`
 )
 
-// newSubCmdDelete defines the `delete` subcommand to bootstrap a cluster registry
+// newSubCmdDelete defines the `delete` subcommand to remove a cluster registry
 // inside a host Kubernetes cluster.
 func newSubCmdDelete(cmdOut io.Writer, pathOptions *clientcmd.PathOptions) *cobra.Command {
 	opts := &aggregatedClusterRegistryOptions{}
@@ -61,15 +64,18 @@ func newSubCmdDelete(cmdOut io.Writer, pathOptions *clientcmd.PathOptions) *cobr
 			if err != nil {
 				glog.Fatalf("error: %v", err)
 			}
+
 			hostClientset, err := client.NewForConfig(hostConfig)
 			if err != nil {
 				glog.Fatalf("error: %v", err)
 			}
+
 			apiServiceClientset, err := apiregclient.NewForConfig(hostConfig)
 			if err != nil {
 				glog.Fatalf("error: %v", err)
 			}
-			err = RunDelete(opts, cmdOut, hostClientset, apiServiceClientset, pathOptions)
+
+			err = runDelete(opts, cmdOut, hostClientset, apiServiceClientset, pathOptions)
 			if err != nil {
 				glog.Fatalf("error: %v", err)
 			}
@@ -81,9 +87,195 @@ func newSubCmdDelete(cmdOut io.Writer, pathOptions *clientcmd.PathOptions) *cobr
 	return delCmd
 }
 
-// RunDelete deletes a cluster registry.
-func RunDelete(opts *aggregatedClusterRegistryOptions, cmdOut io.Writer,
+// runDelete deletes a cluster registry.
+func runDelete(opts *aggregatedClusterRegistryOptions, cmdOut io.Writer,
 	hostClientset client.Interface, apiSvcClientset apiregclient.Interface,
 	pathOptions *clientcmd.PathOptions) error {
+
+	// Only necessary to delete the cluster registry namespace, the cluster
+	// registry API service, the RBAC objects that are not in the cluster
+	// registry namespace (those that are not removed by removing the
+	// namespace), and the kubeconfig entry.
+
+	err := common.DeleteKubeconfigEntry(cmdOut, pathOptions, opts.Name,
+		opts.Kubeconfig, opts.DryRun)
+	if err != nil {
+		return err
+	}
+
+	err = deleteAPIService(cmdOut, apiSvcClientset, opts)
+	if err != nil {
+		return err
+	}
+
+	err = deleteRBACObjects(cmdOut, hostClientset, opts)
+	if err != nil {
+		return err
+	}
+
+	err = common.DeleteNamespace(cmdOut, hostClientset,
+		opts.ClusterRegistryNamespace, opts.DryRun)
+	if err != nil {
+		return err
+	}
+
+	err = common.WaitForClusterRegistryDeletion(cmdOut, hostClientset,
+		opts.ClusterRegistryNamespace, opts.DryRun)
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+// deleteAPIService deletes the Kubernetes API Service for the cluster
+// registry cluster objects.
+func deleteAPIService(cmdOut io.Writer, clientset apiregclient.Interface,
+	opts *aggregatedClusterRegistryOptions) error {
+
+	fmt.Fprint(cmdOut, "Deleting cluster registry Kubernetes API Service...")
+	glog.V(4).Infof("Deleting cluster registry Kubernetes API Service %v", apiServiceName)
+
+	err := deleteAPIServiceObject(clientset, apiServiceName, opts.DryRun)
+
+	if err != nil {
+		glog.V(4).Infof("Failed to delete cluster registry Kubernetes API Service %v: %v",
+			apiServiceName, err)
+		return err
+	}
+
+	fmt.Fprintln(cmdOut, " done")
+	glog.V(4).Info("Successfully deleted cluster registry Kubernetes API Service")
+
+	return nil
+}
+
+// deleteAPIServiceObject deletes the cluster registry API Service object.
+func deleteAPIServiceObject(clientset apiregclient.Interface, name string,
+	dryRun bool) error {
+
+	if dryRun {
+		return nil
+	}
+
+	return clientset.ApiregistrationV1beta1().APIServices().Delete(name,
+		&metav1.DeleteOptions{})
+}
+
+// deleteRBACObjects handles the deletion of the RBAC objects not in the
+// cluster registry namespace necessary to remove the aggregated cluster
+// registry.
+func deleteRBACObjects(cmdOut io.Writer, clientset client.Interface,
+	opts *aggregatedClusterRegistryOptions) error {
+
+	fmt.Fprintf(cmdOut, "Deleting RBAC objects...")
+
+	// Delete the role binding that allows the cluster registry service account to
+	// access the extension-apiserver-authentication configmap.
+	glog.V(4).Infof("Deleting role %v for accessing extension-apiserver-authentication ConfigMap",
+		extensionAPIServerRBName)
+
+	err := deleteExtensionAPIServerAuthenticationRoleBinding(clientset,
+		extensionAPIServerRBName, opts.DryRun)
+
+	if err != nil {
+		glog.V(4).Infof("Failed to delete extension-apiserver-authentication ConfigMap reader role binding")
+		return err
+	}
+
+	// Delete Kubernetes cluster role bindings for the default service account
+	// in our namespace.
+	glog.V(4).Infof("Deleting cluster role bindings %v and %v", apiServerCRBName,
+		authDelegatorCRBName)
+
+	err = deleteClusterRoleBindings(clientset, opts.ClusterRegistryNamespace,
+		opts.DryRun)
+
+	if err != nil {
+		glog.V(4).Infof("Failed to delete cluster role bindings")
+		return err
+	}
+
+	glog.V(4).Info("Successfully deleted cluster role bindings")
+
+	// Delete the Kubernetes cluster role that allows REST operations on our
+	// cluster registry API resources e.g. Cluster.
+	glog.V(4).Infof("Deleting cluster role %v", clusterRoleName)
+
+	err = deleteClusterRole(clientset, opts.DryRun)
+
+	if err != nil {
+		glog.V(4).Infof("Failed to delete cluster role %v: %v", clusterRoleName, err)
+		return err
+	}
+
+	glog.V(4).Info("Successfully deleted cluster role")
+
+	fmt.Fprintln(cmdOut, " done")
+	return nil
+}
+
+// deleteExtensionAPIServerAuthenticationRoleBinding deletes the rolebinding
+// object that allows the cluster registry to access the extension-apiserver-authentication
+// ConfigMap.
+func deleteExtensionAPIServerAuthenticationRoleBinding(clientset client.Interface,
+	name string, dryRun bool) error {
+	if dryRun {
+		return nil
+	}
+
+	return clientset.RbacV1().RoleBindings("kube-system").Delete(name,
+		&metav1.DeleteOptions{})
+}
+
+// deleteClusterRoleBindings deletes the cluster role bindings for the
+// operations that we allow on our cluster registry API resources.
+func deleteClusterRoleBindings(clientset client.Interface,
+	namespace string, dryRun bool) error {
+
+	// Delete cluster role binding for the clusterregistry.k8s.io:apiserver
+	// cluster role.
+	err := deleteClusterRoleBindingObject(clientset, apiServerCRBName, dryRun)
+
+	if err != nil {
+		glog.V(4).Infof("Failed to delete cluster role binding %v: %v",
+			apiServerCRBName, err)
+		return err
+	}
+
+	// Delete cluster role binding for the system:auth-delegator cluster role.
+	err = deleteClusterRoleBindingObject(clientset, authDelegatorCRBName, dryRun)
+
+	if err != nil {
+		glog.V(4).Infof("Failed to delete cluster role binding %v: %v",
+			authDelegatorCRBName, err)
+		return err
+	}
+
+	return nil
+}
+
+// deleteClusterRoleBindingObject deletes the cluster role binding
+// requested.
+func deleteClusterRoleBindingObject(clientset client.Interface, name string,
+	dryRun bool) error {
+
+	if dryRun {
+		return nil
+	}
+
+	return clientset.RbacV1().ClusterRoleBindings().Delete(name,
+		&metav1.DeleteOptions{})
+}
+
+// deleteClusterRole deletes the cluster role for the operations we will allow
+// on our cluster registry API resources e.g. Cluster.
+func deleteClusterRole(clientset client.Interface, dryRun bool) error {
+
+	if dryRun {
+		return nil
+	}
+
+	return clientset.RbacV1().ClusterRoles().Delete(clusterRoleName,
+		&metav1.DeleteOptions{})
 }

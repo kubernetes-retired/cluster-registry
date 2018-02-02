@@ -32,6 +32,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/cert"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
+	crclient "k8s.io/cluster-registry/pkg/client/clientset_generated/clientset"
 	"k8s.io/cluster-registry/pkg/crinit/common"
 	"k8s.io/cluster-registry/pkg/crinit/util"
 	apiregv1beta1 "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1"
@@ -95,7 +96,7 @@ func newSubCmdInit(cmdOut io.Writer, pathOptions *clientcmd.PathOptions,
 				glog.Fatalf("error: %v", err)
 			}
 
-			err = RunInit(opts, cmdOut, hostClientset, apiServiceClientset, pathOptions)
+			err = runInit(opts, cmdOut, hostClientset, apiServiceClientset, pathOptions)
 			if err != nil {
 				glog.Fatalf("error: %v", err)
 			}
@@ -115,8 +116,8 @@ func validateOptions(opts *aggregatedClusterRegistryOptions) error {
 	return opts.ValidateCommonOptions()
 }
 
-// RunInit initializes a cluster registry.
-func RunInit(opts *aggregatedClusterRegistryOptions, cmdOut io.Writer,
+// runInit initializes a cluster registry.
+func runInit(opts *aggregatedClusterRegistryOptions, cmdOut io.Writer,
 	hostClientset client.Interface, apiSvcClientset apiregclient.Interface,
 	pathOptions *clientcmd.PathOptions) error {
 
