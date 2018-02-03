@@ -173,7 +173,7 @@ func UpdateKubeconfig(pathOptions *clientcmd.PathOptions, name, endpoint,
 // DeleteKubeconfigEntry helper to delete the kubeconfig file entry based on input
 // parameters.
 func DeleteKubeconfigEntry(out io.Writer, pathOptions *clientcmd.PathOptions, name,
-	kubeConfigPath string, dryRun bool) error {
+	kubeConfigPath string, dryRun, ignoreErrors bool) error {
 
 	pathOptions.LoadingRules.ExplicitPath = kubeConfigPath
 	kubeconfig, err := pathOptions.GetStartingConfig()
@@ -190,25 +190,59 @@ func DeleteKubeconfigEntry(out io.Writer, pathOptions *clientcmd.PathOptions, na
 		return nil
 	}
 
+	// If we are not going to ignore errors, then return an error immediately
+	// on the first error encountered. If ignoring errors, then only output
+	// errors when verbose logging is enabled. If it turns out that all three:
+	// context, cluster, and authinfo were not found, then return an error as
+	// there is no point in updating the kubeconfig; returning an error in this
+	// case is okay because the ignore errors flag will also be checked by a
+	// caller of this function.
+	errCount := 0
+
 	_, ok := kubeconfig.Contexts[name]
 	if !ok {
-		return fmt.Errorf("cannot delete context %s, not in %s", name, kubeconfigFile)
+		if !ignoreErrors {
+			return fmt.Errorf("cannot delete context %s, not in %s", name, kubeconfigFile)
+		}
+		glog.V(4).Infof("cannot delete context %s, not in %s", name, kubeconfigFile)
+		errCount++
+	} else {
+		delete(kubeconfig.Contexts, name)
 	}
 
 	_, ok = kubeconfig.Clusters[name]
 	if !ok {
-		return fmt.Errorf("cannot delete cluster %s, not in %s", name, kubeconfigFile)
+		if !ignoreErrors {
+			return fmt.Errorf("cannot delete cluster %s, not in %s", name, kubeconfigFile)
+		}
+		glog.V(4).Infof("cannot delete cluster %s, not in %s", name, kubeconfigFile)
+		errCount++
+	} else {
+		delete(kubeconfig.Clusters, name)
 	}
 
-	delete(kubeconfig.Contexts, name)
-	delete(kubeconfig.Clusters, name)
+	_, ok = kubeconfig.AuthInfos[name]
+	if !ok {
+		if !ignoreErrors {
+			return fmt.Errorf("cannot delete authinfo %s, not in %s", name, kubeconfigFile)
+		}
+		glog.V(4).Infof("cannot delete authinfo %s, not in %s", name, kubeconfigFile)
+		errCount++
+	} else {
+		delete(kubeconfig.AuthInfos, name)
+	}
+
+	if errCount == 3 {
+		return fmt.Errorf("Could not find any cluster registry context, cluster, or authinfo information for %s in your kubeconfig.",
+			name)
+	}
 
 	// Write the updated kubeconfig.
 	if err := clientcmd.ModifyConfig(pathOptions, *kubeconfig, true); err != nil {
 		return err
 	}
 
-	glog.V(4).Infof("deleted context and cluster %s from %s\n", name, kubeconfigFile)
+	glog.V(4).Infof("deleted kubeconfig entry %s from %s\n", name, kubeconfigFile)
 
 	if kubeconfig.CurrentContext == name {
 		fmt.Fprint(out,

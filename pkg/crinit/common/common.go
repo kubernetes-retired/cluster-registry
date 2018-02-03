@@ -491,12 +491,13 @@ func WaitSrvHealthy(cmdOut io.Writer, crClientset client.Interface) error {
 // registry entry that was previously added when the cluster registry was
 // initialized.
 func DeleteKubeconfigEntry(cmdOut io.Writer, pathOptions *clientcmd.PathOptions,
-	name, kubeconfig string, dryRun bool) error {
+	name, kubeconfig string, dryRun, ignoreErrors bool) error {
 
 	fmt.Fprintf(cmdOut, "Delete kubeconfig entry %s...", name)
 	glog.V(4).Infof("Delete kubeconfig entry %s", name)
 
-	err := util.DeleteKubeconfigEntry(cmdOut, pathOptions, name, kubeconfig, dryRun)
+	err := util.DeleteKubeconfigEntry(cmdOut, pathOptions, name, kubeconfig,
+		dryRun, ignoreErrors)
 
 	if err != nil {
 		glog.V(4).Infof("Failed to delete kubeconfig entry %s: %v", name, err)

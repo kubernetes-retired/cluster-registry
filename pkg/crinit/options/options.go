@@ -66,6 +66,7 @@ type SubcommandOptions struct {
 	EtcdPVStorageClass        string
 	EtcdPersistentStorage     bool
 	DryRun                    bool
+	IgnoreErrors              bool
 	APIServerOverridesString  string
 	APIServerOverrides        map[string]string
 	APIServerServiceType      v1.ServiceType
@@ -74,9 +75,9 @@ type SubcommandOptions struct {
 	APIServerNodePortPortPtr  *int32
 }
 
-// BindBase adds the base options that are shared by all commands to the list
+// BindCommon adds the common options that are shared by all commands to the list
 // of flags.
-func (o *SubcommandOptions) BindBase(flags *pflag.FlagSet) {
+func (o *SubcommandOptions) BindCommon(flags *pflag.FlagSet) {
 	flags.StringVar(&o.Kubeconfig, "kubeconfig", "",
 		"Path to the kubeconfig file to use for CLI requests.")
 	flags.StringVar(&o.Host, "host-cluster-context", "",
@@ -88,9 +89,9 @@ func (o *SubcommandOptions) BindBase(flags *pflag.FlagSet) {
 		"Run the command in dry-run mode, without making any server requests.")
 }
 
-// BindCommon adds the common options that are shared by the aggregated and
-// standalone sub-commands to the list of flags.
-func (o *SubcommandOptions) BindCommon(flags *pflag.FlagSet, defaultServerImage, defaultEtcdImage string) {
+// BindCommonInit adds the common options that are shared by the aggregated and
+// standalone init sub-commands to the list of flags.
+func (o *SubcommandOptions) BindCommonInit(flags *pflag.FlagSet, defaultServerImage, defaultEtcdImage string) {
 	flags.StringVar(&o.ServerImage, "image", defaultServerImage,
 		"Image to use for the cluster registry API server binary.")
 	flags.StringVar(&o.EtcdImage, "etcd-image", defaultEtcdImage,
@@ -107,6 +108,13 @@ func (o *SubcommandOptions) BindCommon(flags *pflag.FlagSet, defaultServerImage,
 		"Preferred address at which to advertise the cluster registry API server NodePort service. Valid only if '"+APIServerServiceTypeFlag+"=NodePort'.")
 	flags.Int32Var(&o.APIServerNodePortPort, apiserverPortFlag, 0,
 		"Preferred port to use for the cluster registry API server NodePort service. Set to 0 to randomly assign a port. Valid only if '"+APIServerServiceTypeFlag+"=NodePort'.")
+}
+
+// BindCommonDelete adds the common options that are shared by the aggregated and
+// standalone delete sub-commands to the list of flags.
+func (o *SubcommandOptions) BindCommonDelete(flags *pflag.FlagSet) {
+	flags.BoolVar(&o.IgnoreErrors, "ignore-errors", false,
+		"Run the command and ignore errors encountered while deleting all resources previously created by init.")
 }
 
 // SetName sets the name of the cluster registry.

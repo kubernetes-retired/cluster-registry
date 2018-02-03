@@ -104,8 +104,8 @@ func newSubCmdInit(cmdOut io.Writer, pathOptions *clientcmd.PathOptions,
 	}
 
 	flags := initCmd.Flags()
-	opts.BindBase(flags)
-	opts.BindCommon(flags, defaultServerImage, defaultEtcdImage)
+	opts.BindCommon(flags)
+	opts.BindCommonInit(flags, defaultServerImage, defaultEtcdImage)
 	opts.Bind(flags)
 	return initCmd
 }

@@ -83,7 +83,8 @@ func newSubCmdDelete(cmdOut io.Writer, pathOptions *clientcmd.PathOptions) *cobr
 	}
 
 	flags := delCmd.Flags()
-	opts.BindBase(flags)
+	opts.BindCommon(flags)
+	opts.BindCommonDelete(flags)
 	return delCmd
 }
 
@@ -98,31 +99,51 @@ func runDelete(opts *aggregatedClusterRegistryOptions, cmdOut io.Writer,
 	// namespace), and the kubeconfig entry.
 
 	err := common.DeleteKubeconfigEntry(cmdOut, pathOptions, opts.Name,
-		opts.Kubeconfig, opts.DryRun)
+		opts.Kubeconfig, opts.DryRun, opts.IgnoreErrors)
 	if err != nil {
-		return err
+		if !opts.IgnoreErrors {
+			return err
+		} else {
+			glog.Infof("error: %v", err)
+		}
 	}
 
 	err = deleteAPIService(cmdOut, apiSvcClientset, opts)
 	if err != nil {
-		return err
+		if !opts.IgnoreErrors {
+			return err
+		} else {
+			glog.Infof("error: %v", err)
+		}
 	}
 
 	err = deleteRBACObjects(cmdOut, hostClientset, opts)
 	if err != nil {
-		return err
+		if !opts.IgnoreErrors {
+			return err
+		} else {
+			glog.Infof("error: %v", err)
+		}
 	}
 
 	err = common.DeleteNamespace(cmdOut, hostClientset,
 		opts.ClusterRegistryNamespace, opts.DryRun)
 	if err != nil {
-		return err
+		if !opts.IgnoreErrors {
+			return err
+		} else {
+			glog.Infof("error: %v", err)
+		}
 	}
 
 	err = common.WaitForClusterRegistryDeletion(cmdOut, hostClientset,
 		opts.ClusterRegistryNamespace, opts.DryRun)
 	if err != nil {
-		return err
+		if !opts.IgnoreErrors {
+			return err
+		} else {
+			glog.Infof("error: %v", err)
+		}
 	}
 
 	return nil
