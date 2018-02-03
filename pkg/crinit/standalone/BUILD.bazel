@@ -2,7 +2,11 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
-    srcs = ["standalone.go"],
+    srcs = [
+        "doc.go",
+        "init.go",
+        "standalone.go",
+    ],
     importpath = "k8s.io/cluster-registry/pkg/crinit/standalone",
     visibility = ["//visibility:public"],
     deps = [
