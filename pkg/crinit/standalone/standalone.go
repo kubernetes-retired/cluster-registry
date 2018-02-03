@@ -56,5 +56,6 @@ func NewCmdStandalone(cmdOut io.Writer, pathOptions *clientcmd.PathOptions,
 	}
 
 	cmd.AddCommand(newSubCmdInit(cmdOut, pathOptions, defaultServerImage, defaultEtcdImage))
+	cmd.AddCommand(newSubCmdDelete(cmdOut, pathOptions))
 	return cmd
 }
