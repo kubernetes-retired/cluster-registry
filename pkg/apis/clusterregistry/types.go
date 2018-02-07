@@ -57,11 +57,6 @@ type ClusterSpec struct {
 	// secrets.
 	// +optional
 	AuthInfo AuthInfo
-
-	// CloudProvider contains information about the cloud provider this cluster
-	// is running on.
-	// +optional
-	CloudProvider *CloudProvider
 }
 
 // ClusterStatus contains the status of a cluster.
@@ -135,14 +130,6 @@ type AuthProviderConfig struct {
 // request a token.
 type AuthProviderType struct {
 	// Name is the name of the auth provider.
-	// +optional
-	Name string
-}
-
-// CloudProvider contains information about the cloud provider this cluster is
-// running on.
-type CloudProvider struct {
-	// Name is the name of the cloud provider for this cluster.
 	// +optional
 	Name string
 }
