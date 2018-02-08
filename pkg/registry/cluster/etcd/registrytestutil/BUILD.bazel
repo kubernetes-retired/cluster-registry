@@ -6,8 +6,8 @@ go_library(
     importpath = "k8s.io/cluster-registry/pkg/registry/cluster/etcd/registrytestutil",
     visibility = ["//visibility:public"],
     deps = [
-        "//pkg/apis/clusterregistry:go_default_library",
         "//pkg/apis/clusterregistry/install:go_default_library",
+        "//pkg/apis/clusterregistry/v1alpha1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/meta:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",

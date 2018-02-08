@@ -12,11 +12,10 @@ go_library(
     importpath = "k8s.io/cluster-registry/pkg/clusterregistry",
     visibility = ["//visibility:public"],
     deps = [
-        "//pkg/apis/clusterregistry:go_default_library",
         "//pkg/apis/clusterregistry/install:go_default_library",
         "//pkg/apis/clusterregistry/v1alpha1:go_default_library",
-        "//pkg/client/clientset_generated/internalclientset:go_default_library",
-        "//pkg/client/informers_generated/internalversion:go_default_library",
+        "//pkg/client/clientset_generated/clientset:go_default_library",
+        "//pkg/client/informers_generated/externalversions:go_default_library",
         "//pkg/clusterregistry/options:go_default_library",
         "//pkg/registry/cluster/etcd:go_default_library",
         "//pkg/version:go_default_library",

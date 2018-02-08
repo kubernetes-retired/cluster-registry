@@ -19,7 +19,6 @@ limitations under the License.
 package install
 
 import (
-	"k8s.io/cluster-registry/pkg/apis/clusterregistry"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
 
 	"k8s.io/apimachinery/pkg/apimachinery/announced"
@@ -47,9 +46,9 @@ func init() {
 func Install(groupFactoryRegistry announced.APIGroupFactoryRegistry, registry *registered.APIRegistrationManager, scheme *runtime.Scheme) {
 	if err := announced.NewGroupMetaFactory(
 		&announced.GroupMetaFactoryArgs{
-			GroupName:                  clusterregistry.GroupName,
+			GroupName:                  v1alpha1.GroupName,
 			VersionPreferenceOrder:     []string{v1alpha1.SchemeGroupVersion.Version},
-			AddInternalObjectsToScheme: clusterregistry.AddToScheme,
+			AddInternalObjectsToScheme: v1alpha1.AddToScheme,
 			RootScopedKinds: sets.NewString(
 				"Cluster",
 			),

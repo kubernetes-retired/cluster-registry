@@ -35,8 +35,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/install"
 	clusterregistryv1alpha1 "k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
-	clientset "k8s.io/cluster-registry/pkg/client/clientset_generated/internalclientset"
-	informers "k8s.io/cluster-registry/pkg/client/informers_generated/internalversion"
+	clientset "k8s.io/cluster-registry/pkg/client/clientset_generated/clientset"
+	informers "k8s.io/cluster-registry/pkg/client/informers_generated/externalversions"
 	"k8s.io/cluster-registry/pkg/clusterregistry/options"
 	"k8s.io/cluster-registry/pkg/version"
 )
