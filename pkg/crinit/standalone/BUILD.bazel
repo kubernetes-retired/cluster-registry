@@ -2,10 +2,16 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
-    srcs = ["standalone.go"],
+    srcs = [
+        "delete.go",
+        "doc.go",
+        "init.go",
+        "standalone.go",
+    ],
     importpath = "k8s.io/cluster-registry/pkg/crinit/standalone",
     visibility = ["//visibility:public"],
     deps = [
+        "//pkg/crinit/common:go_default_library",
         "//pkg/crinit/options:go_default_library",
         "//pkg/crinit/util:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",

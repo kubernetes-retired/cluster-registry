@@ -2,7 +2,12 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
-    srcs = ["aggregated.go"],
+    srcs = [
+        "aggregated.go",
+        "delete.go",
+        "doc.go",
+        "init.go",
+    ],
     importpath = "k8s.io/cluster-registry/pkg/crinit/aggregated",
     visibility = ["//visibility:public"],
     deps = [

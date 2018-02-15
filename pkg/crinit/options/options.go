@@ -19,13 +19,14 @@ package options
 
 import (
 	"fmt"
-	"github.com/golang/glog"
-	"github.com/spf13/pflag"
 	"io"
-	"k8s.io/api/core/v1"
 	"net"
 	"strconv"
 	"strings"
+
+	"github.com/golang/glog"
+	"github.com/spf13/pflag"
+	"k8s.io/api/core/v1"
 
 	client "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -65,6 +66,7 @@ type SubcommandOptions struct {
 	EtcdPVStorageClass        string
 	EtcdPersistentStorage     bool
 	DryRun                    bool
+	IgnoreErrors              bool
 	APIServerOverridesString  string
 	APIServerOverrides        map[string]string
 	APIServerServiceType      v1.ServiceType
@@ -73,9 +75,9 @@ type SubcommandOptions struct {
 	APIServerNodePortPortPtr  *int32
 }
 
-// BindCommon adds the common options that are shared by different
-// sub-commands to the list of flags.
-func (o *SubcommandOptions) BindCommon(flags *pflag.FlagSet, defaultServerImage, defaultEtcdImage string) {
+// BindCommon adds the common options that are shared by all commands to the list
+// of flags.
+func (o *SubcommandOptions) BindCommon(flags *pflag.FlagSet) {
 	flags.StringVar(&o.Kubeconfig, "kubeconfig", "",
 		"Path to the kubeconfig file to use for CLI requests.")
 	flags.StringVar(&o.Host, "host-cluster-context", "",
@@ -83,6 +85,13 @@ func (o *SubcommandOptions) BindCommon(flags *pflag.FlagSet, defaultServerImage,
 	flags.StringVar(&o.ClusterRegistryNamespace, "cluster-registry-namespace",
 		DefaultClusterRegistryNamespace,
 		"Namespace in the host cluster where the cluster registry components are installed")
+	flags.BoolVar(&o.DryRun, "dry-run", false,
+		"Run the command in dry-run mode, without making any server requests.")
+}
+
+// BindCommonInit adds the common options that are shared by the aggregated and
+// standalone init sub-commands to the list of flags.
+func (o *SubcommandOptions) BindCommonInit(flags *pflag.FlagSet, defaultServerImage, defaultEtcdImage string) {
 	flags.StringVar(&o.ServerImage, "image", defaultServerImage,
 		"Image to use for the cluster registry API server binary.")
 	flags.StringVar(&o.EtcdImage, "etcd-image", defaultEtcdImage,
@@ -93,14 +102,19 @@ func (o *SubcommandOptions) BindCommon(flags *pflag.FlagSet, defaultServerImage,
 		"The storage class of the persistent volume claim used for etcd. Must be provided if a default storage class is not enabled for the host cluster.")
 	flags.BoolVar(&o.EtcdPersistentStorage, "etcd-persistent-storage", true,
 		"Use a persistent volume for etcd. Defaults to 'true'.")
-	flags.BoolVar(&o.DryRun, "dry-run", false,
-		"Run the command in dry-run mode, without making any server requests.")
 	flags.StringVar(&o.APIServerOverridesString, "apiserver-arg-overrides", "",
 		"Comma-separated list of cluster registry API server arguments to override, e.g., \"--arg1=value1,--arg2=value2...\"")
 	flags.StringVar(&o.APIServerAdvertiseAddress, APIServerAdvertiseAddressFlag, "",
 		"Preferred address at which to advertise the cluster registry API server NodePort service. Valid only if '"+APIServerServiceTypeFlag+"=NodePort'.")
 	flags.Int32Var(&o.APIServerNodePortPort, apiserverPortFlag, 0,
 		"Preferred port to use for the cluster registry API server NodePort service. Set to 0 to randomly assign a port. Valid only if '"+APIServerServiceTypeFlag+"=NodePort'.")
+}
+
+// BindCommonDelete adds the common options that are shared by the aggregated and
+// standalone delete sub-commands to the list of flags.
+func (o *SubcommandOptions) BindCommonDelete(flags *pflag.FlagSet) {
+	flags.BoolVar(&o.IgnoreErrors, "ignore-errors", false,
+		"Run the command and ignore errors encountered while deleting all resources previously created by init.")
 }
 
 // SetName sets the name of the cluster registry.

@@ -23,13 +23,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang/glog"
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
 	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
 	client "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 
 	certutil "k8s.io/client-go/util/cert"
 	"k8s.io/cluster-registry/pkg/crinit/util"
@@ -37,8 +40,8 @@ import (
 
 const (
 	lbAddrRetryInterval = 5 * time.Second
-	podWaitInterval     = 2 * time.Second
-	podWaitTimeout      = 3 * time.Minute
+	waitInterval        = 2 * time.Second
+	waitTimeout         = 3 * time.Minute
 
 	apiServerSecurePortName = "https"
 	// Set the secure port to 8443 to avoid requiring root privileges
@@ -78,6 +81,38 @@ func CreateNamespace(clientset client.Interface, namespace string,
 	}
 
 	return clientset.CoreV1().Namespaces().Create(ns)
+}
+
+// DeleteNamespace deletes the cluster registry namespace.
+func DeleteNamespace(cmdOut io.Writer, clientset client.Interface,
+	namespace string, dryRun bool) error {
+
+	fmt.Fprintf(cmdOut, "Deleting cluster registry namespace %s...",
+		namespace)
+	glog.V(4).Infof("Deleting cluster registry namespace %s",
+		namespace)
+
+	err := deleteNamespaceObject(clientset, namespace, dryRun)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintln(cmdOut, " done")
+	return err
+}
+
+// deleteNamespaceObject deletes the cluster registry namespace object and
+// returns any errors.
+func deleteNamespaceObject(clientset client.Interface, namespace string,
+	dryRun bool) error {
+
+	if dryRun {
+		return nil
+	}
+
+	return clientset.CoreV1().Namespaces().Delete(namespace,
+		&metav1.DeleteOptions{})
 }
 
 // CreateService helper to create the cluster registry apiserver service object
@@ -408,7 +443,7 @@ func WaitForLoadBalancerAddress(cmdOut io.Writer, clientset client.Interface, sv
 }
 
 func WaitForPods(cmdOut io.Writer, clientset client.Interface, pods []string, namespace string) error {
-	err := wait.PollImmediate(podWaitInterval, podWaitTimeout, func() (bool, error) {
+	err := wait.PollImmediate(waitInterval, waitTimeout, func() (bool, error) {
 		fmt.Fprint(cmdOut, ".")
 		podCheck := len(pods)
 		podList, err := clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{})
@@ -434,7 +469,7 @@ func WaitForPods(cmdOut io.Writer, clientset client.Interface, pods []string, na
 func WaitSrvHealthy(cmdOut io.Writer, crClientset client.Interface) error {
 	discoveryClient := crClientset.Discovery()
 	var innerErr error
-	err := wait.PollImmediate(podWaitInterval, podWaitTimeout, func() (bool, error) {
+	err := wait.PollImmediate(waitInterval, waitTimeout, func() (bool, error) {
 		fmt.Fprint(cmdOut, ".")
 		body, innerErr := discoveryClient.RESTClient().Get().AbsPath("/healthz").Do().Raw()
 		if innerErr != nil {
@@ -450,4 +485,64 @@ func WaitSrvHealthy(cmdOut io.Writer, crClientset client.Interface) error {
 		return innerErr
 	}
 	return err
+}
+
+// DeleteKubeconfigEntry handles updating the kubeconfig to remove the cluster
+// registry entry that was previously added when the cluster registry was
+// initialized.
+func DeleteKubeconfigEntry(cmdOut io.Writer, pathOptions *clientcmd.PathOptions,
+	name, kubeconfig string, dryRun, ignoreErrors bool) error {
+
+	fmt.Fprintf(cmdOut, "Delete kubeconfig entry %s...", name)
+	glog.V(4).Infof("Delete kubeconfig entry %s", name)
+
+	err := util.DeleteKubeconfigEntry(cmdOut, pathOptions, name, kubeconfig,
+		dryRun, ignoreErrors)
+
+	if err != nil {
+		glog.V(4).Infof("Failed to delete kubeconfig entry %s: %v", name, err)
+		return err
+	}
+
+	fmt.Fprintln(cmdOut, " done")
+	glog.V(4).Info("Successfully deleted kubeconfig entry")
+	return nil
+}
+
+// WaitForClusterRegistryDeletion waits a certain amount of time for the namespace
+// requested to be deleted.
+func WaitForClusterRegistryDeletion(cmdOut io.Writer, clientset client.Interface,
+	namespace string, dryRun bool) error {
+
+	if dryRun {
+		_, err := fmt.Fprintln(cmdOut, "Cluster registry can be deleted (dry run)")
+		glog.V(4).Infof("Cluster registry can be deleted (dry run)")
+		return err
+	}
+
+	fmt.Fprint(cmdOut, "Waiting for the cluster registry to be deleted...")
+	glog.V(4).Info("Waiting for the cluster registry to be deleted")
+
+	var getErr error
+	err := wait.PollImmediate(waitInterval, waitTimeout, func() (bool, error) {
+		fmt.Fprintf(cmdOut, ".")
+		_, getErr = clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+
+		if getErr != nil {
+			statusErr := getErr.(*errors.StatusError)
+			if statusErr.ErrStatus.Reason == metav1.StatusReasonNotFound {
+				return true, nil
+			}
+		}
+
+		return false, nil
+	})
+
+	if err != nil {
+		return getErr
+	}
+
+	fmt.Fprintln(cmdOut, " done")
+	glog.V(4).Info("Successfully deleted the cluster registry.")
+	return nil
 }
