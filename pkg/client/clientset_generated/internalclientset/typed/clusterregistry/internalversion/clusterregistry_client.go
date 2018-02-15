@@ -31,8 +31,8 @@ type ClusterregistryClient struct {
 	restClient rest.Interface
 }
 
-func (c *ClusterregistryClient) Clusters() ClusterInterface {
-	return newClusters(c)
+func (c *ClusterregistryClient) Clusters(namespace string) ClusterInterface {
+	return newClusters(c, namespace)
 }
 
 // NewForConfig creates a new ClusterregistryClient for the given config.

@@ -29,8 +29,8 @@ import (
 type ClusterLister interface {
 	// List lists all Clusters in the indexer.
 	List(selector labels.Selector) (ret []*clusterregistry.Cluster, err error)
-	// Get retrieves the Cluster from the index for a given name.
-	Get(name string) (*clusterregistry.Cluster, error)
+	// Clusters returns an object that can list and get Clusters.
+	Clusters(namespace string) ClusterNamespaceLister
 	ClusterListerExpansion
 }
 
@@ -52,9 +52,38 @@ func (s *clusterLister) List(selector labels.Selector) (ret []*clusterregistry.C
 	return ret, err
 }
 
-// Get retrieves the Cluster from the index for a given name.
-func (s *clusterLister) Get(name string) (*clusterregistry.Cluster, error) {
-	obj, exists, err := s.indexer.GetByKey(name)
+// Clusters returns an object that can list and get Clusters.
+func (s *clusterLister) Clusters(namespace string) ClusterNamespaceLister {
+	return clusterNamespaceLister{indexer: s.indexer, namespace: namespace}
+}
+
+// ClusterNamespaceLister helps list and get Clusters.
+type ClusterNamespaceLister interface {
+	// List lists all Clusters in the indexer for a given namespace.
+	List(selector labels.Selector) (ret []*clusterregistry.Cluster, err error)
+	// Get retrieves the Cluster from the indexer for a given namespace and name.
+	Get(name string) (*clusterregistry.Cluster, error)
+	ClusterNamespaceListerExpansion
+}
+
+// clusterNamespaceLister implements the ClusterNamespaceLister
+// interface.
+type clusterNamespaceLister struct {
+	indexer   cache.Indexer
+	namespace string
+}
+
+// List lists all Clusters in the indexer for a given namespace.
+func (s clusterNamespaceLister) List(selector labels.Selector) (ret []*clusterregistry.Cluster, err error) {
+	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
+		ret = append(ret, m.(*clusterregistry.Cluster))
+	})
+	return ret, err
+}
+
+// Get retrieves the Cluster from the indexer for a given namespace and name.
+func (s clusterNamespaceLister) Get(name string) (*clusterregistry.Cluster, error) {
+	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
 	if err != nil {
 		return nil, err
 	}

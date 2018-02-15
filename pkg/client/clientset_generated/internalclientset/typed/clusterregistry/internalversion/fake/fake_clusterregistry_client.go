@@ -26,8 +26,8 @@ type FakeClusterregistry struct {
 	*testing.Fake
 }
 
-func (c *FakeClusterregistry) Clusters() internalversion.ClusterInterface {
-	return &FakeClusters{c}
+func (c *FakeClusterregistry) Clusters(namespace string) internalversion.ClusterInterface {
+	return &FakeClusters{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate
