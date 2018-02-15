@@ -25,7 +25,7 @@ import (
 
 func TestValidateCluster(t *testing.T) {
 	successCases := []clusterregistry.Cluster{
-		{ObjectMeta: metav1.ObjectMeta{Name: "cluster-s"}},
+		{ObjectMeta: metav1.ObjectMeta{Name: "cluster-s", Namespace: "default"}},
 	}
 	for _, successCase := range successCases {
 		errs := ValidateCluster(&successCase)
@@ -37,14 +37,18 @@ func TestValidateCluster(t *testing.T) {
 	errorCases := map[string]clusterregistry.Cluster{
 		"invalid label": {
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "cluster-f",
+				Name:      "cluster-f",
+				Namespace: "default",
 				Labels: map[string]string{
 					"NoUppercaseOrSpecialCharsLike=Equals": "bar",
 				},
 			},
 		},
+		"missing namespace": {
+			ObjectMeta: metav1.ObjectMeta{Name: "mycluster"},
+		},
 		"invalid cluster name (is a subdomain)": {
-			ObjectMeta: metav1.ObjectMeta{Name: "mycluster.mycompany"},
+			ObjectMeta: metav1.ObjectMeta{Name: "mycluster.mycompany", Namespace: "default"},
 		},
 		"clusterName is set": {
 			ObjectMeta: metav1.ObjectMeta{Name: "mycluster", ClusterName: "nonEmpty"},

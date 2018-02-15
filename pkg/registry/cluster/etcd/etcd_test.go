@@ -54,13 +54,13 @@ func validNewCluster() *clusterregistry.Cluster {
 func TestCreate(t *testing.T) {
 	storage, server := newStorage(t)
 	defer server.Terminate(t)
-	test := registrytest.New(t, storage.Store).ClusterScope()
+	test := registrytest.New(t, storage.Store)
 	cluster := validNewCluster()
-	cluster.ObjectMeta = metav1.ObjectMeta{GenerateName: "foo"}
+	cluster.ObjectMeta = metav1.ObjectMeta{GenerateName: "foo", Namespace: test.TestNamespace()}
 	test.TestCreate(
 		cluster,
 		&clusterregistry.Cluster{
-			ObjectMeta: metav1.ObjectMeta{Name: "-a123-a_"},
+			ObjectMeta: metav1.ObjectMeta{Name: "-a123-a_", Namespace: test.TestNamespace()},
 		},
 	)
 }
@@ -68,7 +68,7 @@ func TestCreate(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	storage, server := newStorage(t)
 	defer server.Terminate(t)
-	test := registrytest.New(t, storage.Store).ClusterScope()
+	test := registrytest.New(t, storage.Store)
 	test.TestUpdate(
 		// valid
 		validNewCluster(),
@@ -84,21 +84,21 @@ func TestUpdate(t *testing.T) {
 func TestDelete(t *testing.T) {
 	storage, server := newStorage(t)
 	defer server.Terminate(t)
-	test := registrytest.New(t, storage.Store).ClusterScope().ReturnDeletedObject()
+	test := registrytest.New(t, storage.Store).ReturnDeletedObject()
 	test.TestDelete(validNewCluster())
 }
 
 func TestGet(t *testing.T) {
 	storage, server := newStorage(t)
 	defer server.Terminate(t)
-	test := registrytest.New(t, storage.Store).ClusterScope()
+	test := registrytest.New(t, storage.Store)
 	test.TestGet(validNewCluster())
 }
 
 func TestList(t *testing.T) {
 	storage, server := newStorage(t)
 	defer server.Terminate(t)
-	test := registrytest.New(t, storage.Store).ClusterScope()
+	test := registrytest.New(t, storage.Store)
 	test.TestList(validNewCluster())
 }
 

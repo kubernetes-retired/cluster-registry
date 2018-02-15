@@ -454,7 +454,7 @@ func waitForAggregator(cmdOut io.Writer, host, kubeconfig string,
 	var listErr error
 	err = wait.PollImmediate(2*time.Second, 1*time.Minute, func() (bool, error) {
 		fmt.Fprint(cmdOut, ".")
-		_, listErr = crClientset.ClusterregistryV1alpha1().Clusters().List(metav1.ListOptions{})
+		_, listErr = crClientset.ClusterregistryV1alpha1().Clusters("").List(metav1.ListOptions{})
 		if listErr != nil {
 			return false, nil
 		}

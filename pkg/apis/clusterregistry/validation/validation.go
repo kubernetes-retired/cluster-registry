@@ -25,7 +25,7 @@ import (
 
 // ValidateCluster ensures that a newly-created Cluster is valid.
 func ValidateCluster(cluster *clusterregistry.Cluster) field.ErrorList {
-	allErrs := validation.ValidateObjectMeta(&cluster.ObjectMeta, false, validation.ValidateClusterName, field.NewPath("metadata"))
+	allErrs := validation.ValidateObjectMeta(&cluster.ObjectMeta, true, validation.ValidateClusterName, field.NewPath("metadata"))
 	allErrs = append(allErrs, validateClusterName(cluster)...)
 	return allErrs
 }
