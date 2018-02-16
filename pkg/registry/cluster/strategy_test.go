@@ -30,6 +30,7 @@ func validNewCluster() *clusterregistry.Cluster {
 	return &clusterregistry.Cluster{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            "foo",
+			Namespace:       "default",
 			ResourceVersion: "4",
 			Labels: map[string]string{
 				"name": "foo",
@@ -39,7 +40,7 @@ func validNewCluster() *clusterregistry.Cluster {
 }
 
 func invalidNewCluster() *clusterregistry.Cluster {
-	// Create a cluster with empty ServerAddressByClientCIDRs (which is a required field).
+	// Create a cluster with an empty Namespace
 	return &clusterregistry.Cluster{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            "foo2",
@@ -50,8 +51,8 @@ func invalidNewCluster() *clusterregistry.Cluster {
 
 func TestClusterStrategy(t *testing.T) {
 	ctx := genericapirequest.NewDefaultContext()
-	if Strategy.NamespaceScoped() {
-		t.Errorf("Cluster should not be namespace scoped")
+	if !Strategy.NamespaceScoped() {
+		t.Errorf("Cluster should be namespace scoped")
 	}
 	if Strategy.AllowCreateOnUpdate() {
 		t.Errorf("Cluster should not allow create on update")

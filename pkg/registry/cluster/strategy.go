@@ -40,7 +40,7 @@ type clusterStrategy struct {
 var Strategy = clusterStrategy{install.Scheme, names.SimpleNameGenerator}
 
 func (clusterStrategy) NamespaceScoped() bool {
-	return false
+	return true
 }
 
 func ClusterToSelectableFields(cluster *clusterregistry.Cluster) fields.Set {

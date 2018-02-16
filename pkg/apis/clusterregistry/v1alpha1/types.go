@@ -21,7 +21,6 @@ import (
 )
 
 // +genclient
-// +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Cluster contains information about a cluster in a cluster registry.

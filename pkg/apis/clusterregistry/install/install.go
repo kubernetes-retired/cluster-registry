@@ -26,7 +26,6 @@ import (
 	"k8s.io/apimachinery/pkg/apimachinery/registered"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 var (
@@ -50,9 +49,6 @@ func Install(groupFactoryRegistry announced.APIGroupFactoryRegistry, registry *r
 			GroupName:                  clusterregistry.GroupName,
 			VersionPreferenceOrder:     []string{v1alpha1.SchemeGroupVersion.Version},
 			AddInternalObjectsToScheme: clusterregistry.AddToScheme,
-			RootScopedKinds: sets.NewString(
-				"Cluster",
-			),
 		},
 		announced.VersionToSchemeFunc{
 			v1alpha1.SchemeGroupVersion.Version: v1alpha1.AddToScheme,

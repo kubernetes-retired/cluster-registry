@@ -80,7 +80,7 @@ $ kubectl get clusters --context <your_cluster_registry_context> --user <your_ad
 No resources found
 ```
 
-and list them as `testuser`:
+and list them (in the "default" namespace) as `testuser`:
 
 ```sh
 $ kubectl get clusters --context <your_cluster_registry_context> --as testuser
@@ -91,12 +91,12 @@ but not access them as someone else:
 
 ```sh
 $ kubectl get clusters --context <your_cluster_registry_context> --as bob
-Error from server (Forbidden): clusters.clusterregistry.k8s.io is forbidden: User "bob" cannot list clusters.clusterregistry.k8s.io at the cluster scope: Not allowed
+Error from server (Forbidden): clusters.clusterregistry.k8s.io is forbidden: User "bob" cannot list clusters.clusterregistry.k8s.io in the namespace "default": Not allowed
 ```
 
 or create/update them as `testuser`:
 
 ```sh
 $ kubectl apply -f ../samplecontainer/cluster.yaml --context <your_cluster_registry_context> --as testuser
-Error from server (Forbidden): error when creating "../samplecontainer/cluster.yaml": clusters.clusterregistry.k8s.io is forbidden: User "testuser" cannot create clusters.clusterregistry.k8s.io at the cluster scope: Not allowed
+Error from server (Forbidden): error when creating "../samplecontainer/cluster.yaml": clusters.clusterregistry.k8s.io is forbidden: User "testuser" cannot create clusters.clusterregistry.k8s.io in the namespace "default": Not allowed
 ```

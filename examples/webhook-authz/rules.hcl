@@ -11,4 +11,10 @@ access "allow" {
 access "allow" {
     username = "testuser"
     verb = "(list|watch|get)"
+    namespace = "default"
+}
+
+access "allow" {
+    username = "testuser2"
+    namespace = "test"
 }
