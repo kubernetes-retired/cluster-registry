@@ -27,9 +27,9 @@ import (
 	"k8s.io/apiserver/pkg/registry/generic"
 	apistorage "k8s.io/apiserver/pkg/storage"
 	"k8s.io/apiserver/pkg/storage/names"
-	"k8s.io/cluster-registry/pkg/apis/clusterregistry"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/install"
-	"k8s.io/cluster-registry/pkg/apis/clusterregistry/validation"
+	clusterregistry "k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
+	"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1/validation"
 )
 
 type clusterStrategy struct {

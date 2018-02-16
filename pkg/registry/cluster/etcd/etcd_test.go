@@ -23,8 +23,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apiserver/pkg/registry/generic"
 	etcdtesting "k8s.io/apiserver/pkg/storage/etcd/testing"
-	"k8s.io/cluster-registry/pkg/apis/clusterregistry"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/install"
+	clusterregistry "k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
 	registrytest "k8s.io/cluster-registry/pkg/registry/cluster/etcd/registrytestutil"
 )
 

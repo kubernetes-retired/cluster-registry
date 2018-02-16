@@ -23,7 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	genericapirequest "k8s.io/apiserver/pkg/endpoints/request"
-	"k8s.io/cluster-registry/pkg/apis/clusterregistry"
+	clusterregistry "k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
 )
 
 func validNewCluster() *clusterregistry.Cluster {

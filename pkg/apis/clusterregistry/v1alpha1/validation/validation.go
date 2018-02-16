@@ -20,7 +20,7 @@ package validation
 import (
 	"k8s.io/apimachinery/pkg/api/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	"k8s.io/cluster-registry/pkg/apis/clusterregistry"
+	clusterregistry "k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
 )
 
 // ValidateCluster ensures that a newly-created Cluster is valid.

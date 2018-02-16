@@ -48,15 +48,9 @@ function generate_group() {
   local OPENAPI_PKG=${CLIENT_PKG}/openapi_generated
   local APIS_PKG=k8s.io/cluster-registry/pkg/apis
 
+  local INPUT_DIR="${APIS_PKG}/${GROUP_NAME}/${VERSION}"
+
   echo "generating clientset for group ${GROUP_NAME} and version ${VERSION} at ${SCRIPT_BASE}/${CLIENT_PKG}"
-  bazel run //vendor/k8s.io/code-generator/cmd/client-gen -- \
-    --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
-    --input-base ${APIS_PKG} \
-    --input ${GROUP_NAME} \
-    --clientset-path ${CLIENTSET_PKG} \
-    --output-base "${OUTPUT_BASE}" \
-    --clientset-name "internalclientset" \
-    "$4"
   bazel run //vendor/k8s.io/code-generator/cmd/client-gen -- \
     --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
     --input-base ${APIS_PKG} \
@@ -69,7 +63,7 @@ function generate_group() {
   echo "generating listers for group ${GROUP_NAME} and version ${VERSION} at ${SCRIPT_BASE}/${LISTERS_PKG}"
   bazel run //vendor/k8s.io/code-generator/cmd/lister-gen -- \
     --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
-    --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} \
+    --input-dirs ${INPUT_DIR} \
     --output-package ${LISTERS_PKG} \
     --output-base "${OUTPUT_BASE}" \
     "$4"
@@ -77,9 +71,8 @@ function generate_group() {
   echo "generating informers for group ${GROUP_NAME} and version ${VERSION} at ${SCRIPT_BASE}/${INFORMERS_PKG}"
   bazel run //vendor/k8s.io/code-generator/cmd/informer-gen -- \
     --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
-    --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} \
+    --input-dirs ${INPUT_DIR} \
     --versioned-clientset-package ${CLIENT_PKG}/clientset_generated/clientset \
-    --internal-clientset-package ${CLIENT_PKG}/clientset_generated/internalclientset \
     --listers-package ${LISTERS_PKG} \
     --output-package ${INFORMERS_PKG} \
     --output-base "${OUTPUT_BASE}" \
@@ -88,7 +81,7 @@ function generate_group() {
   echo "generating deep copies"
   bazel run //vendor/k8s.io/code-generator/cmd/deepcopy-gen -- \
     --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
-    --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} \
+    --input-dirs ${INPUT_DIR} \
     --output-base "${OUTPUT_BASE}" \
     --output-file-base zz_generated.deepcopy \
     "$4"
@@ -96,18 +89,9 @@ function generate_group() {
   echo "generating defaults"
   bazel run //vendor/k8s.io/code-generator/cmd/defaulter-gen -- \
     --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
-    --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} \
+    --input-dirs ${INPUT_DIR} \
     --output-base "${OUTPUT_BASE}" \
     --output-file-base zz_generated.defaults \
-    "$4"
-
-  echo "generating conversions"
-  bazel run //vendor/k8s.io/code-generator/cmd/conversion-gen -- \
-    --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
-    --input-dirs ${APIS_PKG}/${GROUP_NAME},${APIS_PKG}/${GROUP_NAME}/${VERSION} \
-    --extra-peer-dirs "k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/conversion,k8s.io/apimachinery/pkg/runtime" \
-    --output-base "${OUTPUT_BASE}" \
-    --output-file-base zz_generated.conversion \
     "$4"
 
   echo "generating protocol buffers for group ${GROUP_NAME} and version ${VERSION} at ${SCRIPT_BASE}/${CLIENT_PKG}"
@@ -126,13 +110,13 @@ function generate_group() {
       --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
       --proto-import "$(bazel info output_base)/external/com_google_protobuf/src" \
       --proto-import "$(bazel info workspace)/vendor" \
-      --packages "${APIS_PKG}/${GROUP_NAME}/${VERSION}"
+      --packages ${INPUT_DIR}
 
   echo "generating openapi"
   mkdir -p "${OUTPUT_BASE}/${OPENAPI_PKG}"
   bazel run //vendor/k8s.io/code-generator/cmd/openapi-gen -- \
     --go-header-file "${SCRIPT_ROOT}/boilerplate/boilerplate.go.txt" \
-    --input-dirs ${APIS_PKG}/${GROUP_NAME}/${VERSION},k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/version,k8s.io/apimachinery/pkg/runtime \
+    --input-dirs ${INPUT_DIR},k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/version,k8s.io/apimachinery/pkg/runtime \
     --output-base "${OUTPUT_BASE}" \
     --output-package "${APIS_PKG}/${GROUP_NAME}/${VERSION}" \
     --output-file-base zz_generated.openapi \

@@ -24,8 +24,8 @@ import (
 	"k8s.io/apiserver/pkg/registry/rest"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	"k8s.io/apiserver/pkg/server/storage"
-	"k8s.io/cluster-registry/pkg/apis/clusterregistry"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/install"
+	"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
 	clusteretcd "k8s.io/cluster-registry/pkg/registry/cluster/etcd"
 )
 
@@ -37,7 +37,7 @@ func installClusterAPIs(g *genericapiserver.GenericAPIServer, optsGetter generic
 	resources := map[string]rest.Storage{
 		"clusters": clusterStorage,
 	}
-	clusterregistryGroupMeta := install.Registry.GroupOrDie(clusterregistry.GroupName)
+	clusterregistryGroupMeta := install.Registry.GroupOrDie(v1alpha1.GroupName)
 
 	apiGroupInfo := genericapiserver.APIGroupInfo{
 		GroupMeta: *clusterregistryGroupMeta,
