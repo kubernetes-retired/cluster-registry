@@ -53,7 +53,7 @@ var (
 
 	// The list of our cluster registry API resources to which the rule applies
 	// in the cluster role object.
-	clusterRoleResources = []string{"cluster"}
+	clusterRoleResources = []string{"clusters"}
 
 	// The list of verbs that apply to our cluster registry API resources.
 	clusterRoleVerbs = []string{"get", "list", "watch", "create", "update", "patch", "delete"}
