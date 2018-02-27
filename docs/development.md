@@ -63,7 +63,7 @@ To build it, from the root of the repository:
 
 ## Building `crinit`
 
-`crinit` is a command-line tool to boostrap a cluster registry into a Kubernetes
+`crinit` is a command-line tool to bootstrap a cluster registry into a Kubernetes
 cluster.
 
 To build it, from the root of the repository:
