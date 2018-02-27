@@ -42,26 +42,6 @@ var (
 	// with our cluster role objects.
 	serviceAccountName = strings.Replace(v1alpha1.GroupName, ".", "-", -1) + "-apiserver"
 
-	// Name used for our cluster role object to subsequently specify what
-	// operations we want to allow on our API resources via cluster role
-	// bindings.
-	clusterRoleName = v1alpha1.GroupName + ":apiserver"
-
-	// The name of our cluster registry API group used in the creation of the
-	// cluster role binding.
-	clusterRoleAPIGroup = []string{v1alpha1.GroupName}
-
-	// The list of our cluster registry API resources to which the rule applies
-	// in the cluster role object.
-	clusterRoleResources = []string{"clusters"}
-
-	// The list of verbs that apply to our cluster registry API resources.
-	clusterRoleVerbs = []string{"get", "list", "watch", "create", "update", "patch", "delete"}
-
-	// Name used for our cluster registry cluster role binding (CRB) object to
-	// specify the operations we want to allow on our API resources.
-	apiServerCRBName = v1alpha1.GroupName + ":apiserver"
-
 	// Name used for our cluster registry cluster role binding (CRB) object that
 	// allows delegated authentication and authorization checks.
 	authDelegatorCRBName = v1alpha1.GroupName + ":apiserver-auth-delegator"
