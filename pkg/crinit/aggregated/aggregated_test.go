@@ -18,6 +18,7 @@ package aggregated
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,9 +30,11 @@ import (
 )
 
 var (
-	apiSvcName = v1alpha1.SchemeGroupVersion.Version + "." + v1alpha1.GroupName
-	apiGroup   = v1alpha1.GroupName
-	apiVersion = v1alpha1.SchemeGroupVersion.Version
+	apiServerName = strings.Replace(v1alpha1.GroupName, ".", "-", -1) + "-apiserver"
+	crLabel       = strings.Split(v1alpha1.GroupName, ".")[0]
+	apiSvcName    = v1alpha1.SchemeGroupVersion.Version + "." + v1alpha1.GroupName
+	apiGroup      = v1alpha1.GroupName
+	apiVersion    = v1alpha1.SchemeGroupVersion.Version
 )
 
 func TestCreateRBACObjects(t *testing.T) {
@@ -75,6 +78,15 @@ func TestCreateRBACObjects(t *testing.T) {
 			if tc.objExpected {
 				if createdRBACObj == nil {
 					t.Errorf("Failed to create RBAC Object")
+				}
+				if createdRBACObj.ObjectMeta.Name != apiServerName {
+					t.Errorf("Unexpected API Server Created. Expected %v, got %v", apiServerName, createdRBACObj.ObjectMeta.Name)
+				}
+				if createdRBACObj.ObjectMeta.Namespace != tc.opts.ClusterRegistryNamespace {
+					t.Errorf("Namespace contents do not match")
+				}
+				if createdRBACObj.ObjectMeta.Labels["app"] != crLabel {
+					t.Errorf("Unexpected Label given to test instance. Expected %v, got %v", crLabel, createdRBACObj.ObjectMeta.Labels["app"])
 				}
 			} else {
 				if createdRBACObj != nil {
