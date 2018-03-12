@@ -25,3 +25,129 @@ required = [
 ignored = [
   "github.com/kubernetes/repo-infra/kazel",
 ]
+
+[[constraint]]
+  name = "github.com/coreos/etcd"
+  source = "https://github.com/coreos/etcd"
+  revision = "1d99d3886f6cb5fb7ef13100c9587cc01820d38e"
+
+# v1.7.5
+[[constraint]]
+  name = "google.golang.org/grpc"
+  source = "https://github.com/grpc/grpc-go"
+  revision = "5b3c4e850e90a4cf6a20ebd46c8b32a0a3afcb9e"
+
+
+[[constraint]]
+  name = "github.com/gogo/protobuf"
+  source = "https://github.com/gogo/protobuf"
+  revision = "160de10b2537169b5ae3e7e221d28269ef40d311"
+
+[[constraint]]
+  name = "github.com/golang/protobuf"
+  source = "https://github.com/golang/protobuf"
+  revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
+
+
+[[constraint]]
+  name = "golang.org/x/net"
+  source = "https://github.com/golang/net"
+  revision = "434ec0c7fe3742c984919a691b2018a6e9694425"
+
+[[constraint]]
+  name = "golang.org/x/time"
+  source = "https://github.com/golang/time"
+  revision = "6dc17368e09b0e8634d71cac8168d853e869a0c7"
+
+
+[[constraint]]
+  name = "gopkg.in/yaml.v2"
+  source = "https://github.com/go-yaml/yaml"
+  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
+
+[[constraint]]
+  name = "github.com/dustin/go-humanize"
+  source = "https://github.com/dustin/go-humanize"
+  revision = "bb3d318650d48840a39aa21a027c6630e198e626"
+
+[[constraint]]
+  name = "github.com/spf13/cobra"
+  source = "https://github.com/spf13/cobra"
+  revision = "b95ab734e27d33e0d8fbabf71ca990568d4e2020"
+
+[[constraint]]
+  name = "github.com/olekukonko/tablewriter"
+  source = "https://github.com/olekukonko/tablewriter"
+  revision = "96aac992fc8b1a4c83841a6c3e7178d20d989625"
+
+[[constraint]]
+  name = "github.com/cheggaaa/pb"
+  source = "https://github.com/cheggaaa/pb"
+  revision = "18d384da9bdc1e5a08fc2a62a494c321d9ae74ea"
+
+
+
+[[constraint]]
+  name = "github.com/samuel/go-zookeeper"
+  source = "https://github.com/samuel/go-zookeeper"
+  revision = "471cd4e61d7a78ece1791fa5faa0345dc8c7d5a5"
+
+
+[[constraint]]
+  name = "github.com/hashicorp/consul"
+  source = "https://github.com/hashicorp/consul"
+  revision = "b55059fc3d0327c92c41431e57dfd2df3f956b03"
+
+
+[[constraint]]
+  name = "github.com/gyuho/dataframe"
+  source = "https://github.com/gyuho/dataframe"
+  revision = "008fc241adc41d4bd5c54b9f6564ef16407c030e"
+
+[[constraint]]
+  name = "github.com/gyuho/linux-inspect"
+  source = "https://github.com/gyuho/linux-inspect"
+  revision = "187ae4baf4c1bed94dfeb338dfc1137cd6dfadc3"
+
+
+[[constraint]]
+  name = "gonum.org/v1/plot"
+  source = "https://github.com/gonum/plot"
+  revision = "feab214a240f4312b98ab52baf662b55ff1ee377"
+
+
+[[constraint]]
+  name = "github.com/coreos/pkg"
+  source = "https://github.com/coreos/pkg"
+  revision = "97fdf19511ea361ae1c100dd393cc47f8dcfa1e1"
+
+
+[[constraint]]
+  name = "golang.org/x/oauth2"
+  source = "https://github.com/golang/oauth2"
+  revision = "30785a2c434e431ef7c507b54617d6a951d5f2b4"
+
+[[constraint]]
+  name = "google.golang.org/api"
+  source = "https://github.com/google/google-api-go-client"
+  revision = "e5c227fa33ebccc5a430d863efae400431fc0e85"
+
+[[constraint]]
+  name = "google.golang.org/appengine"
+  source = "https://github.com/golang/appengine"
+  revision = "5bee14b453b4c71be47ec1781b0fa61c2ea182db"
+
+[[constraint]]
+  name = "cloud.google.com/go"
+  source = "https://github.com/GoogleCloudPlatform/google-cloud-go"
+  revision = "2a6493c7a9214bf56c1003bd97443d505cc7e952"
+
+[[override]]
+  name = "github.com/coreos/bbolt"
+  source = "https://github.com/coreos/bbolt"
+  revision = "48ea1b39c25fc1bab3506fbc712ecbaa842c4d2d"
+
+[[override]]
+  name = "github.com/grpc-ecosystem/grpc-gateway"
+  source = "https://github.com/grpc-ecosystem/grpc-gateway"
+  revision = "8cc3a55af3bcf171a1c23a90c4df9cf591706104"

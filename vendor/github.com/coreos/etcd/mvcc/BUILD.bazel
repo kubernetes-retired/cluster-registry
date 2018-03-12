@@ -7,12 +7,16 @@ go_library(
         "index.go",
         "key_index.go",
         "kv.go",
+        "kv_view.go",
         "kvstore.go",
         "kvstore_compaction.go",
+        "kvstore_txn.go",
         "metrics.go",
+        "metrics_txn.go",
         "revision.go",
         "util.go",
         "watchable_store.go",
+        "watchable_store_txn.go",
         "watcher.go",
         "watcher_group.go",
     ],
@@ -27,7 +31,6 @@ go_library(
         "//vendor/github.com/coreos/pkg/capnslog:go_default_library",
         "//vendor/github.com/google/btree:go_default_library",
         "//vendor/github.com/prometheus/client_golang/prometheus:go_default_library",
-        "//vendor/golang.org/x/net/context:go_default_library",
     ],
 )
 
@@ -55,5 +58,7 @@ go_test(
         "//vendor/github.com/coreos/etcd/pkg/schedule:go_default_library",
         "//vendor/github.com/coreos/etcd/pkg/testutil:go_default_library",
         "//vendor/github.com/google/btree:go_default_library",
+        "//vendor/github.com/prometheus/client_golang/prometheus:go_default_library",
+        "//vendor/github.com/prometheus/client_model/go:go_default_library",
     ],
 )

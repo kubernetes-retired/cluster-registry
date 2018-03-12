@@ -11,6 +11,7 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/registry/generic:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/registry/generic/registry:go_default_library",
+        "//vendor/k8s.io/apiserver/pkg/registry/rest:go_default_library",
     ],
 )
 
@@ -22,7 +23,9 @@ go_test(
     deps = [
         "//pkg/apis/clusterregistry/install:go_default_library",
         "//pkg/apis/clusterregistry/v1alpha1:go_default_library",
+        "//pkg/printers/tableconvertor:go_default_library",
         "//pkg/registry/cluster/etcd/registrytestutil:go_default_library",
+        "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/registry/generic:go_default_library",

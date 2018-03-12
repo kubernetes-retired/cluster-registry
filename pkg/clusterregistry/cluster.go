@@ -26,11 +26,17 @@ import (
 	"k8s.io/apiserver/pkg/server/storage"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/install"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
+	"k8s.io/cluster-registry/pkg/printers/tableconvertor"
 	clusteretcd "k8s.io/cluster-registry/pkg/registry/cluster/etcd"
 )
 
 func installClusterAPIs(g *genericapiserver.GenericAPIServer, optsGetter generic.RESTOptionsGetter, apiResourceConfigSource storage.APIResourceConfigSource) {
-	clusterStorage, err := clusteretcd.NewREST(optsGetter, install.Scheme)
+	table, err := tableconvertor.New(nil)
+	if err != nil {
+		glog.V(2).Infof("The CRD for %v has an invalid printer specification, falling back to default printing: %v", optsGetter, err)
+	}
+
+	clusterStorage, err := clusteretcd.NewREST(optsGetter, install.Scheme, table)
 	if err != nil {
 		glog.Fatalf("Error in creating cluster storage: %v", err)
 	}

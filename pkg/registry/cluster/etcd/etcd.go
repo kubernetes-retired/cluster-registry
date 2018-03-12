@@ -8,7 +8,7 @@ You may obtain a copy of the License at
     http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
+distributed under the License is distriibuted on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
@@ -21,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apiserver/pkg/registry/generic"
 	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
+	"k8s.io/apiserver/pkg/registry/rest"
 	clusterregistry "k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
 	"k8s.io/cluster-registry/pkg/registry/cluster"
 )
@@ -30,7 +31,7 @@ type REST struct {
 }
 
 // NewREST returns a RESTStorage object that will work against Cluster objects.
-func NewREST(optsGetter generic.RESTOptionsGetter, scheme *runtime.Scheme) (*REST, error) {
+func NewREST(optsGetter generic.RESTOptionsGetter, scheme *runtime.Scheme, tableConvertor rest.TableConvertor) (*REST, error) {
 	store := &genericregistry.Store{
 		NewFunc:                  func() runtime.Object { return &clusterregistry.Cluster{} },
 		NewListFunc:              func() runtime.Object { return &clusterregistry.ClusterList{} },
@@ -40,6 +41,7 @@ func NewREST(optsGetter generic.RESTOptionsGetter, scheme *runtime.Scheme) (*RES
 		CreateStrategy: cluster.Strategy,
 		UpdateStrategy: cluster.Strategy,
 		DeleteStrategy: cluster.Strategy,
+		TableConvertor: tableConvertor,
 	}
 	options := &generic.StoreOptions{RESTOptions: optsGetter, AttrFunc: cluster.GetAttrs}
 	if err := store.CompleteWithOptions(options); err != nil {

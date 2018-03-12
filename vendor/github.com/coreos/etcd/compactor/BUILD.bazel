@@ -5,6 +5,8 @@ go_library(
     srcs = [
         "compactor.go",
         "doc.go",
+        "periodic.go",
+        "revision.go",
     ],
     importpath = "github.com/coreos/etcd/compactor",
     visibility = ["//visibility:public"],
@@ -13,19 +15,21 @@ go_library(
         "//vendor/github.com/coreos/etcd/mvcc:go_default_library",
         "//vendor/github.com/coreos/pkg/capnslog:go_default_library",
         "//vendor/github.com/jonboulle/clockwork:go_default_library",
-        "//vendor/golang.org/x/net/context:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
-    srcs = ["compactor_test.go"],
+    srcs = [
+        "compactor_test.go",
+        "periodic_test.go",
+        "revision_test.go",
+    ],
     embed = [":go_default_library"],
     importpath = "github.com/coreos/etcd/compactor",
     deps = [
         "//vendor/github.com/coreos/etcd/etcdserver/etcdserverpb:go_default_library",
         "//vendor/github.com/coreos/etcd/pkg/testutil:go_default_library",
         "//vendor/github.com/jonboulle/clockwork:go_default_library",
-        "//vendor/golang.org/x/net/context:go_default_library",
     ],
 )

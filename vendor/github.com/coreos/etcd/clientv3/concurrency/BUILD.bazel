@@ -1,0 +1,37 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "doc.go",
+        "election.go",
+        "key.go",
+        "mutex.go",
+        "session.go",
+        "stm.go",
+    ],
+    importpath = "github.com/coreos/etcd/clientv3/concurrency",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/coreos/etcd/clientv3:go_default_library",
+        "//vendor/github.com/coreos/etcd/etcdserver/etcdserverpb:go_default_library",
+        "//vendor/github.com/coreos/etcd/mvcc/mvccpb:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = [
+        "example_election_test.go",
+        "example_mutex_test.go",
+        "example_stm_test.go",
+        "main_test.go",
+    ],
+    importpath = "github.com/coreos/etcd/clientv3/concurrency_test",
+    deps = [
+        ":go_default_library",
+        "//vendor/github.com/coreos/etcd/clientv3:go_default_library",
+        "//vendor/github.com/coreos/etcd/integration:go_default_library",
+        "//vendor/github.com/coreos/etcd/pkg/testutil:go_default_library",
+    ],
+)
