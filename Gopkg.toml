@@ -19,6 +19,7 @@ required = [
   "github.com/kubernetes/repo-infra/verify/boilerplate/test",
   # For k8s.io/apiserver/pkg/util/sets:set-gen
   "k8s.io/apimachinery/pkg/util/sets/types",
+  "k8s.io/apimachinery/pkg/apis/testapigroup/v1",
   "k8s.io/code-generator/cmd/set-gen",
 ]
 
@@ -151,3 +152,7 @@ ignored = [
   name = "github.com/grpc-ecosystem/grpc-gateway"
   source = "https://github.com/grpc-ecosystem/grpc-gateway"
   revision = "8cc3a55af3bcf171a1c23a90c4df9cf591706104"
+
+[[constraint]]
+  branch = "master"
+  name = "k8s.io/apimachinery"

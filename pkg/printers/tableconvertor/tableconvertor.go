@@ -45,7 +45,7 @@ func (c *convertor) ConvertToTable(ctx genericapirequest.Context, obj runtime.Ob
 	table.Rows, err = metatable.MetaToTableRow(obj, func(obj runtime.Object, m metav1.Object, name, age string) ([]interface{}, error) {
 		clusterRegistry := obj.(*v1alpha1.Cluster)
 		cells := []interface{}{
-			name, clusterRegistry.Spec.KubernetesAPIEndpoints.ServerEndpoints.ServerAddress, age,
+			name, clusterRegistry.Spec.KubernetesAPIEndpoints.ServerEndpoints[0].ServerAddress, age,
 		}
 		return cells, nil
 	})

@@ -40,7 +40,7 @@ import proto "github.com/gogo/protobuf/proto"
 import fmt "fmt"
 import math "math"
 
-import github_com_gogo_protobuf_sortkeys "github.com/gogo/protobuf/sortkeys"
+import sortkeys "github.com/gogo/protobuf/sortkeys"
 
 import strings "strings"
 import reflect "reflect"
@@ -169,7 +169,7 @@ func (m *AuthProviderConfig) MarshalTo(dAtA []byte) (int, error) {
 		for k := range m.Config {
 			keysForConfig = append(keysForConfig, string(k))
 		}
-		github_com_gogo_protobuf_sortkeys.Strings(keysForConfig)
+		sortkeys.Strings(keysForConfig)
 		for _, k := range keysForConfig {
 			dAtA[i] = 0x1a
 			i++
@@ -555,7 +555,7 @@ func (this *AuthProviderConfig) String() string {
 	for k := range this.Config {
 		keysForConfig = append(keysForConfig, k)
 	}
-	github_com_gogo_protobuf_sortkeys.Strings(keysForConfig)
+	sortkeys.Strings(keysForConfig)
 	mapStringForConfig := "map[string]string{"
 	for _, k := range keysForConfig {
 		mapStringForConfig += fmt.Sprintf("%v: %v,", k, this.Config[k])
