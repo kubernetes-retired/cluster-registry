@@ -204,33 +204,19 @@ func deleteRBACObjects(cmdOut io.Writer, clientset client.Interface,
 		return err
 	}
 
-	// Delete Kubernetes cluster role bindings for the default service account
-	// in our namespace.
-	glog.V(4).Infof("Deleting cluster role bindings %v and %v", apiServerCRBName,
-		authDelegatorCRBName)
+	// Delete Kubernetes cluster role binding that allows the cluster registry
+	// service account to delegate auth to the kubernetes API server.
+	glog.V(4).Infof("Deleting cluster role binding %v", authDelegatorCRBName)
 
-	err = deleteClusterRoleBindings(clientset, opts.ClusterRegistryNamespace,
-		opts.DryRun)
+	err = deleteAuthDelegatorClusterRoleBinding(clientset, authDelegatorCRBName, opts.DryRun)
 
 	if err != nil {
-		glog.V(4).Infof("Failed to delete cluster role bindings")
+		glog.V(4).Infof("Failed to delete cluster role binding %v: %v",
+			authDelegatorCRBName, err)
 		return err
 	}
 
-	glog.V(4).Info("Successfully deleted cluster role bindings")
-
-	// Delete the Kubernetes cluster role that allows REST operations on our
-	// cluster registry API resources e.g. Cluster.
-	glog.V(4).Infof("Deleting cluster role %v", clusterRoleName)
-
-	err = deleteClusterRole(clientset, opts.DryRun)
-
-	if err != nil {
-		glog.V(4).Infof("Failed to delete cluster role %v: %v", clusterRoleName, err)
-		return err
-	}
-
-	glog.V(4).Info("Successfully deleted cluster role")
+	glog.V(4).Info("Successfully deleted cluster role binding")
 
 	fmt.Fprintln(cmdOut, " done")
 	return nil
@@ -249,36 +235,9 @@ func deleteExtensionAPIServerAuthenticationRoleBinding(clientset client.Interfac
 		&metav1.DeleteOptions{})
 }
 
-// deleteClusterRoleBindings deletes the cluster role bindings for the
-// operations that we allow on our cluster registry API resources.
-func deleteClusterRoleBindings(clientset client.Interface,
-	namespace string, dryRun bool) error {
-
-	// Delete cluster role binding for the clusterregistry.k8s.io:apiserver
-	// cluster role.
-	err := deleteClusterRoleBindingObject(clientset, apiServerCRBName, dryRun)
-
-	if err != nil {
-		glog.V(4).Infof("Failed to delete cluster role binding %v: %v",
-			apiServerCRBName, err)
-		return err
-	}
-
-	// Delete cluster role binding for the system:auth-delegator cluster role.
-	err = deleteClusterRoleBindingObject(clientset, authDelegatorCRBName, dryRun)
-
-	if err != nil {
-		glog.V(4).Infof("Failed to delete cluster role binding %v: %v",
-			authDelegatorCRBName, err)
-		return err
-	}
-
-	return nil
-}
-
-// deleteClusterRoleBindingObject deletes the cluster role binding
-// requested.
-func deleteClusterRoleBindingObject(clientset client.Interface, name string,
+// deleteAuthDelegatorClusterRoleBinding deletes the system:auth-delegator cluster role
+// binding object.
+func deleteAuthDelegatorClusterRoleBinding(clientset client.Interface, name string,
 	dryRun bool) error {
 
 	if dryRun {
@@ -286,17 +245,5 @@ func deleteClusterRoleBindingObject(clientset client.Interface, name string,
 	}
 
 	return clientset.RbacV1().ClusterRoleBindings().Delete(name,
-		&metav1.DeleteOptions{})
-}
-
-// deleteClusterRole deletes the cluster role for the operations we will allow
-// on our cluster registry API resources e.g. Cluster.
-func deleteClusterRole(clientset client.Interface, dryRun bool) error {
-
-	if dryRun {
-		return nil
-	}
-
-	return clientset.RbacV1().ClusterRoles().Delete(clusterRoleName,
 		&metav1.DeleteOptions{})
 }
