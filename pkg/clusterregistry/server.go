@@ -131,7 +131,7 @@ func CreateServer(s options.Options) (*genericapiserver.GenericAPIServer, error)
 	if err := s.GenericServerRunOptions().ApplyTo(genericConfig); err != nil {
 		return nil, err
 	}
-	if err := s.SecureServing().ApplyTo(genericConfig); err != nil {
+	if err := s.SecureServing().ApplyTo(&genericConfig.SecureServing); err != nil {
 		return nil, err
 	}
 	if err := s.ApplyAuthentication(genericConfig); err != nil {

@@ -19,6 +19,7 @@ package cluster
 import (
 	metainternalversion "k8s.io/apimachinery/pkg/apis/meta/internalversion"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	genericapirequest "k8s.io/apiserver/pkg/endpoints/request"
 	"k8s.io/apiserver/pkg/registry/rest"
@@ -30,7 +31,7 @@ type Registry interface {
 	ListClusters(ctx genericapirequest.Context, options *metainternalversion.ListOptions) (*clusterregistry.ClusterList, error)
 	WatchCluster(ctx genericapirequest.Context, options *metainternalversion.ListOptions) (watch.Interface, error)
 	GetCluster(ctx genericapirequest.Context, name string, options *metav1.GetOptions) (*clusterregistry.Cluster, error)
-	CreateCluster(ctx genericapirequest.Context, cluster *clusterregistry.Cluster) error
+	CreateCluster(ctx genericapirequest.Context, options *metav1.GetOptions, cluster *clusterregistry.Cluster) (runtime.Object, error)
 	UpdateCluster(ctx genericapirequest.Context, cluster *clusterregistry.Cluster) error
 	DeleteCluster(ctx genericapirequest.Context, name string) error
 }
@@ -66,13 +67,18 @@ func (s *storage) GetCluster(ctx genericapirequest.Context, name string, options
 	return obj.(*clusterregistry.Cluster), nil
 }
 
-func (s *storage) CreateCluster(ctx genericapirequest.Context, cluster *clusterregistry.Cluster) error {
-	_, err := s.Create(ctx, cluster, false)
-	return err
+func (s *storage) CreateCluster(ctx genericapirequest.Context, options *metav1.GetOptions, cluster *clusterregistry.Cluster) (runtime.Object, error) {
+	obj, err := s.Get(ctx, cluster.Name, options)
+	if err != nil {
+		return obj, err
+	}
+	_, err = s.Create(ctx, obj, rest.ValidateAllObjectFunc, false)
+
+	return nil, err
 }
 
 func (s *storage) UpdateCluster(ctx genericapirequest.Context, cluster *clusterregistry.Cluster) error {
-	_, _, err := s.Update(ctx, cluster.Name, rest.DefaultUpdatedObjectInfo(cluster))
+	_, _, err := s.Update(ctx, cluster.Name, rest.DefaultUpdatedObjectInfo(cluster), rest.ValidateAllObjectFunc, rest.ValidateAllObjectUpdateFunc)
 	return err
 }
 

@@ -82,10 +82,10 @@ func (s *AggregatedServerRunOptions) Validate() []error {
 
 // ApplyAuthentication applies the delegated authentication to the config.
 func (s *AggregatedServerRunOptions) ApplyAuthentication(c *server.Config) error {
-	return s.authentication.ApplyTo(c)
+	return s.authentication.ApplyTo(&c.Authentication, c.SecureServing, nil)
 }
 
 // ApplyAuthorization applies the delegated authorization to the config.
 func (s *AggregatedServerRunOptions) ApplyAuthorization(c *server.Config) error {
-	return s.authorization.ApplyTo(c)
+	return s.authorization.ApplyTo(&c.Authorization)
 }

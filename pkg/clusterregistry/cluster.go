@@ -31,7 +31,7 @@ import (
 )
 
 func installClusterAPIs(g *genericapiserver.GenericAPIServer, optsGetter generic.RESTOptionsGetter, apiResourceConfigSource storage.APIResourceConfigSource) {
-	table, err := tableconvertor.New(nil)
+	table, err := tableconvertor.New()
 	if err != nil {
 		glog.V(2).Infof("The CRD for %v has an invalid printer specification, falling back to default printing: %v", optsGetter, err)
 	}

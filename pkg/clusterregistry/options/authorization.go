@@ -130,7 +130,7 @@ func (s *StandaloneAuthorizationOptions) ApplyTo(c *genericapiserver.Config) err
 	if err != nil {
 		return err
 	}
-	c.Authorizer = authorizer
+	c.Authorization.Authorizer = authorizer
 	return nil
 }
 

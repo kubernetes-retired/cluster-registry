@@ -141,19 +141,19 @@ func (s *StandaloneAuthenticationOptions) AddFlags(fs *pflag.FlagSet) {
 func (o *StandaloneAuthenticationOptions) ApplyTo(c *genericapiserver.Config) error {
 	var err error
 	if o.ClientCert != nil {
-		c, err = c.ApplyClientCert(o.ClientCert.ClientCA)
+		err = c.Authentication.ApplyClientCert(o.ClientCert.ClientCA, c.SecureServing)
 		if err != nil {
 			return fmt.Errorf("unable to load client CA file: %v", err)
 		}
 	}
 
-	c.SupportsBasicAuth = o.PasswordFile != nil && len(o.PasswordFile.BasicAuthFile) > 0
+	c.Authentication.SupportsBasicAuth = o.PasswordFile != nil && len(o.PasswordFile.BasicAuthFile) > 0
 
 	authenticator, securityDefinitions, err := o.toAuthenticationConfig().New()
 	if err != nil {
 		return err
 	}
-	c.Authenticator = authenticator
+	c.Authentication.Authenticator = authenticator
 	if c.OpenAPIConfig != nil {
 		c.OpenAPIConfig.SecurityDefinitions = securityDefinitions
 	}
