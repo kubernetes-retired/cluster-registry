@@ -9,16 +9,21 @@ go_library(
         "ipvs.go",
         "mdstat.go",
         "mountstats.go",
+        "net_dev.go",
         "proc.go",
         "proc_io.go",
         "proc_limits.go",
+        "proc_ns.go",
         "proc_stat.go",
         "stat.go",
         "xfrm.go",
     ],
     importpath = "github.com/prometheus/procfs",
     visibility = ["//visibility:public"],
-    deps = ["//vendor/github.com/prometheus/procfs/xfs:go_default_library"],
+    deps = [
+        "//vendor/github.com/prometheus/procfs/nfs:go_default_library",
+        "//vendor/github.com/prometheus/procfs/xfs:go_default_library",
+    ],
 )
 
 go_test(
@@ -29,8 +34,10 @@ go_test(
         "ipvs_test.go",
         "mdstat_test.go",
         "mountstats_test.go",
+        "net_dev_test.go",
         "proc_io_test.go",
         "proc_limits_test.go",
+        "proc_ns_test.go",
         "proc_stat_test.go",
         "proc_test.go",
         "stat_test.go",

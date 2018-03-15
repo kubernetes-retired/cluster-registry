@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "2q.go",
         "arc.go",
+        "doc.go",
         "lru.go",
     ],
     importpath = "github.com/hashicorp/golang-lru",

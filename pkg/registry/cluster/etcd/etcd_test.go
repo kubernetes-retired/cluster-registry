@@ -19,24 +19,30 @@ package etcd
 import (
 	"testing"
 
+	"github.com/golang/glog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apiserver/pkg/registry/generic"
 	etcdtesting "k8s.io/apiserver/pkg/storage/etcd/testing"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/install"
 	clusterregistry "k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
+	"k8s.io/cluster-registry/pkg/printers/tableconvertor"
 	registrytest "k8s.io/cluster-registry/pkg/registry/cluster/etcd/registrytestutil"
 )
 
 func newStorage(t *testing.T) (*REST, *etcdtesting.EtcdTestServer) {
 	storageConfig, server := registrytest.NewEtcdStorage(t, clusterregistry.GroupName)
+	table, err := tableconvertor.New(nil)
+	if err != nil {
+		glog.V(2).Infof("The CRD for %v has an invalid printer specification, falling back to default printing: %v", server, err)
+	}
 	restOptions := generic.RESTOptions{
 		StorageConfig:           storageConfig,
 		Decorator:               generic.UndecoratedStorage,
 		DeleteCollectionWorkers: 1,
 		ResourcePrefix:          "clusters",
 	}
-	storage, _ := NewREST(restOptions, install.Scheme)
+	storage, _ := NewREST(restOptions, install.Scheme, table)
 	return storage, server
 }
 

@@ -17,7 +17,11 @@ go_test(
     srcs = [
         "issue17_test.go",
         "issue23_test.go",
+        "issue33_test.go",
         "issue38_test.go",
+        "issue50_test.go",
+        "issue52_test.go",
+        "merge_test.go",
         "mergo_test.go",
     ],
     embed = [":go_default_library"],

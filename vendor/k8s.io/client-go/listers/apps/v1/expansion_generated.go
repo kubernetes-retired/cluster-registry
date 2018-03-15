@@ -18,10 +18,10 @@ limitations under the License.
 
 package v1
 
-// DaemonSetListerExpansion allows custom methods to be added to
-// DaemonSetLister.
-type DaemonSetListerExpansion interface{}
+// ControllerRevisionListerExpansion allows custom methods to be added to
+// ControllerRevisionLister.
+type ControllerRevisionListerExpansion interface{}
 
-// DaemonSetNamespaceListerExpansion allows custom methods to be added to
-// DaemonSetNamespaceLister.
-type DaemonSetNamespaceListerExpansion interface{}
+// ControllerRevisionNamespaceListerExpansion allows custom methods to be added to
+// ControllerRevisionNamespaceLister.
+type ControllerRevisionNamespaceListerExpansion interface{}

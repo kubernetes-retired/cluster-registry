@@ -43,7 +43,7 @@ go_test(
     importpath = "github.com/coreos/etcd/store",
     deps = [
         "//vendor/github.com/coreos/etcd/error:go_default_library",
+        "//vendor/github.com/coreos/etcd/pkg/testutil:go_default_library",
         "//vendor/github.com/jonboulle/clockwork:go_default_library",
-        "//vendor/github.com/stretchr/testify/assert:go_default_library",
     ],
 )

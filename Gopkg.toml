@@ -20,8 +20,18 @@ required = [
   # For k8s.io/apiserver/pkg/util/sets:set-gen
   "k8s.io/apimachinery/pkg/util/sets/types",
   "k8s.io/code-generator/cmd/set-gen",
+  "k8s.io/apimachinery/pkg/apis/testapigroup/v1",
 ]
 
 ignored = [
   "github.com/kubernetes/repo-infra/kazel",
 ]
+
+[[override]]
+  name = "github.com/Azure/go-autorest"
+  source= "https://github.com/Azure/go-autorest"
+  revision = "d4e6b95c12a08b4de2d48b45d5b4d594e5d32fab"
+
+[[override]]
+  name = "k8s.io/kube-aggregator"
+  revision = "f44a75f488b92e99f8cd13640ef03a6aeda7be48"

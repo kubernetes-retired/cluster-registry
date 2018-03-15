@@ -44,7 +44,7 @@ func DoRetryWithRegistration(client autorest.Client) autorest.SendDecorator {
 					return resp, err
 				}
 
-				if resp.StatusCode != http.StatusConflict {
+				if resp.StatusCode != http.StatusConflict || client.SkipResourceProviderRegistration {
 					return resp, err
 				}
 				var re RequestError
@@ -55,15 +55,16 @@ func DoRetryWithRegistration(client autorest.Client) autorest.SendDecorator {
 				if err != nil {
 					return resp, err
 				}
+				err = re
 
 				if re.ServiceError != nil && re.ServiceError.Code == "MissingSubscriptionRegistration" {
-					err = register(client, r, re)
-					if err != nil {
-						return resp, fmt.Errorf("failed auto registering Resource Provider: %s", err)
+					regErr := register(client, r, re)
+					if regErr != nil {
+						return resp, fmt.Errorf("failed auto registering Resource Provider: %s. Original error: %s", regErr, err)
 					}
 				}
 			}
-			return resp, errors.New("failed request and resource provider registration")
+			return resp, fmt.Errorf("failed request: %s", err)
 		})
 	}
 }
@@ -158,7 +159,7 @@ func register(client autorest.Client, originalReq *http.Request, re RequestError
 		}
 		req.Cancel = originalReq.Cancel
 
-		resp, err := autorest.SendWithSender(client.Sender, req,
+		resp, err := autorest.SendWithSender(client, req,
 			autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...),
 		)
 		if err != nil {

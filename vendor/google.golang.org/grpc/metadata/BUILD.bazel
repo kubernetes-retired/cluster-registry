@@ -13,4 +13,5 @@ go_test(
     srcs = ["metadata_test.go"],
     embed = [":go_default_library"],
     importpath = "google.golang.org/grpc/metadata",
+    deps = ["//vendor/golang.org/x/net/context:go_default_library"],
 )
