@@ -16,6 +16,7 @@ package backend
 
 import (
 	"bytes"
+	"fmt"
 	"math"
 	"sync"
 	"sync/atomic"
@@ -80,32 +81,36 @@ func (t *batchTx) unsafePut(bucketName []byte, key []byte, value []byte, seq boo
 
 // UnsafeRange must be called holding the lock on the tx.
 func (t *batchTx) UnsafeRange(bucketName, key, endKey []byte, limit int64) ([][]byte, [][]byte) {
-	bucket := t.tx.Bucket(bucketName)
-	if bucket == nil {
-		plog.Fatalf("bucket %s does not exist", bucketName)
+	k, v, err := unsafeRange(t.tx, bucketName, key, endKey, limit)
+	if err != nil {
+		plog.Fatal(err)
 	}
-	return unsafeRange(bucket.Cursor(), key, endKey, limit)
+	return k, v
 }
 
-func unsafeRange(c *bolt.Cursor, key, endKey []byte, limit int64) (keys [][]byte, vs [][]byte) {
+func unsafeRange(tx *bolt.Tx, bucketName, key, endKey []byte, limit int64) (keys [][]byte, vs [][]byte, err error) {
+	bucket := tx.Bucket(bucketName)
+	if bucket == nil {
+		return nil, nil, fmt.Errorf("bucket %s does not exist", bucketName)
+	}
+	if len(endKey) == 0 {
+		if v := bucket.Get(key); v != nil {
+			return append(keys, key), append(vs, v), nil
+		}
+		return nil, nil, nil
+	}
 	if limit <= 0 {
 		limit = math.MaxInt64
 	}
-	var isMatch func(b []byte) bool
-	if len(endKey) > 0 {
-		isMatch = func(b []byte) bool { return bytes.Compare(b, endKey) < 0 }
-	} else {
-		isMatch = func(b []byte) bool { return bytes.Equal(b, key) }
-		limit = 1
-	}
-	for ck, cv := c.Seek(key); ck != nil && isMatch(ck); ck, cv = c.Next() {
+	c := bucket.Cursor()
+	for ck, cv := c.Seek(key); ck != nil && bytes.Compare(ck, endKey) < 0; ck, cv = c.Next() {
 		vs = append(vs, cv)
 		keys = append(keys, ck)
 		if limit == int64(len(keys)) {
 			break
 		}
 	}
-	return keys, vs
+	return keys, vs, nil
 }
 
 // UnsafeDelete must be called holding the lock on the tx.
@@ -239,7 +244,8 @@ func (t *batchTxBuffered) unsafeCommit(stop bool) {
 		if err := t.backend.readTx.tx.Rollback(); err != nil {
 			plog.Fatalf("cannot rollback tx (%s)", err)
 		}
-		t.backend.readTx.reset()
+		t.backend.readTx.buf.reset()
+		t.backend.readTx.tx = nil
 	}
 
 	t.batchTx.commit(stop)

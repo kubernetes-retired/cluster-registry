@@ -24,5 +24,6 @@ go_test(
     deps = [
         "//vendor/github.com/coreos/etcd/lease:go_default_library",
         "//vendor/github.com/coreos/etcd/mvcc/backend:go_default_library",
+        "//vendor/golang.org/x/net/context:go_default_library",
     ],
 )

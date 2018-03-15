@@ -15,7 +15,6 @@
 package clientv3
 
 import (
-	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -24,6 +23,7 @@ import (
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	mvccpb "github.com/coreos/etcd/mvcc/mvccpb"
 
+	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -470,7 +470,7 @@ func (w *watchGrpcStream) run() {
 				if ws := w.nextResume(); ws != nil {
 					wc.Send(ws.initReq.toPB())
 				}
-			case pbresp.Canceled && pbresp.CompactRevision == 0:
+			case pbresp.Canceled:
 				delete(cancelSet, pbresp.WatchId)
 				if ws, ok := w.substreams[pbresp.WatchId]; ok {
 					// signal to stream goroutine to update closingc

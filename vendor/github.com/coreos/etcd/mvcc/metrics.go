@@ -131,14 +131,6 @@ var (
 			Buckets: prometheus.ExponentialBuckets(100, 2, 14),
 		})
 
-	dbCompactionKeysCounter = prometheus.NewCounter(
-		prometheus.CounterOpts{
-			Namespace: "etcd_debugging",
-			Subsystem: "mvcc",
-			Name:      "db_compaction_keys_total",
-			Help:      "Total number of db keys compacted.",
-		})
-
 	dbTotalSize = prometheus.NewGaugeFunc(prometheus.GaugeOpts{
 		Namespace: "etcd_debugging",
 		Subsystem: "mvcc",
@@ -170,7 +162,6 @@ func init() {
 	prometheus.MustRegister(indexCompactionPauseDurations)
 	prometheus.MustRegister(dbCompactionPauseDurations)
 	prometheus.MustRegister(dbCompactionTotalDurations)
-	prometheus.MustRegister(dbCompactionKeysCounter)
 	prometheus.MustRegister(dbTotalSize)
 }
 

@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/pkg/runtime"
-	"github.com/coreos/etcd/version"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -65,13 +64,6 @@ var (
 		Name:      "lease_expired_total",
 		Help:      "The total number of expired leases.",
 	})
-	currentVersion = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "etcd",
-		Subsystem: "server",
-		Name:      "version",
-		Help:      "Which version is running. 1 for 'server_version' label with current version.",
-	},
-		[]string{"server_version"})
 )
 
 func init() {
@@ -82,11 +74,6 @@ func init() {
 	prometheus.MustRegister(proposalsPending)
 	prometheus.MustRegister(proposalsFailed)
 	prometheus.MustRegister(leaseExpired)
-	prometheus.MustRegister(currentVersion)
-
-	currentVersion.With(prometheus.Labels{
-		"server_version": version.Version,
-	}).Set(1)
 }
 
 func monitorFileDescriptor(done <-chan struct{}) {

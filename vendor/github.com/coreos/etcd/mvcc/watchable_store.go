@@ -23,8 +23,7 @@ import (
 	"github.com/coreos/etcd/mvcc/mvccpb"
 )
 
-// non-const so modifiable by tests
-var (
+const (
 	// chanBufLen is the length of the buffered chan
 	// for sending out watched events.
 	// TODO: find a good buf value. 1024 is just a random one that
@@ -144,15 +143,13 @@ func (s *watchableStore) watch(key, end []byte, startRev int64, id WatchID, ch c
 func (s *watchableStore) cancelWatcher(wa *watcher) {
 	for {
 		s.mu.Lock()
+
 		if s.unsynced.delete(wa) {
 			slowWatcherGauge.Dec()
 			break
 		} else if s.synced.delete(wa) {
 			break
 		} else if wa.compacted {
-			break
-		} else if wa.ch == nil {
-			// already canceled (e.g., cancel/close race)
 			break
 		}
 
@@ -179,7 +176,6 @@ func (s *watchableStore) cancelWatcher(wa *watcher) {
 	}
 
 	watcherGauge.Dec()
-	wa.ch = nil
 	s.mu.Unlock()
 }
 
@@ -192,7 +188,7 @@ func (s *watchableStore) Restore(b backend.Backend) error {
 	}
 
 	for wa := range s.synced.watchers {
-		s.unsynced.add(wa)
+		s.unsynced.watchers.add(wa)
 	}
 	s.synced = newWatcherGroup()
 	return nil
@@ -428,6 +424,7 @@ func (s *watchableStore) notify(rev int64, evs []mvccpb.Event) {
 		if eb.revs != 1 {
 			plog.Panicf("unexpected multiple revisions in notification")
 		}
+
 		if w.send(WatchResponse{WatchID: w.id, Events: eb.evs, Revision: rev}) {
 			pendingEventsGauge.Add(float64(len(eb.evs)))
 		} else {

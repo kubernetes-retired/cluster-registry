@@ -11,7 +11,6 @@ go_library(
         "curl.go",
         "discover.go",
         "doc.go",
-        "keys.generated.go",
         "keys.go",
         "members.go",
         "util.go",
@@ -24,6 +23,7 @@ go_library(
         "//vendor/github.com/coreos/etcd/pkg/types:go_default_library",
         "//vendor/github.com/coreos/etcd/version:go_default_library",
         "//vendor/github.com/ugorji/go/codec:go_default_library",
+        "//vendor/golang.org/x/net/context:go_default_library",
     ],
 )
 
@@ -42,20 +42,6 @@ go_test(
         "//vendor/github.com/coreos/etcd/pkg/testutil:go_default_library",
         "//vendor/github.com/coreos/etcd/pkg/types:go_default_library",
         "//vendor/github.com/coreos/etcd/version:go_default_library",
-    ],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = [
-        "example_keys_test.go",
-        "main_test.go",
-    ],
-    importpath = "github.com/coreos/etcd/client_test",
-    deps = [
-        ":go_default_library",
-        "//vendor/github.com/coreos/etcd/integration:go_default_library",
-        "//vendor/github.com/coreos/etcd/pkg/testutil:go_default_library",
-        "//vendor/github.com/coreos/etcd/pkg/transport:go_default_library",
+        "//vendor/golang.org/x/net/context:go_default_library",
     ],
 )

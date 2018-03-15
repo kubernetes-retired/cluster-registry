@@ -27,6 +27,15 @@
 		]
 	},
 	{
+		"project": "github.com/cockroachdb/cmux",
+		"licenses": [
+			{
+				"type": "Apache License 2.0",
+				"confidence": 1
+			}
+		]
+	},
+	{
 		"project": "github.com/coreos/bbolt",
 		"licenses": [
 			{
@@ -108,7 +117,7 @@
 		]
 	},
 	{
-		"project": "github.com/gogo/protobuf",
+		"project": "github.com/gogo/protobuf/proto",
 		"licenses": [
 			{
 				"type": "BSD 3-clause \"New\" or \"Revised\" License",
@@ -140,15 +149,6 @@
 			{
 				"type": "Apache License 2.0",
 				"confidence": 1
-			}
-		]
-	},
-	{
-		"project": "github.com/gorilla/websocket",
-		"licenses": [
-			{
-				"type": "BSD 2-clause \"Simplified\" License",
-				"confidence": 0.9852216748768473
 			}
 		]
 	},
@@ -265,24 +265,6 @@
 		]
 	},
 	{
-		"project": "github.com/sirupsen/logrus",
-		"licenses": [
-			{
-				"type": "MIT License",
-				"confidence": 1
-			}
-		]
-	},
-	{
-		"project": "github.com/soheilhy/cmux",
-		"licenses": [
-			{
-				"type": "Apache License 2.0",
-				"confidence": 1
-			}
-		]
-	},
-	{
 		"project": "github.com/spf13/cobra",
 		"licenses": [
 			{
@@ -297,15 +279,6 @@
 			{
 				"type": "BSD 3-clause \"New\" or \"Revised\" License",
 				"confidence": 0.9663865546218487
-			}
-		]
-	},
-	{
-		"project": "github.com/tmc/grpc-websocket-proxy/wsproxy",
-		"licenses": [
-			{
-				"type": "MIT License",
-				"confidence": 0.9891304347826086
 			}
 		]
 	},
@@ -355,15 +328,6 @@
 		]
 	},
 	{
-		"project": "golang.org/x/sys/unix",
-		"licenses": [
-			{
-				"type": "BSD 3-clause \"New\" or \"Revised\" License",
-				"confidence": 0.9663865546218487
-			}
-		]
-	},
-	{
 		"project": "golang.org/x/text",
 		"licenses": [
 			{
@@ -382,7 +346,7 @@
 		]
 	},
 	{
-		"project": "google.golang.org/genproto/googleapis/rpc/status",
+		"project": "google.golang.org/genproto/googleapis",
 		"licenses": [
 			{
 				"type": "Apache License 2.0",

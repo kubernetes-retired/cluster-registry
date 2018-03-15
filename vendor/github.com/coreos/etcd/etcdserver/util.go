@@ -15,7 +15,6 @@
 package etcdserver
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/coreos/etcd/etcdserver/membership"
@@ -95,20 +94,4 @@ func newNotifier() *notifier {
 func (nc *notifier) notify(err error) {
 	nc.err = err
 	close(nc.c)
-}
-
-func warnOfExpensiveRequest(now time.Time, stringer fmt.Stringer) {
-	warnOfExpensiveGenericRequest(now, stringer, "")
-}
-
-func warnOfExpensiveReadOnlyRangeRequest(now time.Time, stringer fmt.Stringer) {
-	warnOfExpensiveGenericRequest(now, stringer, "read-only range ")
-}
-
-func warnOfExpensiveGenericRequest(now time.Time, stringer fmt.Stringer, prefix string) {
-	// TODO: add metrics
-	d := time.Since(now)
-	if d > warnApplyDuration {
-		plog.Warningf("%srequest %q took too long (%v) to execute", prefix, stringer.String(), d)
-	}
 }

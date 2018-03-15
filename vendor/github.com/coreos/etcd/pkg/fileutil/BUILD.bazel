@@ -98,12 +98,7 @@ go_test(
         "lock_test.go",
         "preallocate_test.go",
         "purge_test.go",
-    ] + select({
-        "@io_bazel_rules_go//go/platform:linux": [
-            "lock_linux_test.go",
-        ],
-        "//conditions:default": [],
-    }),
+    ],
     embed = [":go_default_library"],
     importpath = "github.com/coreos/etcd/pkg/fileutil",
 )
