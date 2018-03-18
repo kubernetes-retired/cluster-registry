@@ -1726,6 +1726,11 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 						},
 					},
 				},
+				VendorExtensible: spec.VendorExtensible{
+					Extensions: spec.Extensions{
+						"x-kubernetes-print-columns": "custom-columns=NAME:.metadata.name,URL:.spec.url,STATUS:.status.conditions[*].reason",
+					},
+				},
 			},
 			Dependencies: []string{
 				"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta", "k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1.ClusterSpec", "k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1.ClusterStatus"},
