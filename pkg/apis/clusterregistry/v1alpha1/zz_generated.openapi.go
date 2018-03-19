@@ -1728,7 +1728,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 				},
 				VendorExtensible: spec.VendorExtensible{
 					Extensions: spec.Extensions{
-						"x-kubernetes-print-columns": "custom-columns=NAME:.metadata.name,URL:.spec.url,STATUS:.status.conditions[*].reason",
+						"x-kubernetes-print-columns": "custom-columns=NAME:.metadata.name,CIDR:.spec.kubernetesApiEndpoints.serverEndpoints[].clientCIDR,SERVER:.spec.kubernetesApiEndpoints.serverEndpoints[].serverAddress,CREATION TIME:.metadata.creationTimestamp",
 					},
 				},
 			},
