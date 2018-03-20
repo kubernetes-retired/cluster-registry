@@ -95,7 +95,7 @@ metadata:
 spec:
   kubernetesApiEndpoints:
     serverEndpoints:
-      - clientCidr: "0.0.0.0/0"
+      - clientCIDR: "0.0.0.0/0"
         serverAddress: "100.0.0.0"
 EOF
 ```
