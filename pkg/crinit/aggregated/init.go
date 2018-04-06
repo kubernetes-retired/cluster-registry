@@ -199,27 +199,15 @@ func createRBACObjects(cmdOut io.Writer, clientset client.Interface,
 
 	glog.V(4).Info("Successfully created service account")
 
-	// Create a Kubernetes cluster role to allow REST operations on our
-	// cluster registry API resources e.g. Cluster.
-	glog.V(4).Infof("Creating cluster role %v", clusterRoleName)
-
-	cr, err := createClusterRole(clientset, opts.DryRun)
-
-	if err != nil {
-		glog.V(4).Infof("Failed to create cluster role %v: %v", cr, err)
-		return nil, err
-	}
-
-	glog.V(4).Info("Successfully created cluster role")
-
 	// Create a Kubernetes cluster role binding from the default service account
-	// in our namespace to the cluster role we just created.
-	glog.V(4).Infof("Creating cluster role bindings %v and %v", apiServerCRBName, authDelegatorCRBName)
+	// in our namespace to the system:auth-delegator cluster role.
+	glog.V(4).Infof("Creating cluster role binding %v", authDelegatorCRBName)
 
-	err = createClusterRoleBindings(clientset, opts.ClusterRegistryNamespace, opts.DryRun)
+	_, err = createAuthDelegatorClusterRoleBinding(clientset, authDelegatorCRBName,
+		opts.ClusterRegistryNamespace, opts.DryRun)
 
 	if err != nil {
-		glog.V(4).Infof("Failed to create cluster role bindings")
+		glog.V(4).Infof("Failed to create cluster role binding %v: %v", authDelegatorCRBName, err)
 		return nil, err
 	}
 
@@ -259,83 +247,28 @@ func createServiceAccount(clientset client.Interface,
 	return clientset.CoreV1().ServiceAccounts(namespace).Create(sa)
 }
 
-// createClusterRole creates the cluster role for the operations we will allow
-// on our cluster registry API resources e.g. Cluster.
-func createClusterRole(clientset client.Interface,
-	dryRun bool) (*rbacv1.ClusterRole, error) {
-
-	rule := rbacv1.PolicyRule{
-		Verbs:     clusterRoleVerbs,
-		APIGroups: clusterRoleAPIGroup,
-		Resources: clusterRoleResources,
-	}
-
-	cr := &rbacv1.ClusterRole{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   clusterRoleName,
-			Labels: common.ComponentLabel,
-		},
-		Rules: []rbacv1.PolicyRule{rule},
-	}
-
-	if dryRun {
-		return cr, nil
-	}
-
-	return clientset.RbacV1().ClusterRoles().Create(cr)
-}
-
-// createClusterRoleBindings creates the cluster role bindings for the
-// operations we will allow on our cluster registry API resources.
-func createClusterRoleBindings(clientset client.Interface,
-	namespace string, dryRun bool) error {
-
-	// Create cluster role binding for the clusterregistry.k8s.io:apiserver
-	// cluster role.
-	crb, err := createClusterRoleBindingObject(clientset, apiServerCRBName,
-		rbacv1.ServiceAccountKind, serviceAccountName, namespace, rbacv1.GroupName,
-		"ClusterRole", clusterRoleName, common.ComponentLabel, dryRun)
-
-	if err != nil {
-		glog.V(4).Infof("Failed to create cluster role binding %v: %v", crb, err)
-		return err
-	}
-
-	// Create cluster role binding for the system:auth-delegator cluster role.
-	crb, err = createClusterRoleBindingObject(clientset, authDelegatorCRBName,
-		rbacv1.ServiceAccountKind, serviceAccountName, namespace, rbacv1.GroupName,
-		"ClusterRole", "system:auth-delegator", common.ComponentLabel, dryRun)
-
-	if err != nil {
-		glog.V(4).Infof("Failed to create cluster role binding %v: %v", crb, err)
-		return err
-	}
-
-	return nil
-}
-
-// createClusterRoleBindingObject creates and returns the cluster role binding
-// object.
-func createClusterRoleBindingObject(clientset client.Interface, name, subjectKind,
-	subjectName, subjectNamespace, roleAPIGroup, roleKind, roleName string,
-	labels map[string]string, dryRun bool) (*rbacv1.ClusterRoleBinding, error) {
+// createAuthDelegatorClusterRoleBinding creates and returns the cluster role
+// binding object to allow the cluster registry to delegate auth to the
+// kubernetes API server.
+func createAuthDelegatorClusterRoleBinding(clientset client.Interface, name, namespace string,
+	dryRun bool) (*rbacv1.ClusterRoleBinding, error) {
 
 	crb := &rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   name,
-			Labels: labels,
+			Labels: common.ComponentLabel,
 		},
 		Subjects: []rbacv1.Subject{
 			{
-				Kind:      subjectKind,
-				Name:      subjectName,
-				Namespace: subjectNamespace,
+				Kind:      rbacv1.ServiceAccountKind,
+				Name:      serviceAccountName,
+				Namespace: namespace,
 			},
 		},
 		RoleRef: rbacv1.RoleRef{
-			APIGroup: roleAPIGroup,
-			Kind:     roleKind,
-			Name:     roleName,
+			APIGroup: rbacv1.GroupName,
+			Kind:     "ClusterRole",
+			Name:     "system:auth-delegator",
 		},
 	}
 
