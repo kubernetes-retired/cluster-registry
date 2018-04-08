@@ -1517,7 +1517,8 @@
       "version": "v1alpha1",
       "kind": "Cluster"
      }
-    ]
+    ],
+    "x-kubernetes-print-columns": "custom-columns=NAME:.metadata.name,CIDR:.spec.kubernetesApiEndpoints.serverEndpoints[].clientCIDR,SERVER:.spec.kubernetesApiEndpoints.serverEndpoints[].serverAddress,CREATION TIME:.metadata.creationTimestamp"
    },
    "io.k8s.cluster-registry.pkg.apis.clusterregistry.v1alpha1.ClusterList": {
     "description": "ClusterList is a list of Kubernetes clusters in the cluster registry.",

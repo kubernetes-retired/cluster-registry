@@ -74,6 +74,7 @@ message AuthProviderType {
 }
 
 // Cluster contains information about a cluster in a cluster registry.
+// +k8s:openapi-gen=x-kubernetes-print-columns:custom-columns=NAME:.metadata.name,CIDR:.spec.kubernetesApiEndpoints.serverEndpoints[].clientCIDR,SERVER:.spec.kubernetesApiEndpoints.serverEndpoints[].serverAddress,CREATION TIME:.metadata.creationTimestamp
 message Cluster {
   // Standard object's metadata.
   // More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
