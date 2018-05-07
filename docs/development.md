@@ -19,8 +19,21 @@ we expect that the structure of this repository will need to change as
 
 ## Run all tests
 
-You can run all the project's tests by running `go test ./test/...` from the
-repository root.
+To set up the testing environment, run:
+
+```
+$ kubebuilder update vendor
+$ KUBEBUILDER_PATH=<path_to_your_kubebuilder_install>
+$ export TEST_ASSET_ETCD=$KUBEBUILDER_PATH/bin/etcd
+$ export TEST_ASSET_KUBE_APISERVER=$KUBEBUILDER_PATH/bin/kube-apiserver
+$ export TEST_ASSET_KUBECTL=$KUBEBUILDER_PATH/bin/kubectl
+```
+
+Note that this will create a `/vendor` directory, which should not be checked
+in.
+
+After this, you can run all the project's tests by running `go test ./test/...`
+from the repository root.
 
 ## Updating vendored dependencies
 
