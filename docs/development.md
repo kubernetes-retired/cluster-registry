@@ -3,7 +3,7 @@
 ## Prerequisites
 
 You'll need to clone the repository before doing any work. Make sure to clone
-into $GOPATH/src/k8s.io/cluster-registry, since much of the tooling expects
+into `$GOPATH/src/k8s.io/cluster-registry`, since much of the tooling expects
 this.
 
 Before doing any development work, you must (in order, from the repository root
