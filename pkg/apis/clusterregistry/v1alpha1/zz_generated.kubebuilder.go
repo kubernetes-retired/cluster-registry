@@ -82,41 +82,41 @@ var (
 				OpenAPIV3Schema: &v1beta1.JSONSchemaProps{
 					Type: "object",
 					Properties: map[string]v1beta1.JSONSchemaProps{
-						"apiVersion": v1beta1.JSONSchemaProps{
+						"apiVersion": {
 							Type: "string",
 						},
-						"kind": v1beta1.JSONSchemaProps{
+						"kind": {
 							Type: "string",
 						},
-						"metadata": v1beta1.JSONSchemaProps{
+						"metadata": {
 							Type: "object",
 						},
-						"spec": v1beta1.JSONSchemaProps{
+						"spec": {
 							Type: "object",
 							Properties: map[string]v1beta1.JSONSchemaProps{
-								"authInfo": v1beta1.JSONSchemaProps{
+								"authInfo": {
 									Type: "object",
 									Properties: map[string]v1beta1.JSONSchemaProps{
-										"providers": v1beta1.JSONSchemaProps{
+										"providers": {
 											Type: "array",
 											Items: &v1beta1.JSONSchemaPropsOrArray{
 												Schema: &v1beta1.JSONSchemaProps{
 													Type: "object",
 													Properties: map[string]v1beta1.JSONSchemaProps{
-														"config": v1beta1.JSONSchemaProps{
+														"config": {
 															Type: "object",
 															AdditionalProperties: &v1beta1.JSONSchemaPropsOrBool{
 																Allows: true,
 																//Schema: &,
 															},
 														},
-														"name": v1beta1.JSONSchemaProps{
+														"name": {
 															Type: "string",
 														},
-														"type": v1beta1.JSONSchemaProps{
+														"type": {
 															Type: "object",
 															Properties: map[string]v1beta1.JSONSchemaProps{
-																"name": v1beta1.JSONSchemaProps{
+																"name": {
 																	Type: "string",
 																},
 															},
@@ -127,10 +127,10 @@ var (
 										},
 									},
 								},
-								"kubernetesApiEndpoints": v1beta1.JSONSchemaProps{
+								"kubernetesApiEndpoints": {
 									Type: "object",
 									Properties: map[string]v1beta1.JSONSchemaProps{
-										"caBundle": v1beta1.JSONSchemaProps{
+										"caBundle": {
 											Type: "array",
 											Items: &v1beta1.JSONSchemaPropsOrArray{
 												Schema: &v1beta1.JSONSchemaProps{
@@ -138,16 +138,16 @@ var (
 												},
 											},
 										},
-										"serverEndpoints": v1beta1.JSONSchemaProps{
+										"serverEndpoints": {
 											Type: "array",
 											Items: &v1beta1.JSONSchemaPropsOrArray{
 												Schema: &v1beta1.JSONSchemaProps{
 													Type: "object",
 													Properties: map[string]v1beta1.JSONSchemaProps{
-														"clientCIDR": v1beta1.JSONSchemaProps{
+														"clientCIDR": {
 															Type: "string",
 														},
-														"serverAddress": v1beta1.JSONSchemaProps{
+														"serverAddress": {
 															Type: "string",
 														},
 													},
@@ -158,7 +158,7 @@ var (
 								},
 							},
 						},
-						"status": v1beta1.JSONSchemaProps{
+						"status": {
 							Type:       "object",
 							Properties: map[string]v1beta1.JSONSchemaProps{},
 						},
