@@ -12,8 +12,8 @@ To build, from this directory, run:
 
 ```sh
 bazel build //cmd/clusterregistry //examples/slackcontroller
-cp "$(bazel info bazel-bin)/cmd/clusterregistry/clusterregistry" \
-  "$(bazel info bazel-bin)/examples/slackcontroller/slackcontroller" \
+cp "$(bazel info bazel-bin)/cmd/clusterregistry/$(go env GOHOSTOS)_$(go env GOARCH)_stripped/clusterregistry" \
+  "$(bazel info bazel-bin)/examples/slackcontroller/$(go env GOHOSTOS)_$(go env GOARCH)_stripped/slackcontroller" \
   ./contents
 docker build . -t crexample:latest
 ```
