@@ -46,6 +46,7 @@ const (
 	APIServerAdvertiseAddressFlag = "api-server-advertise-address"
 	APIServerServiceTypeFlag      = "api-server-service-type"
 	apiserverPortFlag             = "api-server-port"
+	HostClusterContextFlag        = "host-cluster-context"
 )
 
 var (
@@ -80,7 +81,7 @@ type SubcommandOptions struct {
 func (o *SubcommandOptions) BindCommon(flags *pflag.FlagSet) {
 	flags.StringVar(&o.Kubeconfig, "kubeconfig", "",
 		"Path to the kubeconfig file to use for CLI requests.")
-	flags.StringVar(&o.Host, "host-cluster-context", "",
+	flags.StringVar(&o.Host, HostClusterContextFlag, "",
 		"Context of the cluster in which to host the cluster registry.")
 	flags.StringVar(&o.ClusterRegistryNamespace, "cluster-registry-namespace",
 		DefaultClusterRegistryNamespace,
@@ -295,7 +296,7 @@ func (o *SubcommandOptions) CreatePVC(cmdOut io.Writer,
 
 func (o *SubcommandOptions) CreateAPIServer(cmdOut io.Writer, clientset client.Interface,
 	apiServerEnableHTTPBasicAuth, apiServerEnableTokenAuth, aggregated bool, ips []string,
-	pvc *v1.PersistentVolumeClaim, serviceAccountName string) error {
+	pvc *v1.PersistentVolumeClaim, serviceAccountName string, aggCredentialsName string) error {
 	// Since only one IP address can be specified as advertise address,
 	// we arbitrarily pick the first available IP address.
 	// Pick user provided APIServerAdvertiseAddress over other available IP addresses.
@@ -310,7 +311,7 @@ func (o *SubcommandOptions) CreateAPIServer(cmdOut io.Writer, clientset client.I
 	_, err := common.CreateAPIServer(clientset, o.ClusterRegistryNamespace,
 		serverName, o.ServerImage, o.EtcdImage, advertiseAddress, serverCredName,
 		serviceAccountName, apiServerEnableHTTPBasicAuth, apiServerEnableTokenAuth,
-		o.APIServerOverrides, pvc, aggregated, o.DryRun)
+		o.APIServerOverrides, pvc, aggregated, aggCredentialsName, o.DryRun)
 
 	if err != nil {
 		glog.V(4).Infof("Failed to create API server: %v", err)

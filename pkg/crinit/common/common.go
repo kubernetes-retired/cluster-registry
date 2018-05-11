@@ -47,7 +47,8 @@ const (
 	// Set the secure port to 8443 to avoid requiring root privileges
 	// to bind to port < 1000.  The apiserver's service will still
 	// expose on port 443.
-	apiServerSecurePort = 8443
+	apiServerSecurePort     = 8443
+	KubeconfigSecretDataKey = "kubeconfig"
 )
 
 var (
@@ -279,7 +280,7 @@ func CreatePVC(clientset client.Interface, namespace, svcName, etcdPVCapacity,
 func CreateAPIServer(clientset client.Interface, namespace, name, serverImage,
 	etcdImage, advertiseAddress, credentialsName, serviceAccountName string, hasHTTPBasicAuthFile,
 	hasTokenAuthFile bool, argOverrides map[string]string,
-	pvc *v1.PersistentVolumeClaim, aggregated, dryRun bool) (*appsv1beta1.Deployment, error) {
+	pvc *v1.PersistentVolumeClaim, aggregated bool, aggCredentialsName string, dryRun bool) (*appsv1beta1.Deployment, error) {
 
 	command := []string{"./clusterregistry"}
 	argsMap := map[string]string{
@@ -289,6 +290,26 @@ func CreateAPIServer(clientset client.Interface, namespace, name, serverImage,
 		"--client-ca-file":       "/etc/clusterregistry/apiserver/ca.crt",
 		"--tls-cert-file":        "/etc/clusterregistry/apiserver/server.crt",
 		"--tls-private-key-file": "/etc/clusterregistry/apiserver/server.key",
+	}
+
+	if aggCredentialsName != "" {
+		// https://kubernetes.io/docs/tasks/access-kubernetes-api/configure-aggregation-layer/
+		argsMap["--requestheader-client-ca-file"] = "/etc/clusterregistry/agg/ca.crt"
+		// used in proxy cert auth to extension (assumes aggregator client cert CN is named as such)
+		argsMap["--requestheader-allowed-names"] = "aggregator"
+		argsMap["--requestheader-extra-headers-prefix"] = "X-Remote-Extra-"
+		argsMap["--requestheader-group-headers"] = "X-Remote-Group"
+		argsMap["--requestheader-username-headers"] = "X-Remote-User"
+
+		// since we're not running in the aggregator, need to state how to connect to aggregator for delegated authentication
+		argsMap["--authentication-kubeconfig"] = "/etc/clusterregistry/agg/kubeconfig"
+		// same as above but for authorization
+		argsMap["--authorization-kubeconfig"] = "/etc/clusterregistry/agg/kubeconfig"
+
+		// don't even attempt to read configmap in host cluster
+		argsMap["--authentication-skip-lookup"] = "true"
+		// authentication-token-webhook-cache-ttl has default (see NewDelegatingAuthenticationOptions)
+		// authorization-webhook-cache-{authorized,unauthorized}-ttl have defaults (see NewDelegatingAuthorizationOptions)
 	}
 
 	if advertiseAddress != "" {
@@ -389,6 +410,29 @@ func CreateAPIServer(clientset client.Interface, namespace, name, serverImage,
 		for i, container := range dep.Spec.Template.Spec.Containers {
 			if container.Name == "etcd" {
 				dep.Spec.Template.Spec.Containers[i].VolumeMounts = append(dep.Spec.Template.Spec.Containers[i].VolumeMounts, etcdVolumeMount)
+			}
+		}
+	}
+
+	if aggCredentialsName != "" {
+		credsVolume := v1.Volume{
+			Name: aggCredentialsName,
+			VolumeSource: v1.VolumeSource{
+				Secret: &v1.SecretVolumeSource{
+					SecretName: aggCredentialsName,
+				},
+			},
+		}
+		credsVolumeMount := v1.VolumeMount{
+			Name:      aggCredentialsName,
+			MountPath: "/etc/clusterregistry/agg",
+			ReadOnly:  true,
+		}
+
+		dep.Spec.Template.Spec.Volumes = append(dep.Spec.Template.Spec.Volumes, credsVolume)
+		for i, container := range dep.Spec.Template.Spec.Containers {
+			if container.Name == "clusterregistry" {
+				dep.Spec.Template.Spec.Containers[i].VolumeMounts = append(dep.Spec.Template.Spec.Containers[i].VolumeMounts, credsVolumeMount)
 			}
 		}
 	}
