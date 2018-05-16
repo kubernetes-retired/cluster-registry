@@ -34,10 +34,10 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
 
-	"k8s.io/cluster-registry/pkg/client/clientset_generated/clientset"
-	clusterregistryscheme "k8s.io/cluster-registry/pkg/client/clientset_generated/clientset/scheme"
-	informers "k8s.io/cluster-registry/pkg/client/informers_generated/externalversions"
-	listers "k8s.io/cluster-registry/pkg/client/listers_generated/clusterregistry/v1alpha1"
+	clientset "k8s.io/cluster-registry/pkg/client/clientset/versioned"
+	clusterregistryscheme "k8s.io/cluster-registry/pkg/client/clientset/versioned/scheme"
+	informers "k8s.io/cluster-registry/pkg/client/informers/externalversions"
+	listers "k8s.io/cluster-registry/pkg/client/listers/clusterregistry/v1alpha1"
 )
 
 const controllerAgentName = "clusterregistry-controller"

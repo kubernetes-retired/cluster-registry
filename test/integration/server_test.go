@@ -19,19 +19,26 @@ package integration
 import (
 	"testing"
 
+	"github.com/kubernetes-sigs/kubebuilder/pkg/test"
+	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
-	crclientset "k8s.io/cluster-registry/pkg/client/clientset_generated/clientset"
+	crclientset "k8s.io/cluster-registry/pkg/client/clientset/versioned"
 )
 
 func TestClusterCRUD(t *testing.T) {
-	config, tearDown := StartTestServerOrDie(t)
-	defer tearDown()
+	testenv := &test.TestEnvironment{CRDs: []*v1beta1.CustomResourceDefinition{&v1alpha1.ClusterCRD}}
+
+	config, err := testenv.Start()
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
 
 	clientset, err := crclientset.NewForConfig(config)
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
+	defer testenv.Stop()
 
 	clusterName := "cluster"
 
@@ -82,22 +89,20 @@ func testClusterGet(t *testing.T, clientset *crclientset.Clientset, clusterName 
 }
 
 func testClusterUpdate(t *testing.T, clientset *crclientset.Clientset, clusterName string) {
+	cluster, err := clientset.ClusterregistryV1alpha1().Clusters().Get(clusterName, metav1.GetOptions{})
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
 	authProviderName := "authProviderName"
 
-	cluster := &v1alpha1.Cluster{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: clusterName,
-		},
-		Spec: v1alpha1.ClusterSpec{
-			AuthInfo: v1alpha1.AuthInfo{
-				Providers: []v1alpha1.AuthProviderConfig{
-					{Name: authProviderName},
-				},
-			},
+	cluster.Spec.AuthInfo = v1alpha1.AuthInfo{
+		Providers: []v1alpha1.AuthProviderConfig{
+			{Name: authProviderName},
 		},
 	}
 
-	cluster, err := clientset.ClusterregistryV1alpha1().Clusters().Update(cluster)
+	cluster, err = clientset.ClusterregistryV1alpha1().Clusters().Update(cluster)
 
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
