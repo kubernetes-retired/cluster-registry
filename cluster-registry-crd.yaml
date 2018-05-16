@@ -7,7 +7,7 @@ spec:
   names:
     kind: Cluster
     plural: clusters
-  scope: Cluster
+  scope: Namespaced
   validation:
     openAPIV3Schema:
       properties:

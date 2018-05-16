@@ -114,7 +114,108 @@
      "tags": [
       "clusterregistry_v1alpha1"
      ],
-     "operationId": "listClusterregistryV1alpha1Cluster",
+     "operationId": "listClusterregistryV1alpha1ClusterForAllNamespaces",
+     "responses": {
+      "200": {
+       "description": "OK",
+       "schema": {
+        "$ref": "#/definitions/io.k8s.cluster-registry.pkg.apis.clusterregistry.v1alpha1.ClusterList"
+       }
+      }
+     },
+     "x-kubernetes-action": "list",
+     "x-kubernetes-group-version-kind": {
+      "group": "clusterregistry.k8s.io",
+      "version": "v1alpha1",
+      "kind": "Cluster"
+     }
+    },
+    "parameters": [
+     {
+      "uniqueItems": true,
+      "type": "string",
+      "description": "The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server the server will respond with a 410 ResourceExpired error indicating the client must restart their list without the continue field. This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.",
+      "name": "continue",
+      "in": "query"
+     },
+     {
+      "uniqueItems": true,
+      "type": "string",
+      "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+      "name": "fieldSelector",
+      "in": "query"
+     },
+     {
+      "uniqueItems": true,
+      "type": "boolean",
+      "description": "If true, partially initialized resources are included in the response.",
+      "name": "includeUninitialized",
+      "in": "query"
+     },
+     {
+      "uniqueItems": true,
+      "type": "string",
+      "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+      "name": "labelSelector",
+      "in": "query"
+     },
+     {
+      "uniqueItems": true,
+      "type": "integer",
+      "description": "limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.\n\nThe server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.",
+      "name": "limit",
+      "in": "query"
+     },
+     {
+      "uniqueItems": true,
+      "type": "string",
+      "description": "If 'true', then the output is pretty printed.",
+      "name": "pretty",
+      "in": "query"
+     },
+     {
+      "uniqueItems": true,
+      "type": "string",
+      "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history. When specified for list: - if unset, then the result is returned from remote storage based on quorum-read flag; - if it's 0, then we simply return what we currently have in cache, no guarantee; - if set to non zero, then the result is at least as fresh as given rv.",
+      "name": "resourceVersion",
+      "in": "query"
+     },
+     {
+      "uniqueItems": true,
+      "type": "integer",
+      "description": "Timeout for the list/watch call.",
+      "name": "timeoutSeconds",
+      "in": "query"
+     },
+     {
+      "uniqueItems": true,
+      "type": "boolean",
+      "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+      "name": "watch",
+      "in": "query"
+     }
+    ]
+   },
+   "/apis/clusterregistry.k8s.io/v1alpha1/namespaces/{namespace}/clusters": {
+    "get": {
+     "description": "list or watch objects of kind Cluster",
+     "consumes": [
+      "*/*"
+     ],
+     "produces": [
+      "application/json",
+      "application/yaml",
+      "application/vnd.kubernetes.protobuf",
+      "application/json;stream=watch",
+      "application/vnd.kubernetes.protobuf;stream=watch"
+     ],
+     "schemes": [
+      "https"
+     ],
+     "tags": [
+      "clusterregistry_v1alpha1"
+     ],
+     "operationId": "listClusterregistryV1alpha1NamespacedCluster",
      "parameters": [
       {
        "uniqueItems": true,
@@ -204,7 +305,7 @@
      "tags": [
       "clusterregistry_v1alpha1"
      ],
-     "operationId": "createClusterregistryV1alpha1Cluster",
+     "operationId": "createClusterregistryV1alpha1NamespacedCluster",
      "parameters": [
       {
        "name": "body",
@@ -258,7 +359,7 @@
      "tags": [
       "clusterregistry_v1alpha1"
      ],
-     "operationId": "deleteClusterregistryV1alpha1CollectionCluster",
+     "operationId": "deleteClusterregistryV1alpha1CollectionNamespacedCluster",
      "parameters": [
       {
        "uniqueItems": true,
@@ -336,13 +437,21 @@
      {
       "uniqueItems": true,
       "type": "string",
+      "description": "object name and auth scope, such as for teams and projects",
+      "name": "namespace",
+      "in": "path",
+      "required": true
+     },
+     {
+      "uniqueItems": true,
+      "type": "string",
       "description": "If 'true', then the output is pretty printed.",
       "name": "pretty",
       "in": "query"
      }
     ]
    },
-   "/apis/clusterregistry.k8s.io/v1alpha1/clusters/{name}": {
+   "/apis/clusterregistry.k8s.io/v1alpha1/namespaces/{namespace}/clusters/{name}": {
     "get": {
      "description": "read the specified Cluster",
      "consumes": [
@@ -359,7 +468,7 @@
      "tags": [
       "clusterregistry_v1alpha1"
      ],
-     "operationId": "readClusterregistryV1alpha1Cluster",
+     "operationId": "readClusterregistryV1alpha1NamespacedCluster",
      "parameters": [
       {
        "uniqueItems": true,
@@ -407,7 +516,7 @@
      "tags": [
       "clusterregistry_v1alpha1"
      ],
-     "operationId": "replaceClusterregistryV1alpha1Cluster",
+     "operationId": "replaceClusterregistryV1alpha1NamespacedCluster",
      "parameters": [
       {
        "name": "body",
@@ -455,7 +564,7 @@
      "tags": [
       "clusterregistry_v1alpha1"
      ],
-     "operationId": "deleteClusterregistryV1alpha1Cluster",
+     "operationId": "deleteClusterregistryV1alpha1NamespacedCluster",
      "parameters": [
       {
        "name": "body",
@@ -520,7 +629,7 @@
      "tags": [
       "clusterregistry_v1alpha1"
      ],
-     "operationId": "patchClusterregistryV1alpha1Cluster",
+     "operationId": "patchClusterregistryV1alpha1NamespacedCluster",
      "parameters": [
       {
        "name": "body",
@@ -558,13 +667,21 @@
      {
       "uniqueItems": true,
       "type": "string",
+      "description": "object name and auth scope, such as for teams and projects",
+      "name": "namespace",
+      "in": "path",
+      "required": true
+     },
+     {
+      "uniqueItems": true,
+      "type": "string",
       "description": "If 'true', then the output is pretty printed.",
       "name": "pretty",
       "in": "query"
      }
     ]
    },
-   "/apis/clusterregistry.k8s.io/v1alpha1/clusters/{name}/status": {
+   "/apis/clusterregistry.k8s.io/v1alpha1/namespaces/{namespace}/clusters/{name}/status": {
     "get": {
      "description": "read status of the specified Cluster",
      "consumes": [
@@ -581,7 +698,7 @@
      "tags": [
       "clusterregistry_v1alpha1"
      ],
-     "operationId": "readClusterregistryV1alpha1ClusterStatus",
+     "operationId": "readClusterregistryV1alpha1NamespacedClusterStatus",
      "parameters": [
       {
        "uniqueItems": true,
@@ -629,7 +746,7 @@
      "tags": [
       "clusterregistry_v1alpha1"
      ],
-     "operationId": "replaceClusterregistryV1alpha1ClusterStatus",
+     "operationId": "replaceClusterregistryV1alpha1NamespacedClusterStatus",
      "parameters": [
       {
        "name": "body",
@@ -677,7 +794,7 @@
      "tags": [
       "clusterregistry_v1alpha1"
      ],
-     "operationId": "createClusterregistryV1alpha1ClusterStatus",
+     "operationId": "createClusterregistryV1alpha1NamespacedClusterStatus",
      "parameters": [
       {
        "name": "body",
@@ -731,7 +848,7 @@
      "tags": [
       "clusterregistry_v1alpha1"
      ],
-     "operationId": "deleteClusterregistryV1alpha1ClusterStatus",
+     "operationId": "deleteClusterregistryV1alpha1NamespacedClusterStatus",
      "parameters": [
       {
        "name": "body",
@@ -796,7 +913,7 @@
      "tags": [
       "clusterregistry_v1alpha1"
      ],
-     "operationId": "patchClusterregistryV1alpha1ClusterStatus",
+     "operationId": "patchClusterregistryV1alpha1NamespacedClusterStatus",
      "parameters": [
       {
        "name": "body",
@@ -834,6 +951,14 @@
      {
       "uniqueItems": true,
       "type": "string",
+      "description": "object name and auth scope, such as for teams and projects",
+      "name": "namespace",
+      "in": "path",
+      "required": true
+     },
+     {
+      "uniqueItems": true,
+      "type": "string",
       "description": "If 'true', then the output is pretty printed.",
       "name": "pretty",
       "in": "query"
@@ -859,7 +984,7 @@
      "tags": [
       "clusterregistry_v1alpha1"
      ],
-     "operationId": "watchClusterregistryV1alpha1ClusterList",
+     "operationId": "watchClusterregistryV1alpha1ClusterListForAllNamespaces",
      "responses": {
       "200": {
        "description": "OK",
@@ -941,7 +1066,116 @@
      }
     ]
    },
-   "/apis/clusterregistry.k8s.io/v1alpha1/watch/clusters/{name}": {
+   "/apis/clusterregistry.k8s.io/v1alpha1/watch/namespaces/{namespace}/clusters": {
+    "get": {
+     "description": "watch individual changes to a list of Cluster",
+     "consumes": [
+      "*/*"
+     ],
+     "produces": [
+      "application/json",
+      "application/yaml",
+      "application/vnd.kubernetes.protobuf",
+      "application/json;stream=watch",
+      "application/vnd.kubernetes.protobuf;stream=watch"
+     ],
+     "schemes": [
+      "https"
+     ],
+     "tags": [
+      "clusterregistry_v1alpha1"
+     ],
+     "operationId": "watchClusterregistryV1alpha1NamespacedClusterList",
+     "responses": {
+      "200": {
+       "description": "OK",
+       "schema": {
+        "$ref": "#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.WatchEvent"
+       }
+      }
+     },
+     "x-kubernetes-action": "watchlist",
+     "x-kubernetes-group-version-kind": {
+      "group": "clusterregistry.k8s.io",
+      "version": "v1alpha1",
+      "kind": "Cluster"
+     }
+    },
+    "parameters": [
+     {
+      "uniqueItems": true,
+      "type": "string",
+      "description": "The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server the server will respond with a 410 ResourceExpired error indicating the client must restart their list without the continue field. This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.",
+      "name": "continue",
+      "in": "query"
+     },
+     {
+      "uniqueItems": true,
+      "type": "string",
+      "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+      "name": "fieldSelector",
+      "in": "query"
+     },
+     {
+      "uniqueItems": true,
+      "type": "boolean",
+      "description": "If true, partially initialized resources are included in the response.",
+      "name": "includeUninitialized",
+      "in": "query"
+     },
+     {
+      "uniqueItems": true,
+      "type": "string",
+      "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+      "name": "labelSelector",
+      "in": "query"
+     },
+     {
+      "uniqueItems": true,
+      "type": "integer",
+      "description": "limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.\n\nThe server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.",
+      "name": "limit",
+      "in": "query"
+     },
+     {
+      "uniqueItems": true,
+      "type": "string",
+      "description": "object name and auth scope, such as for teams and projects",
+      "name": "namespace",
+      "in": "path",
+      "required": true
+     },
+     {
+      "uniqueItems": true,
+      "type": "string",
+      "description": "If 'true', then the output is pretty printed.",
+      "name": "pretty",
+      "in": "query"
+     },
+     {
+      "uniqueItems": true,
+      "type": "string",
+      "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history. When specified for list: - if unset, then the result is returned from remote storage based on quorum-read flag; - if it's 0, then we simply return what we currently have in cache, no guarantee; - if set to non zero, then the result is at least as fresh as given rv.",
+      "name": "resourceVersion",
+      "in": "query"
+     },
+     {
+      "uniqueItems": true,
+      "type": "integer",
+      "description": "Timeout for the list/watch call.",
+      "name": "timeoutSeconds",
+      "in": "query"
+     },
+     {
+      "uniqueItems": true,
+      "type": "boolean",
+      "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+      "name": "watch",
+      "in": "query"
+     }
+    ]
+   },
+   "/apis/clusterregistry.k8s.io/v1alpha1/watch/namespaces/{namespace}/clusters/{name}": {
     "get": {
      "description": "watch changes to an object of kind Cluster",
      "consumes": [
@@ -960,7 +1194,7 @@
      "tags": [
       "clusterregistry_v1alpha1"
      ],
-     "operationId": "watchClusterregistryV1alpha1Cluster",
+     "operationId": "watchClusterregistryV1alpha1NamespacedCluster",
      "responses": {
       "200": {
        "description": "OK",
@@ -1023,6 +1257,14 @@
      {
       "uniqueItems": true,
       "type": "string",
+      "description": "object name and auth scope, such as for teams and projects",
+      "name": "namespace",
+      "in": "path",
+      "required": true
+     },
+     {
+      "uniqueItems": true,
+      "type": "string",
       "description": "If 'true', then the output is pretty printed.",
       "name": "pretty",
       "in": "query"
@@ -1050,7 +1292,7 @@
      }
     ]
    },
-   "/apis/clusterregistry.k8s.io/v1alpha1/watch/clusters/{name}/status": {
+   "/apis/clusterregistry.k8s.io/v1alpha1/watch/namespaces/{namespace}/clusters/{name}/status": {
     "get": {
      "description": "watch changes to status of an object of kind Cluster",
      "consumes": [
@@ -1069,7 +1311,7 @@
      "tags": [
       "clusterregistry_v1alpha1"
      ],
-     "operationId": "watchClusterregistryV1alpha1ClusterStatus",
+     "operationId": "watchClusterregistryV1alpha1NamespacedClusterStatus",
      "responses": {
       "200": {
        "description": "OK",
@@ -1126,6 +1368,14 @@
       "type": "string",
       "description": "name of the Cluster",
       "name": "name",
+      "in": "path",
+      "required": true
+     },
+     {
+      "uniqueItems": true,
+      "type": "string",
+      "description": "object name and auth scope, such as for teams and projects",
+      "name": "namespace",
       "in": "path",
       "required": true
      },
