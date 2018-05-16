@@ -26,6 +26,8 @@ import (
 	crclientset "k8s.io/cluster-registry/pkg/client/clientset/versioned"
 )
 
+const testNamepace = "default"
+
 func TestClusterCRUD(t *testing.T) {
 	testenv := &test.TestEnvironment{CRDs: []*v1beta1.CustomResourceDefinition{&v1alpha1.ClusterCRD}}
 
@@ -60,9 +62,10 @@ func TestClusterCRUD(t *testing.T) {
 }
 
 func testClusterCreate(t *testing.T, clientset *crclientset.Clientset, clusterName string) {
-	cluster, err := clientset.ClusterregistryV1alpha1().Clusters().Create(&v1alpha1.Cluster{
+	cluster, err := clientset.ClusterregistryV1alpha1().Clusters(testNamepace).Create(&v1alpha1.Cluster{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: clusterName,
+			Name:      clusterName,
+			Namespace: testNamepace,
 		},
 	})
 
@@ -76,7 +79,7 @@ func testClusterCreate(t *testing.T, clientset *crclientset.Clientset, clusterNa
 }
 
 func testClusterGet(t *testing.T, clientset *crclientset.Clientset, clusterName string) {
-	cluster, err := clientset.ClusterregistryV1alpha1().Clusters().Get(clusterName,
+	cluster, err := clientset.ClusterregistryV1alpha1().Clusters(testNamepace).Get(clusterName,
 		metav1.GetOptions{})
 
 	if err != nil {
@@ -89,7 +92,7 @@ func testClusterGet(t *testing.T, clientset *crclientset.Clientset, clusterName 
 }
 
 func testClusterUpdate(t *testing.T, clientset *crclientset.Clientset, clusterName string) {
-	cluster, err := clientset.ClusterregistryV1alpha1().Clusters().Get(clusterName, metav1.GetOptions{})
+	cluster, err := clientset.ClusterregistryV1alpha1().Clusters(testNamepace).Get(clusterName, metav1.GetOptions{})
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
@@ -102,7 +105,7 @@ func testClusterUpdate(t *testing.T, clientset *crclientset.Clientset, clusterNa
 		},
 	}
 
-	cluster, err = clientset.ClusterregistryV1alpha1().Clusters().Update(cluster)
+	cluster, err = clientset.ClusterregistryV1alpha1().Clusters(testNamepace).Update(cluster)
 
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
@@ -117,7 +120,7 @@ func testClusterUpdate(t *testing.T, clientset *crclientset.Clientset, clusterNa
 }
 
 func testClusterDelete(t *testing.T, clientset *crclientset.Clientset, clusterName string) {
-	err := clientset.ClusterregistryV1alpha1().Clusters().Delete(clusterName,
+	err := clientset.ClusterregistryV1alpha1().Clusters(testNamepace).Delete(clusterName,
 		&metav1.DeleteOptions{})
 
 	if err != nil {
@@ -125,7 +128,7 @@ func testClusterDelete(t *testing.T, clientset *crclientset.Clientset, clusterNa
 	}
 
 	// We do not expect to find the cluster we just deleted
-	_, err = clientset.ClusterregistryV1alpha1().Clusters().Get(clusterName, metav1.GetOptions{})
+	_, err = clientset.ClusterregistryV1alpha1().Clusters(testNamepace).Get(clusterName, metav1.GetOptions{})
 
 	if err == nil {
 		t.Fatalf("Unexpected error: %v", err)
