@@ -1,6 +1,7 @@
 kind: Cluster
 apiVersion: clusterregistry.k8s.io/v1alpha1
 metadata:
+  namespace: default
   name: my-cluster
   labels:
     foo: bar
