@@ -44,6 +44,7 @@ kind: Cluster
 apiVersion: clusterregistry.k8s.io/v1alpha1
 metadata:
   name: test-cluster
+  namespace: default
 spec:
   kubernetesApiEndpoints:
     serverEndpoints:
