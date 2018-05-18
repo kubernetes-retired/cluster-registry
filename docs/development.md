@@ -59,7 +59,9 @@ OpenAPI spec in `docs/reference/openapi-spec`, and update the CRD YAML
 definition in the repo root.
 
 After running the commands, edit `cluster-registry-crd.yaml` to remove the
-`status` field, and the `creationTimestamp` and `labels` from the `metadata`.
+`status` field, the `creationTimestamp` and `labels` from the `metadata`, and
+the `additionalProperties` field (as in
+https://github.com/kubernetes/cluster-registry/pull/231).
 
 ## Verify Go source files
 

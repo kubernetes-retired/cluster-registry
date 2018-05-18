@@ -25,8 +25,6 @@ spec:
                   items:
                     properties:
                       config:
-                        additionalProperties:
-                          type: string
                         type: object
                       name:
                         type: string
