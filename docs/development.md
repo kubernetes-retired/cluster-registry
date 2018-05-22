@@ -15,14 +15,14 @@ You must install [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder)
 in order to work in this repository. `kubebuilder` is in active development, and
 we expect that the structure of this repository will need to change as
 `kubebuilder` is improved. All of the commands below are verified to work with
-`kubebuilder` `0.1.7`.
+`kubebuilder` `0.1.9`.
 
 ## Run all tests
 
 To set up the testing environment, run:
 
 ```
-$ kubebuilder update vendor
+$ kubebuilder update vendor --overwrite-dep-manifest
 $ KUBEBUILDER_PATH=<path_to_your_kubebuilder_install>
 $ export TEST_ASSET_ETCD=$KUBEBUILDER_PATH/bin/etcd
 $ export TEST_ASSET_KUBE_APISERVER=$KUBEBUILDER_PATH/bin/kube-apiserver
@@ -49,8 +49,12 @@ To update generated code after modifying the cluster type, run these commands
 from the repo root:
 
 ```
+$ kubebuilder update vendor --overwrite-dep-manifest
 $ kubebuilder generate
-$ kubebuilder docs --cleanup=false
+$ kubebuilder docs  # This will fail because of missing dependencies.
+$ dep ensure
+$ kubebuilder docs
+$ chown -R $USER docs/reference/build  # The generated docs are owned by root.
 $ kubebuilder create config --crds --output cluster-registry-crd.yaml
 ```
 
@@ -59,9 +63,7 @@ OpenAPI spec in `docs/reference/openapi-spec`, and update the CRD YAML
 definition in the repo root.
 
 After running the commands, edit `cluster-registry-crd.yaml` to remove the
-`status` field, the `creationTimestamp` and `labels` from the `metadata`, and
-the `additionalProperties` field (as in
-https://github.com/kubernetes/cluster-registry/pull/231).
+`status` field, and the `creationTimestamp` and `labels` from the `metadata`.
 
 ## Verify Go source files
 
