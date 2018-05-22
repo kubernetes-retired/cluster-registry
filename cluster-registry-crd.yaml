@@ -21,20 +21,10 @@ spec:
           properties:
             authInfo:
               properties:
-                providers:
-                  items:
-                    properties:
-                      config:
-                        type: object
-                      name:
-                        type: string
-                      type:
-                        properties:
-                          name:
-                            type: string
-                        type: object
-                    type: object
-                  type: array
+                controllerAuthInfo:
+                  type: object
+                userAuthInfo:
+                  type: object
               type: object
             kubernetesApiEndpoints:
               properties:
@@ -54,6 +44,26 @@ spec:
               type: object
           type: object
         status:
+          properties:
+            conditions:
+              items:
+                properties:
+                  lastHeartbeatTime:
+                    format: date-time
+                    type: string
+                  lastTransitionTime:
+                    format: date-time
+                    type: string
+                  message:
+                    type: string
+                  reason:
+                    type: string
+                  status:
+                    type: string
+                  type:
+                    type: string
+                type: object
+              type: array
           type: object
       type: object
   version: v1alpha1

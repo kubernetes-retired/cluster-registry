@@ -1,8 +1,8 @@
-## KubernetesAPIEndpoints v1alpha1 clusterregistry
+## KubernetesAPIEndpoints v1alpha1
 
 Group        | Version     | Kind
 ------------ | ---------- | -----------
-clusterregistry | v1alpha1 | KubernetesAPIEndpoints
+`clusterregistry` | `v1alpha1` | `KubernetesAPIEndpoints`
 
 
 
@@ -12,11 +12,11 @@ KubernetesAPIEndpoints represents the endpoints for one and only one Kubernetes 
 Appears In:
 
 <ul> 
-<li><a href="#clusterspec-v1alpha1-clusterregistry">ClusterSpec clusterregistry/v1alpha1</a></li>
+<li><a href="#clusterspec-v1alpha1">ClusterSpec v1alpha1</a></li>
 </ul></aside>
 
 Field        | Description
 ------------ | -----------
-caBundle <br /> *string*    | CABundle contains the certificate authority information.
-serverEndpoints <br /> *[ServerAddressByClientCIDR](#serveraddressbyclientcidr-v1alpha1-clusterregistry) array*    | ServerEndpoints specifies the address(es) of the Kubernetes API server’s network identity or identities.
+`caBundle`<br /> *string*    | CABundle contains the certificate authority information.
+`serverEndpoints`<br /> *[ServerAddressByClientCIDR](#serveraddressbyclientcidr-v1alpha1) array*    | ServerEndpoints specifies the address(es) of the Kubernetes API server’s network identity or identities.
 

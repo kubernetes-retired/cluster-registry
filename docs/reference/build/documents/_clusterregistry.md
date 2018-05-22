@@ -1,5 +1,5 @@
 
-# <strong>clusterregistry</strong>
+# <strong>Clusterregistry</strong>
 
 ------------
 

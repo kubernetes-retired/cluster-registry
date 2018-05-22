@@ -1,8 +1,8 @@
-## Time v1 meta
+## Time v1
 
 Group        | Version     | Kind
 ------------ | ---------- | -----------
-meta | v1 | Time
+`meta` | `v1` | `Time`
 
 
 
@@ -12,7 +12,8 @@ meta | v1 | Time
 Appears In:
 
 <ul> 
-<li><a href="#objectmeta-v1-meta">ObjectMeta meta/v1</a></li>
+<li><a href="#clustercondition-v1alpha1">ClusterCondition v1alpha1</a></li>
+<li><a href="#objectmeta-v1">ObjectMeta v1</a></li>
 </ul></aside>
 
 Field        | Description
