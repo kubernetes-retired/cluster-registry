@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -61,6 +62,9 @@ type ClusterSpec struct {
 
 // ClusterStatus contains the status of a cluster.
 type ClusterStatus struct {
+	// Conditions contains the different condition statuses for this cluster.
+	Conditions []ClusterCondition `json:"conditions,omitempty" protobuf:"bytes,1,rep,name=conditions"`
+
 	// TODO https://github.com/kubernetes/cluster-registry/issues/28
 }
 
@@ -132,4 +136,43 @@ type AuthProviderType struct {
 	// Name is the name of the auth provider.
 	// +optional
 	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+}
+
+// ClusterConditionType marks the kind of cluster condition being reported.
+type ClusterConditionType string
+
+const (
+	// ClusterOK means that the cluster is "OK".
+	//
+	// Since the cluster registry does not have a standard status controller, the
+	// meaning of this condition is defined by the environment in which the
+	// cluster is running. It is expected to mean that the cluster is reachable by
+	// a controller that is reporting on its status, and that the cluster is ready
+	// to have workloads scheduled.
+	ClusterOK ClusterConditionType = "OK"
+)
+
+// ClusterCondition contains condition information for a cluster.
+type ClusterCondition struct {
+	// Type is the type of the cluster condition.
+	Type ClusterConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=ClusterConditionType"`
+
+	// Status is the status of the condition. One of True, False, Unknown.
+	Status v1.ConditionStatus `json:"status" protobuf:"bytes,2,opt,name=status,casttype=ConditionStatus"`
+
+	// LastHeartbeatTime is the last time this condition was updated.
+	// +optional
+	LastHeartbeatTime metav1.Time `json:"lastHeartbeatTime,omitempty" protobuf:"bytes,3,opt,name=lastHeartbeatTime"`
+
+	// LastTransitionTime is the last time the condition changed from one status to another.
+	// +optional
+	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty" protobuf:"bytes,4,opt,name=lastTransitionTime"`
+
+	// Reason is a (brief) reason for the condition's last status change.
+	// +optional
+	Reason string `json:"reason,omitempty" protobuf:"bytes,5,opt,name=reason"`
+
+	// Message is a human-readable message indicating details about the last status change.
+	// +optional
+	Message string `json:"message,omitempty" protobuf:"bytes,6,opt,name=message"`
 }
