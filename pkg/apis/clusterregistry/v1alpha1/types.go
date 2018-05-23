@@ -94,48 +94,21 @@ type ServerAddressByClientCIDR struct {
 	ServerAddress string `json:"serverAddress,omitempty" protobuf:"bytes,2,opt,name=serverAddress"`
 }
 
-// AuthInfo holds public information that describes how a client can get
+// AuthInfo holds information that describes how a client can get
 // credentials to access the cluster. For example, OAuth2 client registration
-// endpoints and supported flows, or Kerberos servers locations.
-//
-// It should not hold any private or sensitive information.
+// endpoints and supported flows, or Kerberos server locations.
 type AuthInfo struct {
-	// AuthProviders is a list of configurations for auth providers.
+	// UserAuthInfo references an object that contains implementation-specific
+	// details about how a user should authenticate against this cluster.
 	// +optional
-	Providers []AuthProviderConfig `json:"providers,omitempty" protobuf:"bytes,1,rep,name=providers"`
-}
+	UserAuthInfo *v1.ObjectReference `json:"userAuthInfo,omitempty" protobuf:"bytes,1,opt,name=userAuthInfo"`
 
-// AuthProviderConfig contains the information necessary for a client to
-// authenticate to a Kubernetes API server. It is modeled after
-// k8s.io/client-go/tools/clientcmd/api/v1.AuthProviderConfig.
-type AuthProviderConfig struct {
-	// Name is the name of this configuration.
-	// +optional
-	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
-
-	// Type contains type information about this auth provider. Clients of the
-	// cluster registry should use this field to differentiate between different
-	// kinds of authentication providers.
-	// +optional
-	Type AuthProviderType `json:"type,omitempty" protobuf:"bytes,2,opt,name=type"`
-
-	// Config is a map of values that contains the information necessary for a
-	// client to determine how to authenticate to a Kubernetes API server.
-	// +optional
-	Config map[string]string `json:"config,omitempty" protobuf:"bytes,3,rep,name=config"`
-}
-
-// AuthProviderType contains metadata about the auth provider. It should be used
-// by clients to differentiate between different kinds of auth providers, and to
-// select a relevant provider for the client's configuration. For example, a
-// controller would look for a provider type that denotes a service account
-// that it should use to access the cluster, whereas a user would look for a
-// provider type that denotes an authentication system from which they should
-// request a token.
-type AuthProviderType struct {
-	// Name is the name of the auth provider.
-	// +optional
-	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	// ControllerAuthInfo references an object that contains
+	// implementation-specific details about how a controller should authenticate.
+	// A simple use case for this would be to reference a secret in another
+	// namespace that stores a bearer token that can be used to authenticate
+	// against this cluster's API server.
+	ControllerAuthInfo *v1.ObjectReference `json:"controllerAuthInfo,omitempty" protobuf:"bytes,2,opt,name=controllerAuthInfo"`
 }
 
 // ClusterConditionType marks the kind of cluster condition being reported.
