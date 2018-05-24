@@ -20,8 +20,10 @@ import (
 	"testing"
 
 	"github.com/kubernetes-sigs/kubebuilder/pkg/test"
+	"k8s.io/api/core/v1"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cluster-registry/pkg/apis/clusterregistry/v1alpha1"
 	crclientset "k8s.io/cluster-registry/pkg/client/clientset/versioned"
 )
@@ -97,11 +99,14 @@ func testClusterUpdate(t *testing.T, clientset *crclientset.Clientset, clusterNa
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	authProviderName := "authProviderName"
+	authSecretName := "authSecret"
 
 	cluster.Spec.AuthInfo = v1alpha1.AuthInfo{
-		Providers: []v1alpha1.AuthProviderConfig{
-			{Name: authProviderName},
+		ControllerAuthInfo: &v1.ObjectReference{
+			Kind:      "Secret",
+			Name:      authSecretName,
+			Namespace: "default",
+			UID:       types.UID("testUID"),
 		},
 	}
 
@@ -113,9 +118,9 @@ func testClusterUpdate(t *testing.T, clientset *crclientset.Clientset, clusterNa
 		t.Fatalf("Expected a cluster, got nil")
 	} else if cluster.Name != clusterName {
 		t.Fatalf("Expected a cluster named 'cluster', got a cluster named '%v'.", cluster.Name)
-	} else if len(cluster.Spec.AuthInfo.Providers) != 1 || cluster.Spec.AuthInfo.Providers[0].Name != authProviderName {
-		t.Fatalf("Expected a cluster auth provider named '%v', got cluster auth provider '%v'",
-			authProviderName, cluster.Spec.AuthInfo.Providers[0].Name)
+	} else if cluster.Spec.AuthInfo.ControllerAuthInfo == nil || cluster.Spec.AuthInfo.ControllerAuthInfo.Name != authSecretName {
+		t.Fatalf("Expected a cluster controller auth info named '%v', got cluster auth provider '%v'",
+			authSecretName, cluster.Spec.AuthInfo.ControllerAuthInfo)
 	}
 }
 

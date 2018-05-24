@@ -97,33 +97,13 @@ var (
 								"authInfo": {
 									Type: "object",
 									Properties: map[string]v1beta1.JSONSchemaProps{
-										"providers": {
-											Type: "array",
-											Items: &v1beta1.JSONSchemaPropsOrArray{
-												Schema: &v1beta1.JSONSchemaProps{
-													Type: "object",
-													Properties: map[string]v1beta1.JSONSchemaProps{
-														"config": {
-															Type: "object",
-															AdditionalProperties: &v1beta1.JSONSchemaPropsOrBool{
-																Allows: true,
-																//Schema: &,
-															},
-														},
-														"name": {
-															Type: "string",
-														},
-														"type": {
-															Type: "object",
-															Properties: map[string]v1beta1.JSONSchemaProps{
-																"name": {
-																	Type: "string",
-																},
-															},
-														},
-													},
-												},
-											},
+										"controllerAuthInfo": {
+											Type:       "object",
+											Properties: map[string]v1beta1.JSONSchemaProps{},
+										},
+										"userAuthInfo": {
+											Type:       "object",
+											Properties: map[string]v1beta1.JSONSchemaProps{},
 										},
 									},
 								},
@@ -159,8 +139,39 @@ var (
 							},
 						},
 						"status": {
-							Type:       "object",
-							Properties: map[string]v1beta1.JSONSchemaProps{},
+							Type: "object",
+							Properties: map[string]v1beta1.JSONSchemaProps{
+								"conditions": {
+									Type: "array",
+									Items: &v1beta1.JSONSchemaPropsOrArray{
+										Schema: &v1beta1.JSONSchemaProps{
+											Type: "object",
+											Properties: map[string]v1beta1.JSONSchemaProps{
+												"lastHeartbeatTime": {
+													Type:   "string",
+													Format: "date-time",
+												},
+												"lastTransitionTime": {
+													Type:   "string",
+													Format: "date-time",
+												},
+												"message": {
+													Type: "string",
+												},
+												"reason": {
+													Type: "string",
+												},
+												"status": {
+													Type: "string",
+												},
+												"type": {
+													Type: "string",
+												},
+											},
+										},
+									},
+								},
+							},
 						},
 					},
 				},

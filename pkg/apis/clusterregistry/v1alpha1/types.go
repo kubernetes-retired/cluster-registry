@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -61,6 +62,9 @@ type ClusterSpec struct {
 
 // ClusterStatus contains the status of a cluster.
 type ClusterStatus struct {
+	// Conditions contains the different condition statuses for this cluster.
+	Conditions []ClusterCondition `json:"conditions,omitempty" protobuf:"bytes,1,rep,name=conditions"`
+
 	// TODO https://github.com/kubernetes/cluster-registry/issues/28
 }
 
@@ -90,46 +94,58 @@ type ServerAddressByClientCIDR struct {
 	ServerAddress string `json:"serverAddress,omitempty" protobuf:"bytes,2,opt,name=serverAddress"`
 }
 
-// AuthInfo holds public information that describes how a client can get
+// AuthInfo holds information that describes how a client can get
 // credentials to access the cluster. For example, OAuth2 client registration
-// endpoints and supported flows, or Kerberos servers locations.
-//
-// It should not hold any private or sensitive information.
+// endpoints and supported flows, or Kerberos server locations.
 type AuthInfo struct {
-	// AuthProviders is a list of configurations for auth providers.
+	// UserAuthInfo references an object that contains implementation-specific
+	// details about how a user should authenticate against this cluster.
 	// +optional
-	Providers []AuthProviderConfig `json:"providers,omitempty" protobuf:"bytes,1,rep,name=providers"`
+	UserAuthInfo *v1.ObjectReference `json:"userAuthInfo,omitempty" protobuf:"bytes,1,opt,name=userAuthInfo"`
+
+	// ControllerAuthInfo references an object that contains
+	// implementation-specific details about how a controller should authenticate.
+	// A simple use case for this would be to reference a secret in another
+	// namespace that stores a bearer token that can be used to authenticate
+	// against this cluster's API server.
+	ControllerAuthInfo *v1.ObjectReference `json:"controllerAuthInfo,omitempty" protobuf:"bytes,2,opt,name=controllerAuthInfo"`
 }
 
-// AuthProviderConfig contains the information necessary for a client to
-// authenticate to a Kubernetes API server. It is modeled after
-// k8s.io/client-go/tools/clientcmd/api/v1.AuthProviderConfig.
-type AuthProviderConfig struct {
-	// Name is the name of this configuration.
-	// +optional
-	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+// ClusterConditionType marks the kind of cluster condition being reported.
+type ClusterConditionType string
 
-	// Type contains type information about this auth provider. Clients of the
-	// cluster registry should use this field to differentiate between different
-	// kinds of authentication providers.
-	// +optional
-	Type AuthProviderType `json:"type,omitempty" protobuf:"bytes,2,opt,name=type"`
+const (
+	// ClusterOK means that the cluster is "OK".
+	//
+	// Since the cluster registry does not have a standard status controller, the
+	// meaning of this condition is defined by the environment in which the
+	// cluster is running. It is expected to mean that the cluster is reachable by
+	// a controller that is reporting on its status, and that the cluster is ready
+	// to have workloads scheduled.
+	ClusterOK ClusterConditionType = "OK"
+)
 
-	// Config is a map of values that contains the information necessary for a
-	// client to determine how to authenticate to a Kubernetes API server.
-	// +optional
-	Config map[string]string `json:"config,omitempty" protobuf:"bytes,3,rep,name=config"`
-}
+// ClusterCondition contains condition information for a cluster.
+type ClusterCondition struct {
+	// Type is the type of the cluster condition.
+	Type ClusterConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=ClusterConditionType"`
 
-// AuthProviderType contains metadata about the auth provider. It should be used
-// by clients to differentiate between different kinds of auth providers, and to
-// select a relevant provider for the client's configuration. For example, a
-// controller would look for a provider type that denotes a service account
-// that it should use to access the cluster, whereas a user would look for a
-// provider type that denotes an authentication system from which they should
-// request a token.
-type AuthProviderType struct {
-	// Name is the name of the auth provider.
+	// Status is the status of the condition. One of True, False, Unknown.
+	Status v1.ConditionStatus `json:"status" protobuf:"bytes,2,opt,name=status,casttype=ConditionStatus"`
+
+	// LastHeartbeatTime is the last time this condition was updated.
 	// +optional
-	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	LastHeartbeatTime metav1.Time `json:"lastHeartbeatTime,omitempty" protobuf:"bytes,3,opt,name=lastHeartbeatTime"`
+
+	// LastTransitionTime is the last time the condition changed from one status to another.
+	// +optional
+	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty" protobuf:"bytes,4,opt,name=lastTransitionTime"`
+
+	// Reason is a (brief) reason for the condition's last status change.
+	// +optional
+	Reason string `json:"reason,omitempty" protobuf:"bytes,5,opt,name=reason"`
+
+	// Message is a human-readable message indicating details about the last status change.
+	// +optional
+	Message string `json:"message,omitempty" protobuf:"bytes,6,opt,name=message"`
 }
