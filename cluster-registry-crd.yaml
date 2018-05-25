@@ -35,7 +35,7 @@ spec:
                 caBundle:
                   items:
                     type: byte
-                  type: array
+                  type: string
                 serverEndpoints:
                   items:
                     properties:

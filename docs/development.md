@@ -62,6 +62,10 @@ These will update the generated client code, update the generated docs and
 OpenAPI spec in `docs/reference/openapi-spec`, and update the CRD YAML
 definition in the repo root.
 
+After running the commands, edit `cluster-registry-crd.yaml` to modify the
+`type` of the `caBundle` field from `array` to `string`. (See
+https://github.com/kubernetes-sigs/kubebuilder/issues/220 for more details).
+
 ## Verify Go source files
 
 You can run the Go source file verification script to verify and fix your Go
