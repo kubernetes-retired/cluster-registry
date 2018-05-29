@@ -64,6 +64,10 @@ func getFloat(f float64) *float64 {
 	return &f
 }
 
+func getInt(i int64) *int64 {
+	return &i
+}
+
 var (
 	// Define CRDs for resources
 	ClusterCRD = v1beta1.CustomResourceDefinition{
@@ -97,13 +101,33 @@ var (
 								"authInfo": {
 									Type: "object",
 									Properties: map[string]v1beta1.JSONSchemaProps{
-										"controllerAuthInfo": {
-											Type:       "object",
-											Properties: map[string]v1beta1.JSONSchemaProps{},
+										"controller": {
+											Type: "object",
+											Properties: map[string]v1beta1.JSONSchemaProps{
+												"kind": {
+													Type: "string",
+												},
+												"name": {
+													Type: "string",
+												},
+												"namespace": {
+													Type: "string",
+												},
+											},
 										},
-										"userAuthInfo": {
-											Type:       "object",
-											Properties: map[string]v1beta1.JSONSchemaProps{},
+										"user": {
+											Type: "object",
+											Properties: map[string]v1beta1.JSONSchemaProps{
+												"kind": {
+													Type: "string",
+												},
+												"name": {
+													Type: "string",
+												},
+												"namespace": {
+													Type: "string",
+												},
+											},
 										},
 									},
 								},

@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="stylesheet.css" type="text/css">
 </head>
 <body>
-<div id="sidebar-wrapper" class="side-nav side-bar-nav"><ul><li class="nav-level-1 strong-nav"><a href="#-strong-clusterregistry-strong-" class="nav-item"><strong>Clusterregistry</strong></a></li></ul><ul><li class="nav-level-1"><a href="#cluster-v1alpha1" class="nav-item">Cluster v1alpha1</a></li></ul><ul><li class="nav-level-1 strong-nav"><a href="#-strong-old-api-versions-strong-" class="nav-item"><strong>Old API Versions</strong></a></li></ul><ul><li class="nav-level-1 strong-nav"><a href="#-strong-field-definitions-strong-" class="nav-item"><strong>Field Definitions</strong></a></li><ul id="-strong-field-definitions-strong--nav" style="display: none;"><li class="nav-level-2"><a href="#authinfo-v1alpha1" class="nav-item">AuthInfo v1alpha1</a></li><li class="nav-level-2"><a href="#clustercondition-v1alpha1" class="nav-item">ClusterCondition v1alpha1</a></li><li class="nav-level-2"><a href="#initializer-v1" class="nav-item">Initializer v1</a></li><li class="nav-level-2"><a href="#initializers-v1" class="nav-item">Initializers v1</a></li><li class="nav-level-2"><a href="#kubernetesapiendpoints-v1alpha1" class="nav-item">KubernetesAPIEndpoints v1alpha1</a></li><li class="nav-level-2"><a href="#listmeta-v1" class="nav-item">ListMeta v1</a></li><li class="nav-level-2"><a href="#objectmeta-v1" class="nav-item">ObjectMeta v1</a></li><li class="nav-level-2"><a href="#objectreference-v1" class="nav-item">ObjectReference v1</a></li><li class="nav-level-2"><a href="#ownerreference-v1" class="nav-item">OwnerReference v1</a></li><li class="nav-level-2"><a href="#serveraddressbyclientcidr-v1alpha1" class="nav-item">ServerAddressByClientCIDR v1alpha1</a></li><li class="nav-level-2"><a href="#status-v1" class="nav-item">Status v1</a></li><li class="nav-level-2"><a href="#statuscause-v1" class="nav-item">StatusCause v1</a></li><li class="nav-level-2"><a href="#statusdetails-v1" class="nav-item">StatusDetails v1</a></li><li class="nav-level-2"><a href="#time-v1" class="nav-item">Time v1</a></li></ul></ul><br/><div class="copyright"><a href="https://github.com/kubernetes/kubernetes">Copyright 2018 The Kubernetes Authors.</a></div></div>
+<div id="sidebar-wrapper" class="side-nav side-bar-nav"><ul><li class="nav-level-1 strong-nav"><a href="#-strong-clusterregistry-strong-" class="nav-item"><strong>Clusterregistry</strong></a></li></ul><ul><li class="nav-level-1"><a href="#cluster-v1alpha1" class="nav-item">Cluster v1alpha1</a></li></ul><ul><li class="nav-level-1 strong-nav"><a href="#-strong-old-api-versions-strong-" class="nav-item"><strong>Old API Versions</strong></a></li></ul><ul><li class="nav-level-1 strong-nav"><a href="#-strong-field-definitions-strong-" class="nav-item"><strong>Field Definitions</strong></a></li><ul id="-strong-field-definitions-strong--nav" style="display: none;"><li class="nav-level-2"><a href="#authinfo-v1alpha1" class="nav-item">AuthInfo v1alpha1</a></li><li class="nav-level-2"><a href="#clustercondition-v1alpha1" class="nav-item">ClusterCondition v1alpha1</a></li><li class="nav-level-2"><a href="#initializer-v1" class="nav-item">Initializer v1</a></li><li class="nav-level-2"><a href="#initializers-v1" class="nav-item">Initializers v1</a></li><li class="nav-level-2"><a href="#kubernetesapiendpoints-v1alpha1" class="nav-item">KubernetesAPIEndpoints v1alpha1</a></li><li class="nav-level-2"><a href="#listmeta-v1" class="nav-item">ListMeta v1</a></li><li class="nav-level-2"><a href="#objectmeta-v1" class="nav-item">ObjectMeta v1</a></li><li class="nav-level-2"><a href="#objectreference-v1alpha1" class="nav-item">ObjectReference v1alpha1</a></li><li class="nav-level-2"><a href="#ownerreference-v1" class="nav-item">OwnerReference v1</a></li><li class="nav-level-2"><a href="#serveraddressbyclientcidr-v1alpha1" class="nav-item">ServerAddressByClientCIDR v1alpha1</a></li><li class="nav-level-2"><a href="#status-v1" class="nav-item">Status v1</a></li><li class="nav-level-2"><a href="#statuscause-v1" class="nav-item">StatusCause v1</a></li><li class="nav-level-2"><a href="#statusdetails-v1" class="nav-item">StatusDetails v1</a></li><li class="nav-level-2"><a href="#time-v1" class="nav-item">Time v1</a></li></ul></ul><br/><div class="copyright"><a href="https://github.com/kubernetes/kubernetes">Copyright 2018 The Kubernetes Authors.</a></div></div>
 <div id="wrapper">
 <div id="code-tabs-wrapper" class="code-tabs"><ul class="code-tab-list"></ul></div>
 <div id="page-content-wrapper" class="body-content container-fluid"><h1 id="-strong-clusterregistry-strong-"><strong>Clusterregistry</strong></h1>
@@ -151,12 +151,12 @@ Appears In:
 </thead>
 <tbody>
 <tr>
-<td><code>controllerAuthInfo</code><br /> <em><a href="#objectreference-v1">ObjectReference</a></em></td>
-<td>ControllerAuthInfo references an object that contains implementation-specific details about how a controller should authenticate. A simple use case for this would be to reference a secret in another namespace that stores a bearer token that can be used to authenticate against this cluster&#39;s API server.</td>
+<td><code>controller</code><br /> <em><a href="#objectreference-v1alpha1">ObjectReference</a></em></td>
+<td>Controller references an object that contains implementation-specific details about how a controller should authenticate. A simple use case for this would be to reference a secret in another namespace that stores a bearer token that can be used to authenticate against this cluster&#39;s API server.</td>
 </tr>
 <tr>
-<td><code>userAuthInfo</code><br /> <em><a href="#objectreference-v1">ObjectReference</a></em></td>
-<td>UserAuthInfo references an object that contains implementation-specific details about how a user should authenticate against this cluster.</td>
+<td><code>user</code><br /> <em><a href="#objectreference-v1alpha1">ObjectReference</a></em></td>
+<td>User references an object that contains implementation-specific details about how a user should authenticate against this cluster.</td>
 </tr>
 </tbody>
 </table>
@@ -490,7 +490,7 @@ Appears In:
 </tr>
 </tbody>
 </table>
-<h2 id="objectreference-v1">ObjectReference v1</h2>
+<h2 id="objectreference-v1alpha1">ObjectReference v1alpha1</h2>
 <table>
 <thead>
 <tr>
@@ -501,8 +501,8 @@ Appears In:
 </thead>
 <tbody>
 <tr>
-<td><code>core</code></td>
-<td><code>v1</code></td>
+<td><code>clusterregistry</code></td>
+<td><code>v1alpha1</code></td>
 <td><code>ObjectReference</code></td>
 </tr>
 </tbody>
@@ -524,32 +524,16 @@ Appears In:
 </thead>
 <tbody>
 <tr>
-<td><code>apiVersion</code><br /> <em>string</em></td>
-<td>API version of the referent.</td>
-</tr>
-<tr>
-<td><code>fieldPath</code><br /> <em>string</em></td>
-<td>If referring to a piece of an object instead of an entire object, this string should contain a valid JSON/Go field access statement, such as desiredState.manifest.containers[2]. For example, if the object reference is to a container within a pod, this would take on a value like: &#34;spec.containers{name}&#34; (where &#34;name&#34; refers to the name of the container that triggered the event) or if no container name is specified &#34;spec.containers[2]&#34; (container with index 2 in this pod). This syntax is chosen only to have some well-defined way of referencing a part of an object.</td>
-</tr>
-<tr>
 <td><code>kind</code><br /> <em>string</em></td>
-<td>Kind of the referent. More info: <a href="https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds">https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds</a></td>
+<td>Kind contains the kind of the referent, e.g., Secret or ConfigMap More info: <a href="https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds">https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds</a></td>
 </tr>
 <tr>
 <td><code>name</code><br /> <em>string</em></td>
-<td>Name of the referent. More info: <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names">https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names</a></td>
+<td>Name contains the name of the referent. More info: <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names">https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names</a></td>
 </tr>
 <tr>
 <td><code>namespace</code><br /> <em>string</em></td>
-<td>Namespace of the referent. More info: <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/">https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/</a></td>
-</tr>
-<tr>
-<td><code>resourceVersion</code><br /> <em>string</em></td>
-<td>Specific resourceVersion to which this reference is made, if any. More info: <a href="https://git.k8s.io/community/contributors/devel/api-conventions.md#concurrency-control-and-consistency">https://git.k8s.io/community/contributors/devel/api-conventions.md#concurrency-control-and-consistency</a></td>
-</tr>
-<tr>
-<td><code>uid</code><br /> <em>string</em></td>
-<td>UID of the referent. More info: <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids">https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids</a></td>
+<td>Namespace contains the namespace of the referent. More info: <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/">https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/</a></td>
 </tr>
 </tbody>
 </table>
