@@ -98,17 +98,35 @@ type ServerAddressByClientCIDR struct {
 // credentials to access the cluster. For example, OAuth2 client registration
 // endpoints and supported flows, or Kerberos server locations.
 type AuthInfo struct {
-	// UserAuthInfo references an object that contains implementation-specific
-	// details about how a user should authenticate against this cluster.
+	// User references an object that contains implementation-specific details
+	// about how a user should authenticate against this cluster.
 	// +optional
-	UserAuthInfo *v1.ObjectReference `json:"userAuthInfo,omitempty" protobuf:"bytes,1,opt,name=userAuthInfo"`
+	User *ObjectReference `json:"user,omitempty" protobuf:"bytes,1,opt,name=user"`
 
-	// ControllerAuthInfo references an object that contains
-	// implementation-specific details about how a controller should authenticate.
-	// A simple use case for this would be to reference a secret in another
-	// namespace that stores a bearer token that can be used to authenticate
-	// against this cluster's API server.
-	ControllerAuthInfo *v1.ObjectReference `json:"controllerAuthInfo,omitempty" protobuf:"bytes,2,opt,name=controllerAuthInfo"`
+	// Controller references an object that contains implementation-specific
+	// details about how a controller should authenticate. A simple use case for
+	// this would be to reference a secret in another namespace that stores a
+	// bearer token that can be used to authenticate against this cluster's API
+	// server.
+	Controller *ObjectReference `json:"controller,omitempty" protobuf:"bytes,2,opt,name=controller"`
+}
+
+// ObjectReference contains enough information to let you inspect or modify the referred object.
+type ObjectReference struct {
+	// Kind contains the kind of the referent, e.g., Secret or ConfigMap
+	// More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds
+	// +optional
+	Kind string `json:"kind,omitempty" protobuf:"bytes,1,opt,name=kind"`
+
+	// Name contains the name of the referent.
+	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+	// +optional
+	Name string `json:"name,omitempty" protobuf:"bytes,2,opt,name=name"`
+
+	// Namespace contains the namespace of the referent.
+	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/
+	// +optional
+	Namespace string `json:"namespace,omitempty" protobuf:"bytes,3,opt,name=namespace"`
 }
 
 // ClusterConditionType marks the kind of cluster condition being reported.
