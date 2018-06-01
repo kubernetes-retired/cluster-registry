@@ -17,6 +17,6 @@ Appears In:
 
 Field        | Description
 ------------ | -----------
-`controllerAuthInfo`<br /> *[ObjectReference](#objectreference-v1)*    | ControllerAuthInfo references an object that contains implementation-specific details about how a controller should authenticate. A simple use case for this would be to reference a secret in another namespace that stores a bearer token that can be used to authenticate against this cluster&#39;s API server.
-`userAuthInfo`<br /> *[ObjectReference](#objectreference-v1)*    | UserAuthInfo references an object that contains implementation-specific details about how a user should authenticate against this cluster.
+`controller`<br /> *[ObjectReference](#objectreference-v1alpha1)*    | Controller references an object that contains implementation-specific details about how a controller should authenticate. A simple use case for this would be to reference a secret in another namespace that stores a bearer token that can be used to authenticate against this cluster&#39;s API server.
+`user`<br /> *[ObjectReference](#objectreference-v1alpha1)*    | User references an object that contains implementation-specific details about how a user should authenticate against this cluster.
 
