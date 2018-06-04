@@ -14,7 +14,7 @@ A lightweight tool for maintaining a list of clusters and associated metadata.
 # What is it?
 
 The cluster registry helps you keep track of and perform operations on your
-clusters. This repository contains an implementation of the cluster API
+clusters. This repository contains an implementation of the Cluster Registry API
 ([code](https://github.com/kubernetes/cluster-registry/tree/master/pkg/apis/clusterregistry),
 [design](docs/api_design.md)) as a Kubernetes Custom Resource Definition, which
 is the canonical representation of the cluster registry.
