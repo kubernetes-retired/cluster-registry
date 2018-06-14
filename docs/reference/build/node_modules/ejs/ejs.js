@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ejs = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ejs = f()}})(function(){var define,module,exports;return (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
 /*
  * EJS Embedded JavaScript templates
  * Copyright 2112 Matthew Eernisse (mde@fleegix.org)
@@ -55,12 +55,12 @@ var _DEFAULT_DELIMITER = '%';
 var _DEFAULT_LOCALS_NAME = 'locals';
 var _NAME = 'ejs';
 var _REGEX_STRING = '(<%%|%%>|<%=|<%-|<%_|<%#|<%|%>|-%>|_%>)';
-var _OPTS = ['delimiter', 'scope', 'context', 'debug', 'compileDebug',
-  'client', '_with', 'rmWhitespace', 'strict', 'filename'];
-// We don't allow 'cache' option to be passed in the data obj
-// for the normal `render` call, but this is where Express puts it
+var _OPTS_PASSABLE_WITH_DATA = ['delimiter', 'scope', 'context', 'debug', 'compileDebug',
+  'client', '_with', 'rmWhitespace', 'strict', 'filename', 'async'];
+// We don't allow 'cache' option to be passed in the data obj for
+// the normal `render` call, but this is where Express 2 & 3 put it
 // so we make an exception for `renderFile`
-var _OPTS_EXPRESS = _OPTS.concat('cache');
+var _OPTS_PASSABLE_WITH_DATA_EXPRESS = _OPTS_PASSABLE_WITH_DATA.concat('cache');
 var _BOM = /^\uFEFF/;
 
 /**
@@ -93,6 +93,16 @@ exports.fileLoader = fs.readFileSync;
  */
 
 exports.localsName = _DEFAULT_LOCALS_NAME;
+
+/**
+ * Promise implementation -- defaults to the native implementation if available
+ * This is mostly just for testability
+ *
+ * @type {Function}
+ * @public
+ */
+
+exports.promiseImpl = (new Function('return this;'))().Promise;
 
 /**
  * Get the path to the included file from the parent file path and the
@@ -150,7 +160,8 @@ function getIncludePath(path, options) {
       }
     }
     if (!includePath) {
-      throw new Error('Could not find include include file.');
+      throw new Error('Could not find the include file "' +
+          options.escapeFunction(path) + '"');
     }
   }
   return includePath;
@@ -220,13 +231,32 @@ function handleCache(options, template) {
 
 function tryHandleCache(options, data, cb) {
   var result;
-  try {
-    result = handleCache(options)(data);
+  if (!cb) {
+    if (typeof exports.promiseImpl == 'function') {
+      return new exports.promiseImpl(function (resolve, reject) {
+        try {
+          result = handleCache(options)(data);
+          resolve(result);
+        }
+        catch (err) {
+          reject(err);
+        }
+      });
+    }
+    else {
+      throw new Error('Please provide a callback function');
+    }
   }
-  catch (err) {
-    return cb(err);
+  else {
+    try {
+      result = handleCache(options)(data);
+    }
+    catch (err) {
+      return cb(err);
+    }
+
+    cb(null, result);
   }
-  return cb(null, result);
 }
 
 /**
@@ -336,6 +366,7 @@ function stripSemi(str){
  *
  * @return {(TemplateFunction|ClientFunction)}
  * Depending on the value of `opts.client`, either type might be returned.
+ * Note that the return type of the function also depends on the value of `opts.async`.
  * @public
  */
 
@@ -368,7 +399,8 @@ exports.compile = function compile(template, opts) {
  * @param {String}   template EJS template
  * @param {Object}  [data={}] template data
  * @param {Options} [opts={}] compilation and rendering options
- * @return {String}
+ * @return {(String|Promise<String>)}
+ * Return value type depends on `opts.async`.
  * @public
  */
 
@@ -379,7 +411,7 @@ exports.render = function (template, d, o) {
   // No options object -- if there are optiony names
   // in the data, copy them to options
   if (arguments.length == 2) {
-    utils.shallowCopyFromList(opts, data, _OPTS);
+    utils.shallowCopyFromList(opts, data, _OPTS_PASSABLE_WITH_DATA);
   }
 
   return handleCache(opts, template)(data);
@@ -399,36 +431,49 @@ exports.render = function (template, d, o) {
  */
 
 exports.renderFile = function () {
-  var filename = arguments[0];
-  var cb = arguments[arguments.length - 1];
+  var args = Array.prototype.slice.call(arguments);
+  var filename = args.shift();
+  var cb;
   var opts = {filename: filename};
   var data;
+  var viewOpts;
 
-  if (arguments.length > 2) {
-    data = arguments[1];
-
-    // No options object -- if there are optiony names
-    // in the data, copy them to options
-    if (arguments.length === 3) {
-      // Express 4
+  // Do we have a callback?
+  if (typeof arguments[arguments.length - 1] == 'function') {
+    cb = args.pop();
+  }
+  // Do we have data/opts?
+  if (args.length) {
+    // Should always have data obj
+    data = args.shift();
+    // Normal passed opts (data obj + opts obj)
+    if (args.length) {
+      // Use shallowCopy so we don't pollute passed in opts obj with new vals
+      utils.shallowCopy(opts, args.pop());
+    }
+    // Special casing for Express (settings + opts-in-data)
+    else {
+      // Express 3 and 4
       if (data.settings) {
-        if (data.settings['view options']) {
-          utils.shallowCopyFromList(opts, data.settings['view options'], _OPTS_EXPRESS);
-        }
+        // Pull a few things from known locations
         if (data.settings.views) {
           opts.views = data.settings.views;
         }
+        if (data.settings['view cache']) {
+          opts.cache = true;
+        }
+        // Undocumented after Express 2, but still usable, esp. for
+        // items that are unsafe to be passed along with data, like `root`
+        viewOpts = data.settings['view options'];
+        if (viewOpts) {
+          utils.shallowCopy(opts, viewOpts);
+        }
       }
-      // Express 3 and lower
-      else {
-        utils.shallowCopyFromList(opts, data, _OPTS_EXPRESS);
-      }
+      // Express 2 and lower, values set in app.locals, or people who just
+      // want to pass options in their data. NOTE: These values will override
+      // anything previously set in settings  or settings['view options']
+      utils.shallowCopyFromList(opts, data, _OPTS_PASSABLE_WITH_DATA_EXPRESS);
     }
-    else {
-      // Use shallowCopy so we don't pollute passed in opts obj with new vals
-      utils.shallowCopy(opts, arguments[2]);
-    }
-
     opts.filename = filename;
   }
   else {
@@ -467,8 +512,10 @@ function Template(text, opts) {
   options.cache = opts.cache || false;
   options.rmWhitespace = opts.rmWhitespace;
   options.root = opts.root;
+  options.outputFunctionName = opts.outputFunctionName;
   options.localsName = opts.localsName || exports.localsName || _DEFAULT_LOCALS_NAME;
   options.views = opts.views;
+  options.async = opts.async;
 
   if (options.strict) {
     options._with = false;
@@ -505,10 +552,14 @@ Template.prototype = {
     var prepended = '';
     var appended = '';
     var escapeFn = opts.escapeFunction;
+    var asyncCtor;
 
     if (!this.source) {
       this.generateSource();
       prepended += '  var __output = [], __append = __output.push.bind(__output);' + '\n';
+      if (opts.outputFunctionName) {
+        prepended += '  var ' + opts.outputFunctionName + ' = __append;' + '\n';
+      }
       if (opts._with !== false) {
         prepended +=  '  with (' + opts.localsName + ' || {}) {' + '\n';
         appended += '  }' + '\n';
@@ -519,14 +570,14 @@ Template.prototype = {
 
     if (opts.compileDebug) {
       src = 'var __line = 1' + '\n'
-          + '  , __lines = ' + JSON.stringify(this.templateText) + '\n'
-          + '  , __filename = ' + (opts.filename ?
-                JSON.stringify(opts.filename) : 'undefined') + ';' + '\n'
-          + 'try {' + '\n'
-          + this.source
-          + '} catch (e) {' + '\n'
-          + '  rethrow(e, __lines, __filename, __line, escapeFn);' + '\n'
-          + '}' + '\n';
+        + '  , __lines = ' + JSON.stringify(this.templateText) + '\n'
+        + '  , __filename = ' + (opts.filename ?
+        JSON.stringify(opts.filename) : 'undefined') + ';' + '\n'
+        + 'try {' + '\n'
+        + this.source
+        + '} catch (e) {' + '\n'
+        + '  rethrow(e, __lines, __filename, __line, escapeFn);' + '\n'
+        + '}' + '\n';
     }
     else {
       src = this.source;
@@ -547,7 +598,25 @@ Template.prototype = {
     }
 
     try {
-      fn = new Function(opts.localsName + ', escapeFn, include, rethrow', src);
+      if (opts.async) {
+        // Have to use generated function for this, since in envs without support,
+        // it breaks in parsing
+        try {
+          asyncCtor = (new Function('return (async function(){}).constructor;'))();
+        }
+        catch(e) {
+          if (e instanceof SyntaxError) {
+            throw new Error('This environment does not support async/await');
+          }
+          else {
+            throw e;
+          }
+        }
+      }
+      else {
+        asyncCtor = Function;
+      }
+      fn = new asyncCtor(opts.localsName + ', escapeFn, include, rethrow', src);
     }
     catch(e) {
       // istanbul ignore else
@@ -558,6 +627,10 @@ Template.prototype = {
         e.message += ' while compiling ejs\n\n';
         e.message += 'If the above error is not helpful, you may want to try EJS-Lint:\n';
         e.message += 'https://github.com/RyanZim/EJS-Lint';
+        if (!e.async) {
+          e.message += '\n';
+          e.message += 'Or, if you meant to create an async function, pass async: true as an option.';
+        }
       }
       throw e;
     }
@@ -646,7 +719,7 @@ Template.prototype = {
             }
             self.source += includeSrc;
             self.dependencies.push(exports.resolveInclude(include[1],
-                includeOpts.filename));
+              includeOpts.filename));
             return;
           }
         }
@@ -755,9 +828,9 @@ Template.prototype = {
       this.truncate = line.indexOf('-') === 0 || line.indexOf('_') === 0;
       break;
     default:
-        // In script mode, depends on type of tag
+      // In script mode, depends on type of tag
       if (this.mode) {
-          // If '//' is found without a line break, add a line break.
+        // If '//' is found without a line break, add a line break.
         switch (this.mode) {
         case Template.modes.EVAL:
         case Template.modes.ESCAPED:
@@ -767,28 +840,28 @@ Template.prototype = {
           }
         }
         switch (this.mode) {
-            // Just executing code
+        // Just executing code
         case Template.modes.EVAL:
           this.source += '    ; ' + line + '\n';
           break;
-            // Exec, esc, and output
+          // Exec, esc, and output
         case Template.modes.ESCAPED:
           this.source += '    ; __append(escapeFn(' + stripSemi(line) + '))' + '\n';
           break;
-            // Exec and output
+          // Exec and output
         case Template.modes.RAW:
           this.source += '    ; __append(' + stripSemi(line) + ')' + '\n';
           break;
         case Template.modes.COMMENT:
-              // Do nothing
+          // Do nothing
           break;
-            // Literal <%% mode, append as raw output
+          // Literal <%% mode, append as raw output
         case Template.modes.LITERAL:
           this._addOutput(line);
           break;
         }
       }
-        // In string mode, just add the output
+      // In string mode, just add the output
       else {
         this._addOutput(line);
       }
@@ -920,7 +993,7 @@ var _ENCODE_HTML_RULES = {
   '"': '&#34;',
   "'": '&#39;'
 };
-var _MATCH_HTML = /[&<>\'"]/g;
+var _MATCH_HTML = /[&<>'"]/g;
 
 function encode_char(c) {
   return _ENCODE_HTML_RULES[c] || c;
@@ -964,7 +1037,7 @@ exports.escapeXML = function (markup) {
   return markup == undefined
     ? ''
     : String(markup)
-        .replace(_MATCH_HTML, encode_char);
+      .replace(_MATCH_HTML, encode_char);
 };
 exports.escapeXML.toString = function () {
   return Function.prototype.toString.call(this) + ';\n' + escapeFuncStr;
@@ -1433,6 +1506,10 @@ process.off = noop;
 process.removeListener = noop;
 process.removeAllListeners = noop;
 process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
 
 process.binding = function (name) {
     throw new Error('process.binding is not supported');
@@ -1453,7 +1530,7 @@ module.exports={
     "engine",
     "ejs"
   ],
-  "version": "2.5.6",
+  "version": "2.6.0",
   "author": "Matthew Eernisse <mde@fleegix.org> (http://fleegix.org)",
   "contributors": [
     "Timothy Gu <timothygu99@gmail.com> (https://timothygu.github.io)"
@@ -1468,15 +1545,15 @@ module.exports={
   "homepage": "https://github.com/mde/ejs",
   "dependencies": {},
   "devDependencies": {
-    "browserify": "^13.0.1",
-    "eslint": "^3.0.0",
+    "browserify": "^13.1.1",
+    "eslint": "^4.14.0",
     "git-directory-deploy": "^1.5.1",
     "istanbul": "~0.4.3",
-    "jake": "^8.0.0",
+    "jake": "^8.0.16",
     "jsdoc": "^3.4.0",
     "lru-cache": "^4.0.1",
-    "mocha": "^3.0.2",
-    "uglify-js": "^2.6.2"
+    "mocha": "^5.0.5",
+    "uglify-js": "^3.3.16"
   },
   "engines": {
     "node": ">=0.10.0"

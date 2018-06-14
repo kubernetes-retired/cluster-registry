@@ -4,7 +4,7 @@ metadata:
   creationTimestamp: null
   labels:
     api: ""
-    kubebuilder.k8s.io: 0.1.10
+    kubebuilder.k8s.io: 0.1.11
   name: clusters.clusterregistry.k8s.io
 spec:
   group: clusterregistry.k8s.io
@@ -47,8 +47,7 @@ spec:
             kubernetesApiEndpoints:
               properties:
                 caBundle:
-                  items:
-                    type: byte
+                  format: byte
                   type: string
                 serverEndpoints:
                   items:
@@ -80,9 +79,14 @@ spec:
                     type: string
                   type:
                     type: string
+                required:
+                - type
+                - status
                 type: object
               type: array
           type: object
+      required:
+      - status
       type: object
   version: v1alpha1
 status:

@@ -86,72 +86,68 @@ var (
 				OpenAPIV3Schema: &v1beta1.JSONSchemaProps{
 					Type: "object",
 					Properties: map[string]v1beta1.JSONSchemaProps{
-						"apiVersion": {
+						"apiVersion": v1beta1.JSONSchemaProps{
 							Type: "string",
 						},
-						"kind": {
+						"kind": v1beta1.JSONSchemaProps{
 							Type: "string",
 						},
-						"metadata": {
+						"metadata": v1beta1.JSONSchemaProps{
 							Type: "object",
 						},
-						"spec": {
+						"spec": v1beta1.JSONSchemaProps{
 							Type: "object",
 							Properties: map[string]v1beta1.JSONSchemaProps{
-								"authInfo": {
+								"authInfo": v1beta1.JSONSchemaProps{
 									Type: "object",
 									Properties: map[string]v1beta1.JSONSchemaProps{
-										"controller": {
+										"controller": v1beta1.JSONSchemaProps{
 											Type: "object",
 											Properties: map[string]v1beta1.JSONSchemaProps{
-												"kind": {
+												"kind": v1beta1.JSONSchemaProps{
 													Type: "string",
 												},
-												"name": {
+												"name": v1beta1.JSONSchemaProps{
 													Type: "string",
 												},
-												"namespace": {
+												"namespace": v1beta1.JSONSchemaProps{
 													Type: "string",
 												},
 											},
 										},
-										"user": {
+										"user": v1beta1.JSONSchemaProps{
 											Type: "object",
 											Properties: map[string]v1beta1.JSONSchemaProps{
-												"kind": {
+												"kind": v1beta1.JSONSchemaProps{
 													Type: "string",
 												},
-												"name": {
+												"name": v1beta1.JSONSchemaProps{
 													Type: "string",
 												},
-												"namespace": {
+												"namespace": v1beta1.JSONSchemaProps{
 													Type: "string",
 												},
 											},
 										},
 									},
 								},
-								"kubernetesApiEndpoints": {
+								"kubernetesApiEndpoints": v1beta1.JSONSchemaProps{
 									Type: "object",
 									Properties: map[string]v1beta1.JSONSchemaProps{
-										"caBundle": {
-											Type: "array",
-											Items: &v1beta1.JSONSchemaPropsOrArray{
-												Schema: &v1beta1.JSONSchemaProps{
-													Type: "byte",
-												},
-											},
+										"caBundle": v1beta1.JSONSchemaProps{
+											Type:   "string",
+											Format: "byte",
 										},
-										"serverEndpoints": {
+										"serverEndpoints": v1beta1.JSONSchemaProps{
 											Type: "array",
 											Items: &v1beta1.JSONSchemaPropsOrArray{
 												Schema: &v1beta1.JSONSchemaProps{
 													Type: "object",
 													Properties: map[string]v1beta1.JSONSchemaProps{
-														"clientCIDR": {
+														"clientCIDR": v1beta1.JSONSchemaProps{
 															Type: "string",
 														},
-														"serverAddress": {
+														"serverAddress": v1beta1.JSONSchemaProps{
 															Type: "string",
 														},
 													},
@@ -162,43 +158,48 @@ var (
 								},
 							},
 						},
-						"status": {
+						"status": v1beta1.JSONSchemaProps{
 							Type: "object",
 							Properties: map[string]v1beta1.JSONSchemaProps{
-								"conditions": {
+								"conditions": v1beta1.JSONSchemaProps{
 									Type: "array",
 									Items: &v1beta1.JSONSchemaPropsOrArray{
 										Schema: &v1beta1.JSONSchemaProps{
 											Type: "object",
 											Properties: map[string]v1beta1.JSONSchemaProps{
-												"lastHeartbeatTime": {
+												"lastHeartbeatTime": v1beta1.JSONSchemaProps{
 													Type:   "string",
 													Format: "date-time",
 												},
-												"lastTransitionTime": {
+												"lastTransitionTime": v1beta1.JSONSchemaProps{
 													Type:   "string",
 													Format: "date-time",
 												},
-												"message": {
+												"message": v1beta1.JSONSchemaProps{
 													Type: "string",
 												},
-												"reason": {
+												"reason": v1beta1.JSONSchemaProps{
 													Type: "string",
 												},
-												"status": {
+												"status": v1beta1.JSONSchemaProps{
 													Type: "string",
 												},
-												"type": {
+												"type": v1beta1.JSONSchemaProps{
 													Type: "string",
 												},
 											},
-										},
+											Required: []string{
+												"type",
+												"status",
+											}},
 									},
 								},
 							},
 						},
 					},
-				},
+					Required: []string{
+						"status",
+					}},
 			},
 		},
 	}
