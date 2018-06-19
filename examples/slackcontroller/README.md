@@ -6,7 +6,7 @@ cluster is added to or removed from the registry.
 
 ## Quickstart
 
-1.  Set up a cluster registry. Refer to the [user guide](/docs/user_guide.md)
+1.  Set up a cluster registry. Refer to the [user guide](/docs/userguide.md)
     for more info.
 1.  Run `go build ./examples/slackcontroller` to build the controller.
 1.  Create a [Slack incoming webhook](https://api.slack.com/incoming-webhooks)
