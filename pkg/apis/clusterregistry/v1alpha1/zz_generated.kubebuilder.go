@@ -86,68 +86,68 @@ var (
 				OpenAPIV3Schema: &v1beta1.JSONSchemaProps{
 					Type: "object",
 					Properties: map[string]v1beta1.JSONSchemaProps{
-						"apiVersion": v1beta1.JSONSchemaProps{
+						"apiVersion": {
 							Type: "string",
 						},
-						"kind": v1beta1.JSONSchemaProps{
+						"kind": {
 							Type: "string",
 						},
-						"metadata": v1beta1.JSONSchemaProps{
+						"metadata": {
 							Type: "object",
 						},
-						"spec": v1beta1.JSONSchemaProps{
+						"spec": {
 							Type: "object",
 							Properties: map[string]v1beta1.JSONSchemaProps{
-								"authInfo": v1beta1.JSONSchemaProps{
+								"authInfo": {
 									Type: "object",
 									Properties: map[string]v1beta1.JSONSchemaProps{
-										"controller": v1beta1.JSONSchemaProps{
+										"controller": {
 											Type: "object",
 											Properties: map[string]v1beta1.JSONSchemaProps{
-												"kind": v1beta1.JSONSchemaProps{
+												"kind": {
 													Type: "string",
 												},
-												"name": v1beta1.JSONSchemaProps{
+												"name": {
 													Type: "string",
 												},
-												"namespace": v1beta1.JSONSchemaProps{
+												"namespace": {
 													Type: "string",
 												},
 											},
 										},
-										"user": v1beta1.JSONSchemaProps{
+										"user": {
 											Type: "object",
 											Properties: map[string]v1beta1.JSONSchemaProps{
-												"kind": v1beta1.JSONSchemaProps{
+												"kind": {
 													Type: "string",
 												},
-												"name": v1beta1.JSONSchemaProps{
+												"name": {
 													Type: "string",
 												},
-												"namespace": v1beta1.JSONSchemaProps{
+												"namespace": {
 													Type: "string",
 												},
 											},
 										},
 									},
 								},
-								"kubernetesApiEndpoints": v1beta1.JSONSchemaProps{
+								"kubernetesApiEndpoints": {
 									Type: "object",
 									Properties: map[string]v1beta1.JSONSchemaProps{
-										"caBundle": v1beta1.JSONSchemaProps{
+										"caBundle": {
 											Type:   "string",
 											Format: "byte",
 										},
-										"serverEndpoints": v1beta1.JSONSchemaProps{
+										"serverEndpoints": {
 											Type: "array",
 											Items: &v1beta1.JSONSchemaPropsOrArray{
 												Schema: &v1beta1.JSONSchemaProps{
 													Type: "object",
 													Properties: map[string]v1beta1.JSONSchemaProps{
-														"clientCIDR": v1beta1.JSONSchemaProps{
+														"clientCIDR": {
 															Type: "string",
 														},
-														"serverAddress": v1beta1.JSONSchemaProps{
+														"serverAddress": {
 															Type: "string",
 														},
 													},
@@ -158,33 +158,33 @@ var (
 								},
 							},
 						},
-						"status": v1beta1.JSONSchemaProps{
+						"status": {
 							Type: "object",
 							Properties: map[string]v1beta1.JSONSchemaProps{
-								"conditions": v1beta1.JSONSchemaProps{
+								"conditions": {
 									Type: "array",
 									Items: &v1beta1.JSONSchemaPropsOrArray{
 										Schema: &v1beta1.JSONSchemaProps{
 											Type: "object",
 											Properties: map[string]v1beta1.JSONSchemaProps{
-												"lastHeartbeatTime": v1beta1.JSONSchemaProps{
+												"lastHeartbeatTime": {
 													Type:   "string",
 													Format: "date-time",
 												},
-												"lastTransitionTime": v1beta1.JSONSchemaProps{
+												"lastTransitionTime": {
 													Type:   "string",
 													Format: "date-time",
 												},
-												"message": v1beta1.JSONSchemaProps{
+												"message": {
 													Type: "string",
 												},
-												"reason": v1beta1.JSONSchemaProps{
+												"reason": {
 													Type: "string",
 												},
-												"status": v1beta1.JSONSchemaProps{
+												"status": {
 													Type: "string",
 												},
-												"type": v1beta1.JSONSchemaProps{
+												"type": {
 													Type: "string",
 												},
 											},
