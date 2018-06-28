@@ -15,7 +15,7 @@ You must install [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder)
 in order to work in this repository. `kubebuilder` is in active development, and
 we expect that the structure of this repository will need to change as
 `kubebuilder` is improved. All of the commands below are verified to work with
-`kubebuilder` `0.1.9`.
+`kubebuilder` `0.1.12`.
 
 ## Run all tests
 
@@ -61,10 +61,6 @@ $ kubebuilder create config --crds --output cluster-registry-crd.yaml
 These will update the generated client code, update the generated docs and
 OpenAPI spec in `docs/reference/openapi-spec`, and update the CRD YAML
 definition in the repo root.
-
-After running the commands, edit `cluster-registry-crd.yaml` to modify the
-`type` of the `caBundle` field from `array` to `string`. (See
-https://github.com/kubernetes-sigs/kubebuilder/issues/220 for more details).
 
 ## Verify Go source files
 
