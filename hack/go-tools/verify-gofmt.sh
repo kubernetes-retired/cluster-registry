@@ -27,12 +27,12 @@ find_files() {
     \) -name '*.go'
 }
 
-GOFMT="gofmt -s -w"
+GOFMT="gofmt -s"
 bad_files=$(find_files | xargs $GOFMT -l)
 popd > /dev/null
 
 if [[ -n "${bad_files}" ]]; then
-  echo "!!! '$GOFMT' needs to be run on the following files: "
+  echo "!!! '$GOFMT -w' needs to be run on the following files: "
   echo "${bad_files}"
   exit 1
 fi
