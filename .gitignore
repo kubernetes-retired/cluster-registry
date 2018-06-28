@@ -1,3 +1,7 @@
 /bazel-*
 examples/samplecontainer/contents/clusterregistry
 examples/samplecontainer/contents/slackcontroller
+
+vendor/
+Gopkg.lock
+Gopkg.toml
