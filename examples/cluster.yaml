@@ -10,3 +10,4 @@ spec:
     serverEndpoints:
       - clientCIDR: "0.0.0.0"
         serverAddress: "127.0.0.1"
+status: {}
