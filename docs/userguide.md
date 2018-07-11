@@ -13,7 +13,7 @@ generated client libraries, and supports having controllers watch for updates.
 
 The cluster registry API is defined as a [Kubernetes custom resource
 definition](https://kubernetes.io/docs/concepts/api-extension/custom-resources/#customresourcedefinitions).
-The [YAML for the CRD](/cluster-registry-crd.yaml) is stored in the cluster
+The [YAML for the CRD](https://github.com/kubernetes/cluster-registry/blob/master/cluster-registry-crd.yaml) is stored in the cluster
 registry repo. In order to set up the cluster registry, you must have an
 existing Kubernetes API server running that supports the `apiextensions.k8s.io`
 API group.
