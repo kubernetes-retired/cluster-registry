@@ -41,7 +41,7 @@ type Cluster struct {
 
 	// Status is the status of the cluster.
 	// +optional
-	Status ClusterStatus `json:"status" protobuf:"bytes,3,opt,name=status"`
+	Status ClusterStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
 // ClusterSpec contains the specification of a cluster.

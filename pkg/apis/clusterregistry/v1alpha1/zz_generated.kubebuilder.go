@@ -197,9 +197,7 @@ var (
 							},
 						},
 					},
-					Required: []string{
-						"status",
-					}},
+				},
 			},
 		},
 	}

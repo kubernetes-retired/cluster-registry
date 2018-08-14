@@ -85,8 +85,6 @@ spec:
                 type: object
               type: array
           type: object
-      required:
-      - status
       type: object
   version: v1alpha1
 status:
