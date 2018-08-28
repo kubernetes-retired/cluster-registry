@@ -23,27 +23,6 @@ spec:
           type: object
         spec:
           properties:
-            authInfo:
-              properties:
-                controller:
-                  properties:
-                    kind:
-                      type: string
-                    name:
-                      type: string
-                    namespace:
-                      type: string
-                  type: object
-                user:
-                  properties:
-                    kind:
-                      type: string
-                    name:
-                      type: string
-                    namespace:
-                      type: string
-                  type: object
-              type: object
             kubernetesApiEndpoints:
               properties:
                 caBundle:

@@ -97,16 +97,6 @@ func testClusterUpdate(t *testing.T, clientset *crclientset.Clientset, clusterNa
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	authSecretName := "authSecret"
-
-	cluster.Spec.AuthInfo = v1alpha1.AuthInfo{
-		Controller: &v1alpha1.ObjectReference{
-			Kind:      "Secret",
-			Name:      authSecretName,
-			Namespace: "default",
-		},
-	}
-
 	cluster, err = clientset.ClusterregistryV1alpha1().Clusters(testNamepace).Update(cluster)
 
 	if err != nil {
@@ -115,10 +105,6 @@ func testClusterUpdate(t *testing.T, clientset *crclientset.Clientset, clusterNa
 		t.Fatalf("Expected a cluster, got nil")
 	} else if cluster.Name != clusterName {
 		t.Fatalf("Expected a cluster named 'cluster', got a cluster named '%v'.", cluster.Name)
-	} else if cluster.Spec.AuthInfo.Controller == nil || cluster.Spec.AuthInfo.Controller.Name != authSecretName {
-		t.Fatalf("Expected a cluster controller auth info named '%v', got cluster auth provider '%v'",
-			authSecretName, cluster.Spec.AuthInfo.Controller)
-	}
 }
 
 func testClusterDelete(t *testing.T, clientset *crclientset.Clientset, clusterName string) {
