@@ -4,7 +4,7 @@ metadata:
   creationTimestamp: null
   labels:
     api: ""
-    kubebuilder.k8s.io: 0.1.12
+    kubebuilder.k8s.io: 1.0.3
   name: clusters.clusterregistry.k8s.io
 spec:
   group: clusterregistry.k8s.io
@@ -85,7 +85,6 @@ spec:
                 type: object
               type: array
           type: object
-      type: object
   version: v1alpha1
 status:
   acceptedNames:
