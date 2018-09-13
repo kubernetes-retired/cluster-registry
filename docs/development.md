@@ -15,7 +15,7 @@ You must install [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder)
 in order to work in this repository. `kubebuilder` is in active development, and
 we expect that the structure of this repository will need to change as
 `kubebuilder` is improved. All of the commands below are verified to work with
-`kubebuilder` `0.1.12`.
+`kubebuilder` [1.0.3](https://github.com/kubernetes-sigs/kubebuilder/releases/tag/v1.0.3).
 
 ## Run all tests
 
