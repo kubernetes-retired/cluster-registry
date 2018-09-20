@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 # Copyright 2018 The Kubernetes Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,27 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -euo pipefail
+set -eou pipefail
 
 SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_ROOT}/../.." && pwd)"
 pushd ${REPO_ROOT} > /dev/null
 
-find_files() {
-  find . -not \( \
-      \( \
-        -wholename '*/vendor/*' \
-        -o -wholename '*/doc.go' \
-      \) -prune \
-    \) -name '*.go'
-}
+find . -name "*.go" | grep -v -e "\/vendor\/" -e "/doc.go" | xargs gofmt -s -w
 
-GOFMT="gofmt -s"
-bad_files=$(find_files | xargs $GOFMT -l)
 popd > /dev/null
-
-if [[ -n "${bad_files}" ]]; then
-  echo "Please run hack/go-tools/update-gofmt.sh to fix the following files:"
-  echo "${bad_files}"
-  exit 1
-fi
