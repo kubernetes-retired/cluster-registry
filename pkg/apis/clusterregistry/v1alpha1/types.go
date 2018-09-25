@@ -155,6 +155,10 @@ type ClusterCondition struct {
 	// +optional
 	LastHeartbeatTime metav1.Time `json:"lastHeartbeatTime,omitempty" protobuf:"bytes,3,opt,name=lastHeartbeatTime"`
 
+	// Last time the condition was checked.
+	// +optional
+	LastProbeTime metav1.Time `json:"lastProbeTime,omitempty"`
+
 	// LastTransitionTime is the last time the condition changed from one status to another.
 	// +optional
 	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty" protobuf:"bytes,4,opt,name=lastTransitionTime"`
@@ -167,3 +171,103 @@ type ClusterCondition struct {
 	// +optional
 	Message string `json:"message,omitempty" protobuf:"bytes,6,opt,name=message"`
 }
+
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// ClusterCredentials combines a Cluster record with a set of credentials
+// (stored in a kubeconfig) that can be used to access the cluster. The status
+// of ClusterCredentials reflects whether those credentials can be used - from
+// within the cluster hosting the ClusterCredentials resource - to access the
+// cluster's healthz endpoint.
+//
+// +k8s:openapi-gen=true
+// +kubebuilder:resource:path=clustercredentials
+// +kubebuilder:subresource:status
+type ClusterCredentials struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   ClusterCredentialsSpec   `json:"spec,omitempty"`
+	Status ClusterCredentialsStatus `json:"status,omitempty"`
+}
+
+// ClusterCredentialsSpec defines the desired state of a ClusterCredentials.
+type ClusterCredentialsSpec struct {
+	// ClusterRef is a reference to a Cluster to use.
+	//
+	// An empty namespace field indicates a reference to a Cluster in the
+	// enclosing namespace.
+	ClusterRef v1.ObjectReference `json:"clusterRef,omitempty"`
+
+	// SecretRef is a reference to the secret in the namespace that contains a
+	// kubeconfig with credentials access the referenced cluster. The secret
+	// must have a key named "kubeconfig" that contains a file formatted as a
+	// proper subset of the kubeconfig file format. The data must contain a
+	// kubeconfig file with only the following fields:
+	//
+	// - a 'users' section
+	// - a single, valid entry in the 'users' section containing the auth
+	//   information to use the referenced Cluster.
+	//
+	// TODO: explain which auth methods are supported
+	// TODO: explain kubeconfig version
+	//
+	// This can be left empty if the cluster allows insecure access.
+	// +optional
+	SecretRef *apiv1.LocalObjectReference `json:"secretRef,omitempty"`
+}
+
+// ClusterCredentialsStatus contains information about the current status of a
+// ClusterCredentials.
+type ClusterCredentialsStatus struct {
+	// Region is designation for a geographic area that contains a Cluster.
+	Region string `json:"region,omitempty"`
+
+	// AvailabilityZone is a distinct physical site within a single Region where
+	// a Cluster may be deployed.
+	AvailabilityZone string `json:"availabilityZone,omitempty"`
+
+	// Conditions is an array of current conditions.
+	// +optional
+	Conditions []ClusterCredentialsCondition `json:"conditions,omitempty"`
+}
+
+// ClusterCredentialsCondition contains condition information about a ClusterCredentials.
+type ClusterCredentialsCondition struct {
+	// Type is the type of the cluster condition.
+	Type ClusterConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=ClusterCredentialsConditionType"`
+
+	// Status is the status of the condition. One of True, False, Unknown.
+	Status v1.ConditionStatus `json:"status" protobuf:"bytes,2,opt,name=status,casttype=ConditionStatus"`
+
+	// LastHeartbeatTime is the last time this condition was updated.
+	// +optional
+	LastHeartbeatTime metav1.Time `json:"lastHeartbeatTime,omitempty" protobuf:"bytes,3,opt,name=lastHeartbeatTime"`
+
+	// Last time the condition was checked.
+	// +optional
+	LastProbeTime metav1.Time `json:"lastProbeTime,omitempty"`
+
+	// LastTransitionTime is the last time the condition changed from one status to another.
+	// +optional
+	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty" protobuf:"bytes,4,opt,name=lastTransitionTime"`
+
+	// Reason is a (brief) reason for the condition's last status change.
+	// +optional
+	Reason string `json:"reason,omitempty" protobuf:"bytes,5,opt,name=reason"`
+
+	// Message is a human-readable message indicating details about the last status change.
+	// +optional
+	Message string `json:"message,omitempty" protobuf:"bytes,6,opt,name=message"`
+}
+
+// ClusterCredentialsConditionType marks the kind of ClusterCredentials condition
+// being reported.
+type ClusterCredentialsConditionType string
+
+const (
+	// ClusterCredentialsHealthy represents that a ClusterCredentials is healthy
+	// as determined by the Cluster's healthz endpoint.
+	ClusterCredentialsHealthy ClusterConditionType = "Healthy"
+)
