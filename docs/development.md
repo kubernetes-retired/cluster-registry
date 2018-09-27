@@ -62,6 +62,16 @@ These will update the generated client code, update the generated docs and
 OpenAPI spec in `docs/reference/openapi-spec`, and update the CRD YAML
 definition in the repo root.
 
+**NOTE:** If you want to use `cluster-registry-crd.yaml` in a helm chart, then it is
+suggested to add the following annotation to `cluster-registry-crd.yaml`. This ensures
+that the cluster registry CRD is created before other resources in the Helm chart.
+This annotation is available in Helm 2.10+.
+
+```
+annotations:
+  "helm.sh/hook": crd-install
+```
+
 ## Verify Go source files
 
 You can run the Go source file verification script to verify and fix your Go
