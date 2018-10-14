@@ -17,7 +17,7 @@ limitations under the License.
 package hack
 
 /*
-Package imports imports dependencies required for "dep ensure" to fetch all of the go package dependencies needed
+Package imports dependencies required for "dep ensure" to fetch all of the go package dependencies needed
 by kubebuilder commands to work without rerunning "dep ensure".
 
 Example: make sure the testing libraries and apimachinery libraries are fetched by "dep ensure" so that
