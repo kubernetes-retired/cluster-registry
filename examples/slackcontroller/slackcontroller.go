@@ -23,8 +23,10 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
+
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
@@ -130,7 +132,7 @@ func (c *Controller) Run(threadiness int, stopCh <-chan struct{}) error {
 	// Wait for the caches to be synced before starting workers
 	glog.Info("Waiting for informer caches to sync")
 	if ok := cache.WaitForCacheSync(stopCh, c.clustersSynced); !ok {
-		return fmt.Errorf("failed to wait for caches to sync")
+		return errors.New("failed to wait for caches to sync")
 	}
 
 	glog.Info("Starting workers")
@@ -184,13 +186,13 @@ func (c *Controller) processNextWorkItem() bool {
 			// Forget here else we'd go into a loop of attempting to
 			// process a work item that is invalid.
 			c.workqueue.Forget(obj)
-			runtime.HandleError(fmt.Errorf("expected string in workqueue but got %#v", obj))
+			runtime.HandleError(errors.Errorf("expected string in workqueue but got %#v", obj))
 			return nil
 		}
 		// Run the syncHandler, passing it the namespace/name string of the
 		// cluster resource to be synced.
 		if err := c.syncHandler(key); err != nil {
-			return fmt.Errorf("error syncing '%s': %s", key, err.Error())
+			return errors.Wrapf(err, "error syncing '%s'", key)
 		}
 		// Finally, if no error occurs we Forget this item so it does not
 		// get queued again until another change happens.
@@ -213,7 +215,7 @@ func (c *Controller) syncHandler(key string) error {
 	// Convert the namespace/name string into a distinct namespace and name
 	namespace, name, err := cache.SplitMetaNamespaceKey(key)
 	if err != nil {
-		runtime.HandleError(fmt.Errorf("invalid resource key: %s", key))
+		runtime.HandleError(errors.Errorf("invalid resource key: %s", key))
 		return nil
 	}
 
@@ -223,7 +225,7 @@ func (c *Controller) syncHandler(key string) error {
 	if err != nil {
 		// The Cluster resource may have been deleted, in which case we
 		// post a removal message.
-		if errors.IsNotFound(err) {
+		if apierrors.IsNotFound(err) {
 			bodyFormatString = "Cluster %s was removed from namespace %s."
 		} else {
 			return err
