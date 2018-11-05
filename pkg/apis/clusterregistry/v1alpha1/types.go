@@ -181,6 +181,10 @@ type ClusterCondition struct {
 // within the cluster hosting the ClusterCredentials resource - to access the
 // cluster's healthz endpoint.
 //
+// ClusterCredentials is meant to enable creation of controllers that interact
+// with remote clusters and/or software that generates kubeconfig files that are
+// usable with remote clusters.
+//
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=clustercredentials
 // +kubebuilder:subresource:status
@@ -201,17 +205,31 @@ type ClusterCredentialsSpec struct {
 	ClusterRef v1.ObjectReference `json:"clusterRef,omitempty"`
 
 	// SecretRef is a reference to the secret in the namespace that contains a
-	// kubeconfig with credentials access the referenced cluster. The secret
-	// must have a key named "kubeconfig" that contains a file formatted as a
-	// proper subset of the kubeconfig file format. The data must contain a
-	// kubeconfig file with only the following fields:
+	// kubeconfig user with authentication information to use to access the
+	// referenced cluster. The secret must have a key named "authInfo" that
+	// contains a serialized kubeconfig AuthInfo.
 	//
-	// - a 'users' section
-	// - a single, valid entry in the 'users' section containing the auth
-	//   information to use the referenced Cluster.
+	// The AuthInfo type is defined here:
 	//
-	// TODO: explain which auth methods are supported
-	// TODO: explain kubeconfig version
+	// https://github.com/kubernetes/client-go/blob/v9.0.0/tools/clientcmd/api/v1/types.go
+	//
+	// Not all fields of AuthInfo are supported; unsupported fields are:
+	//
+	// - auth-provider
+	// - exec
+	// - extensions
+	//
+	// Note, these fields are currently unsupported to make the semantics of
+	// this API easier to reason about; they may be allowed in the future (or
+	// even later in the lifespan of this PR).
+	//
+	// TODO: firm up relationship of clientcmdapi to cluster-registry re:
+	// version
+	//
+	// TODO: determine whether this is the right API to hold information
+	// like:
+	// - CA bundle
+	// - skip TLS verify
 	//
 	// This can be left empty if the cluster allows insecure access.
 	// +optional
