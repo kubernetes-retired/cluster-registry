@@ -23,10 +23,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/golang/glog"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/klog"
 
 	clientset "k8s.io/cluster-registry/pkg/client/clientset/versioned"
 	informers "k8s.io/cluster-registry/pkg/client/informers/externalversions"
@@ -62,16 +62,16 @@ func main() {
 
 	cfg, err := clientcmd.BuildConfigFromFlags(masterURL, kubeconfig)
 	if err != nil {
-		glog.Fatalf("Error building kubeconfig: %s", err.Error())
+		klog.Fatalf("Error building kubeconfig: %s", err.Error())
 	}
 
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
-		glog.Fatalf("Error building kubernetes clientset: %s", err.Error())
+		klog.Fatalf("Error building kubernetes clientset: %s", err.Error())
 	}
 	clusterClient, err := clientset.NewForConfig(cfg)
 	if err != nil {
-		glog.Fatalf("Error building cluster clientset: %s", err.Error())
+		klog.Fatalf("Error building cluster clientset: %s", err.Error())
 	}
 
 	clusterInformerFactory := informers.NewSharedInformerFactory(clusterClient, time.Second*30)
@@ -81,7 +81,7 @@ func main() {
 	go clusterInformerFactory.Start(stopCh)
 
 	if err = controller.Run(2, stopCh); err != nil {
-		glog.Fatalf("Error running controller: %s", err.Error())
+		klog.Fatalf("Error running controller: %s", err.Error())
 	}
 }
 

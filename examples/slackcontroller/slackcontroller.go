@@ -22,7 +22,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/glog"
 	"github.com/pkg/errors"
 
 	corev1 "k8s.io/api/core/v1"
@@ -35,6 +34,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
+	"k8s.io/klog"
 
 	clientset "k8s.io/cluster-registry/pkg/client/clientset/versioned"
 	clusterregistryscheme "k8s.io/cluster-registry/pkg/client/clientset/versioned/scheme"
@@ -93,9 +93,9 @@ func NewSlackController(
 	// Add clusterregistry-controller types to the default Kubernetes Scheme so Events can be
 	// logged for clusterregistry-controller types.
 	clusterregistryscheme.AddToScheme(scheme.Scheme)
-	glog.V(4).Info("Creating event broadcaster")
+	klog.V(4).Info("Creating event broadcaster")
 	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartLogging(glog.Infof)
+	eventBroadcaster.StartLogging(klog.Infof)
 	eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{Interface: kubeclientset.CoreV1().Events("")})
 	recorder := eventBroadcaster.NewRecorder(scheme.Scheme, corev1.EventSource{Component: controllerAgentName})
 
@@ -109,7 +109,7 @@ func NewSlackController(
 		slackURL:                 slackURL,
 	}
 
-	glog.Info("Setting up event handlers")
+	klog.Info("Setting up event handlers")
 	clusterInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    controller.enqueueCluster,
 		DeleteFunc: controller.enqueueCluster,
@@ -127,23 +127,23 @@ func (c *Controller) Run(threadiness int, stopCh <-chan struct{}) error {
 	defer c.workqueue.ShutDown()
 
 	// Start the informer factories to begin populating the informer caches
-	glog.Info("Starting Cluster controller")
+	klog.Info("Starting Cluster controller")
 
 	// Wait for the caches to be synced before starting workers
-	glog.Info("Waiting for informer caches to sync")
+	klog.Info("Waiting for informer caches to sync")
 	if ok := cache.WaitForCacheSync(stopCh, c.clustersSynced); !ok {
 		return errors.New("failed to wait for caches to sync")
 	}
 
-	glog.Info("Starting workers")
+	klog.Info("Starting workers")
 	// Launch two workers to process Cluster resources
 	for i := 0; i < threadiness; i++ {
 		go wait.Until(c.runWorker, time.Second, stopCh)
 	}
 
-	glog.Info("Started workers")
+	klog.Info("Started workers")
 	<-stopCh
-	glog.Info("Shutting down workers")
+	klog.Info("Shutting down workers")
 
 	return nil
 }
@@ -197,7 +197,7 @@ func (c *Controller) processNextWorkItem() bool {
 		// Finally, if no error occurs we Forget this item so it does not
 		// get queued again until another change happens.
 		c.workqueue.Forget(obj)
-		glog.Infof("Successfully synced '%s'", key)
+		klog.Infof("Successfully synced '%s'", key)
 		return nil
 	}(obj)
 
@@ -211,7 +211,7 @@ func (c *Controller) processNextWorkItem() bool {
 
 // syncHandler sends Slack notifications when the cluster is updated.
 func (c *Controller) syncHandler(key string) error {
-	glog.Infof(key)
+	klog.Infof(key)
 	// Convert the namespace/name string into a distinct namespace and name
 	namespace, name, err := cache.SplitMetaNamespaceKey(key)
 	if err != nil {
@@ -238,7 +238,7 @@ func (c *Controller) syncHandler(key string) error {
 	if err != nil {
 		return err
 	}
-	glog.V(4).Infof("%#v", resp)
+	klog.V(4).Infof("%#v", resp)
 
 	if cluster != nil {
 		c.recorder.Event(cluster, corev1.EventTypeNormal, SuccessSynced, MessageResourceSynced)
