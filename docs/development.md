@@ -109,3 +109,8 @@ candidate.
 
 This tagging scheme is subject to change as the cluster registry moves through
 alpha and beta.
+
+## Updating Document
+
+If you are going to add some new sections for the document, make sure to update the table
+of contents. This can be done manually or with [doctoc](https://github.com/thlorenz/doctoc).
