@@ -1,3 +1,16 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Synopsis](#synopsis)
+- [Code Example](#code-example)
+- [Motivation](#motivation)
+- [Installation](#installation)
+- [License](#license)
+- [FAQ](#faq)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Synopsis
 
 Static compilation of html from markdown including processing for grouping code snippets into arbitrary tabs.

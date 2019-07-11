@@ -1,3 +1,18 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [User Guide](#user-guide)
+  - [What is the cluster registry?](#what-is-the-cluster-registry)
+  - [Setting up a cluster registry](#setting-up-a-cluster-registry)
+    - [Try it out!](#try-it-out)
+  - [Interacting with the cluster registry](#interacting-with-the-cluster-registry)
+    - [kubectl](#kubectl)
+    - [Generated Go client](#generated-go-client)
+    - [OpenAPI spec](#openapi-spec)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # User Guide
 
 ## What is the cluster registry?

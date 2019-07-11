@@ -1,3 +1,19 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Development](#development)
+  - [Prerequisites](#prerequisites)
+  - [Run all tests](#run-all-tests)
+  - [Updating vendored dependencies](#updating-vendored-dependencies)
+  - [Updating generated code/docs](#updating-generated-codedocs)
+  - [Verify Go source files](#verify-go-source-files)
+  - [Interacting with the k8s-bot](#interacting-with-the-k8s-bot)
+  - [Release](#release)
+    - [Tagging](#tagging)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Development
 
 The cluster registry repository is maintained using the
