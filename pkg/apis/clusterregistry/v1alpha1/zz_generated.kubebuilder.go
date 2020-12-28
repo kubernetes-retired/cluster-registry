@@ -37,8 +37,10 @@ func Resource(resource string) schema.GroupResource {
 }
 
 var (
+	// SchemeBuilder creates new Scheme Builder
 	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
-	AddToScheme   = SchemeBuilder.AddToScheme
+	// AddToScheme applies all the stored functions to the scheme
+	AddToScheme = SchemeBuilder.AddToScheme
 )
 
 // Adds the list of known types to Scheme.
@@ -53,6 +55,7 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
+// ClusterList struct for json parsing
 type ClusterList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
@@ -69,7 +72,7 @@ func getInt(i int64) *int64 {
 }
 
 var (
-	// Define CRDs for resources
+	// ClusterCRD define CRDs for resources
 	ClusterCRD = v1beta1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "clusters.clusterregistry.k8s.io",
