@@ -14,7 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/*
+// Package hack required for "dep ensure" to fetch all of the go package dependencies needed
+// by kubebuilder commands to work without rerunning "dep ensure".
+package hack
+
+import _ "github.com/kubernetes-sigs/kubebuilder/pkg/imports" /*
 Package imports dependencies required for "dep ensure" to fetch all of the go package dependencies needed
 by kubebuilder commands to work without rerunning "dep ensure".
 
@@ -24,6 +28,3 @@ dep ensure doesn't need to be rerun after "kubebuilder create resource".
 This is necessary for subsequent commands - such as building docs, tests, etc - to work without rerunning "dep ensure"
 afterward.
 */
-package hack
-
-import _ "github.com/kubernetes-sigs/kubebuilder/pkg/imports"
