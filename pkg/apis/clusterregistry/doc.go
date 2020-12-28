@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package clusterregistry :
 // +k8s:deepcopy-gen=package,register
 // +groupName=clusterregistry.k8s.io
 package clusterregistry
