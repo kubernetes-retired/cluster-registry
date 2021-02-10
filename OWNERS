@@ -1,10 +1,9 @@
 reviewers:
   - font
-  - madhusudancs
-  - perotinus
   - pmorie
 approvers:
   - font
+  - pmorie
+emeritus_approvers:
   - madhusudancs
   - perotinus
-  - pmorie
